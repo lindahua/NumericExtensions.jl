@@ -13,9 +13,12 @@ module FastVectorCompute
 		Sinh, Cosh, Tanh, Asinh, Acosh, Atanh, 
 		Erf, Erfc, Gamma, Lgamma, Digamma, 
 		Greater, GreaterEqual, Less, LessEqual, Equal, NotEqual,
-		Isfinite, Isnan, Isinf
+		Isfinite, Isnan, Isinf,
+
+		# fmap
+		fmap, fmap!
 
 	include("functors.jl")
-	include("vecmap.jl")
+	include("fmap.jl")
 
 end
