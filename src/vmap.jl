@@ -11,6 +11,10 @@ get_scalar(x::Number, i::Int, j::Int) = x
 get_scalar(x::Number, i::Int, j::Int, k::Int) = x
 
 typealias ArrayOrNumber Union(AbstractArray, Number)
+typealias VectorOrNumber Union(AbstractVector, Number)
+typealias MatrixOrNumber Union(AbstractMatrix, Number)
+typealias AbstractCube{T} AbstractArray{T,3}
+typealias CubeOrNumber Union(AbstractCube, Number)
 
 map_shape(x1::AbstractArray, x2::AbstractArray) = promote_shape(size(x1), size(x2))
 map_shape(x1::AbstractArray, x2::Number) = size(x1)
