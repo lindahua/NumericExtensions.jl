@@ -1,6 +1,6 @@
 #################################################
 #
-# 	Generic reduction
+# 	Generic full reduction
 #
 #################################################
 
@@ -86,6 +86,139 @@ function vreduce_fdiff(op::BinaryFunctor, f::UnaryFunctor, x1::Number, x2::Abstr
 end
 
 
+#################################################
+#
+# 	Reduction along specific dimension
+#
+#################################################
+
+function vreduce_dim1!(dst::AbstractArray, op::BinaryFunctor, x::AbstractMatrix)
+	m = size(x, 1)
+	n = size(x, 2)
+
+	for j in 1 : n
+		v = x[1,j]
+		for i in 2 : m
+			v = evaluate(op, v, x[i,j])
+		end
+		dst[j] = v
+	end	
+end
+
+function vreduce_dim2!(dst::AbstractArray, op::BinaryFunctor, x::AbstractMatrix)
+	m = size(x, 1)
+	n = size(x, 2)
+
+	for i in 1 : m
+		dst[i] = x[i,1]
+	end	
+
+	for j in 2 : n
+		for i in 1 : m
+			dst[i] = evaluate(op, dst[i], x[i,j])
+		end
+	end
+end
+
+function vreduce_dim2!{T}(dst::AbstractArray, op::BinaryFunctor, x::AbstractArray{T,3})
+	m = size(x, 1)
+	k = size(x, 2)
+	n = size(x, 3)
+
+	for j in 1 : n
+		for i in 1 : m
+			dst[i,j] = x[i,1,j]
+		end
+
+		for l in 2 : k
+			for i in 1 : m
+				dst[i,j] = evaluate(op, dst[i,j], x[i,l,j])
+			end
+		end
+	end
+end
+
+function vreduce!(dst::AbstractArray, op::BinaryFunctor, x::AbstractVector, dim::Integer)
+	if dim == 1
+		dst[1] = vreduce(op, x)
+	else
+		copy!(dst, x)
+	end
+	dst
+end
+
+function vreduce!(dst::AbstractArray, op::BinaryFunctor, x::AbstractMatrix, dim::Integer)
+	if dim == 1
+		vreduce_dim1!(dst, op, x)
+	elseif dim == 2
+		vreduce_dim2!(dst, op, x)
+	else
+		copy!(dst, x)
+	end
+	dst
+end
+
+function vreduce!{T}(dst, op::BinaryFunctor, x::AbstractArray{T,3}, dim::Integer)
+	if dim == 1
+		vreduce_dim1!(dst, op, reshape(x, size(x,1), size(x,2) * size(x,3)))
+	elseif dim == 2
+		vreduce_dim2!(reshape(dst, size(x,1), size(x,3)), op, x)
+	elseif dim == 3
+		vreduce_dim2!(dst, op, reshape(x, size(x,1) * size(x,2), size(x,3)))
+	else
+		copy!(dst, x)
+	end
+	dst
+end
+
+function vreduce!(dst, op::BinaryFunctor, x::AbstractArray, dim::Integer)
+	siz = size(x)
+	nd = length(siz)
+	@assert nd >= 4
+
+	if dim == 1
+		vreduce_dim1!(dst, op, reshape(x, siz[1], prod(siz[2:])))
+	elseif dim == nd
+		vreduce_dim2!(dst, op, reshape(x, prod(siz[1:end-1]), siz[end]))
+	elseif 1 < dim < nd
+		df = prod(siz[1:dim-1])
+		dl = prod(siz[dim+1:])
+		vreduce_dim2!(reshape(dst, df, dl), op, reshape(x, df, siz[dim], dl))
+	else
+		copy!(dst, x)
+	end
+	dst
+end
+
+
+function reduced_size(siz::(Int,), dim::Integer)
+	dim == 1 ? (1,) : siz
+end
+
+function reduced_size(siz::(Int,Int), dim::Integer)
+	dim == 1 ? (1,siz[2]) :
+	dim == 2 ? (siz[1],1) : siz
+end
+
+function reduced_size(siz::(Int,Int,Int), dim::Integer)
+	dim == 1 ? (1,siz[2],siz[3]) :
+	dim == 2 ? (siz[1],1,siz[3]) :
+	dim == 3 ? (siz[1],siz[2],1) : siz
+end
+
+function reduced_size(siz::NTuple{Int}, dim::Integer)
+	nd = length(siz)
+	dim == 1 ? tuple(1, siz[2:]...) :
+	dim == nd ? tuple(siz[1:end-1]..., 1) :
+	1 < dim < nd ? tuple(siz[1:dim-1]...,1,siz[dim+1:]...) :
+	siz
+end
+
+function vreduce{T}(op::BinaryFunctor, x::AbstractArray{T}, dim::Integer)
+	r = Array(result_type(op, T, T), reduced_size(size(x), dim))
+	vreduce!(r, op, x, dim)
+end
+
 
 #################################################
 #
@@ -106,6 +239,9 @@ end
 function vsum{T1,T2}(f::BinaryFunctor, x1::AbstractArray{T1}, x2::AbstractArray{T2})
 	isempty(x1) && isempty(x2) ? zero(result_type(f, T1, T2)) : vreduce(Add(), f, x1, x2)
 end
+
+vsum(x::AbstractArray, dim::Integer) = vreduce(Add(), x, dim)
+vsum!(dst::AbstractArray, x::AbstractArray, dim::Integer) = vreduce!(Add(), x, dim)
 
 # sum on diff
 
