@@ -1,5 +1,5 @@
 
-using FastVectorCompute
+using NumericFunctors
 using Base.Test
 
 x = [1., 2., 3.]

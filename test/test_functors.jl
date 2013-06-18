@@ -1,6 +1,6 @@
 # Test functors
 
-using FastVectorCompute
+using NumericFunctors
 using Base.Test
 
 # Test unary functors

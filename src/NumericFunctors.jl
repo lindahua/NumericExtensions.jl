@@ -1,4 +1,4 @@
-module FastVectorCompute
+module NumericFunctors
 
 	export 
 		# functors
