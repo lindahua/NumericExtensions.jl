@@ -101,21 +101,56 @@ end
 
 function vreduce_dim2!{T}(dst::AbstractArray, op::BinaryFunctor, x::AbstractArray{T,3})
 	m = size(x, 1)
-	k = size(x, 2)
-	n = size(x, 3)
+	n = size(x, 2)
+	k = size(x, 3)
 
-	for j in 1 : n
+	for l in 1 : k
 		for i in 1 : m
-			dst[i,j] = x[i,1,j]
+			dst[i,l] = x[i,1,l]
 		end
 
-		for l in 2 : k
+		for j in 2 : n
 			for i in 1 : m
-				dst[i,j] = evaluate(op, dst[i,j], x[i,l,j])
+				dst[i,l] = evaluate(op, dst[i,l], x[i,j,l])
 			end
 		end
 	end
 end
+
+function vreduce_dim12!{T}(dst::AbstractArray, op::BinaryFunctor, x::AbstractArray{T,3})
+	vreduce_dim1!(dst, op, reshape(x, size(x,1) * size(x,2), size(x,3)))
+end
+
+function vreduce_dim23!{T}(dst::AbstractArray, op::BinaryFunctor, x::AbstractArray{T,3})
+	vreduce_dim2!(dst, op, reshape(x, size(x,1), size(x,2) * size(x,3)))
+end
+
+function vreduce_dim13!{T}(dst::AbstractArray, op::BinaryFunctor, x::AbstractArray{T,3})
+	m = size(x, 1)
+	n = size(x, 2)
+	k = size(x, 3)
+
+	# first page
+	for j in 1 : n
+		v = x[1,j,1]
+		for i in 2 : m
+			v = evaluate(op, v, x[i,j,1])
+		end
+		dst[j] = v
+	end
+
+	# remaining pages
+	for l in 2 : k
+		for j in 1 : n
+			v = dst[j]
+			for i in 1 : m
+				v = evaluate(op, v, x[i,j,l])
+			end
+			dst[j] = v
+		end
+	end
+end
+
 
 function vreduce!(dst::AbstractArray, op::BinaryFunctor, x::AbstractVector, dim::Integer)
 	if dim == 1
@@ -137,7 +172,7 @@ function vreduce!(dst::AbstractArray, op::BinaryFunctor, x::AbstractMatrix, dim:
 	dst
 end
 
-function vreduce!{T}(dst, op::BinaryFunctor, x::AbstractArray{T,3}, dim::Integer)
+function vreduce!{T}(dst::AbstractArray, op::BinaryFunctor, x::AbstractArray{T,3}, dim::Integer)
 	if dim == 1
 		vreduce_dim1!(dst, op, reshape(x, size(x,1), size(x,2) * size(x,3)))
 	elseif dim == 2
@@ -150,7 +185,7 @@ function vreduce!{T}(dst, op::BinaryFunctor, x::AbstractArray{T,3}, dim::Integer
 	dst
 end
 
-function vreduce!(dst, op::BinaryFunctor, x::AbstractArray, dim::Integer)
+function vreduce!(dst::AbstractArray, op::BinaryFunctor, x::AbstractArray, dim::Integer)
 	siz = size(x)
 	nd = length(siz)
 	@assert nd >= 4
@@ -166,6 +201,14 @@ function vreduce!(dst, op::BinaryFunctor, x::AbstractArray, dim::Integer)
 	else
 		copy!(dst, x)
 	end
+	dst
+end
+
+function vreduce!{T}(dst::AbstractArray, op::BinaryFunctor, x::AbstractArray{T,3}, rgn::(Int, Int))
+	rgn == (1, 2) ? vreduce_dim12!(dst, op, x) :
+	rgn == (1, 3) ? vreduce_dim13!(dst, op, x) :
+	rgn == (2, 3) ? vreduce_dim23!(dst, op, x) : 
+	throw(ArgumentError("rgn must be either of (1, 2), (1, 3), or (2, 3)."))
 	dst
 end
 
@@ -193,9 +236,23 @@ function reduced_size(siz::NTuple{Int}, dim::Integer)
 	siz
 end
 
+function reduced_size(siz::NTuple{Int}, rgn::NTuple{Int})
+	rsiz = [siz...]
+	for i in rgn 
+		rsiz[i] = 1
+	end
+	tuple(rsiz...)
+end
+
+
 function vreduce{T}(op::BinaryFunctor, x::AbstractArray{T}, dim::Integer)
 	r = Array(result_type(op, T, T), reduced_size(size(x), dim))
 	vreduce!(r, op, x, dim)
+end
+
+function vreduce{T}(op::BinaryFunctor, x::AbstractArray{T,3}, rgn::(Int, Int))
+	r = Array(result_type(op, T, T), reduced_size(size(x), rgn))
+	vreduce!(r, op, x, rgn)
 end
 
 
@@ -204,6 +261,8 @@ end
 # 	Basic reduction functions
 #
 #################################################
+
+typealias DimSpec Union(Int, (Int, Int))
 
 # sum
 
@@ -219,8 +278,20 @@ function vsum{T1,T2}(f::BinaryFunctor, x1::AbstractArray{T1}, x2::AbstractArray{
 	isempty(x1) && isempty(x2) ? zero(result_type(f, T1, T2)) : vreduce(Add(), f, x1, x2)
 end
 
-vsum(x::AbstractArray, dim::Integer) = vreduce(Add(), x, dim)
-vsum!(dst::AbstractArray, x::AbstractArray, dim::Integer) = vreduce!(Add(), x, dim)
+vsum(x::AbstractArray, dims::DimSpec) = vreduce(Add(), x, dims)
+vsum!(dst::AbstractArray, x::AbstractArray, dims::DimSpec) = vreduce!(dst, Add(), x, dims)
+
+vsum(f::UnaryFunctor, x::AbstractArray, dims::DimSpec) = vreduce!(Add(), f, x, dims)
+vsum!(dst::AbstractArray, f::UnaryFunctor, x::AbstractArray, dims::DimSpec) = vreduce!(dst, Add(), f, x, dims)
+	
+function vsum(f::BinaryFunctor, x1::AbstractArray, x2::AbstractArray, dims::DimSpec)
+	vreduce!(dst, Add(), f, x1, x2, dims)
+end
+
+function vsum!(dst::AbstractArray, f::BinaryFunctor, x1::AbstractArray, x2::AbstractArray, dims::DimSpec)
+	vreduce!(dst, Add(), f, x1, x2, dims)
+end
+
 
 # sum on diff
 
@@ -264,6 +335,21 @@ function vmax{T1,T2}(f::BinaryFunctor, x1::AbstractArray{T1}, x2::AbstractArray{
 	isempty(x1) && isempty(x2) ? throw(ArgumentError("vmax cannot accept empty array.")) : vreduce(Max(), f, x1, x2)
 end
 
+vmax(x::AbstractArray, dims::DimSpec) = vreduce(Max(), x, dims)
+vmax!(dst::AbstractArray, x::AbstractArray, dims::DimSpec) = vreduce!(dst, Max(), x, dims)
+
+vmax(f::UnaryFunctor, x::AbstractArray, dims::DimSpec) = vreduce!(Max(), f, x, dims)
+vmax!(dst::AbstractArray, f::UnaryFunctor, x::AbstractArray, dims::DimSpec) = vreduce!(dst, Max(), f, x, dims)
+	
+function vmax(f::BinaryFunctor, x1::AbstractArray, x2::AbstractArray, dims::DimSpec)
+	vreduce!(dst, Max(), f, x1, x2, dims)
+end
+
+function vmax!(dst::AbstractArray, f::BinaryFunctor, x1::AbstractArray, x2::AbstractArray, dims::DimSpec)
+	vreduce!(dst, Max(), f, x1, x2, dims)
+end
+
+
 # min
 
 function vmin{T}(x::AbstractArray{T})
@@ -278,6 +364,21 @@ function vmin{T1,T2}(f::BinaryFunctor, x1::AbstractArray{T1}, x2::AbstractArray{
 	isempty(x1) && isempty(x2) ? throw(ArgumentError("vmin cannot accept empty array.")) : vreduce(Min(), f, x1, x2)
 end
 
+vmin(x::AbstractArray, dims::DimSpec) = vreduce(Min(), x, dims)
+vmin!(dst::AbstractArray, x::AbstractArray, dims::DimSpec) = vreduce!(dst, Min(), x, dims)
+
+vmin(f::UnaryFunctor, x::AbstractArray, dims::DimSpec) = vreduce!(Min(), f, x, dims)
+vmin!(dst::AbstractArray, f::UnaryFunctor, x::AbstractArray, dims::DimSpec) = vreduce!(dst, Min(), f, x, dims)
+	
+function vmin(f::BinaryFunctor, x1::AbstractArray, x2::AbstractArray, dims::DimSpec)
+	vreduce!(dst, Min(), f, x1, x2, dims)
+end
+
+function vmin!(dst::AbstractArray, f::BinaryFunctor, x1::AbstractArray, x2::AbstractArray, dims::DimSpec)
+	vreduce!(dst, Min(), f, x1, x2, dims)
+end
+
+
 
 #################################################
 #
@@ -289,6 +390,9 @@ const asum = Base.LinAlg.BLAS.asum
 
 vasum(x::Array) = asum(x)
 vasum(x::AbstractArray) = vsum(Abs(), x)
+vasum(x::Array, dims::DimSpec) = vsum(Abs(), x, dims)
+vasum!(dst::AbstractArray, x::AbstractArray, dims::DimSpec) = vsum!(dst, Abs(), x, dims)
+
 vamax(x::AbstractArray) = nonneg_vmax(Abs(), x)
 vamin(x::AbstractArray) = vmin(Abs(), x)
 

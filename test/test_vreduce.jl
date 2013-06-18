@@ -57,6 +57,8 @@ y3 = randn(3, 4, 5)
 x4 = randn(3, 4, 5, 2)
 y4 = randn(3, 4, 5, 2)
 
+# vsum
+
 @test size(vsum(x1, 1)) == size(sum(x1, 1))
 @test size(vsum(x1, 2)) == size(sum(x1, 2))
 @test size(vsum(x2, 1)) == size(sum(x2, 1))
@@ -87,6 +89,78 @@ y4 = randn(3, 4, 5, 2)
 @test_approx_eq vsum(x4, 4) sum(x4, 4)
 @test_approx_eq vsum(x4, 5) sum(x4, 5)
 
+r = zeros(6); vsum!(r, x2, 1)
+@test_approx_eq r vec(sum(x2, 1))
 
+r = zeros(5); vsum!(r, x2, 2)
+@test_approx_eq r vec(sum(x2, 2))
+
+r = zeros(4, 5); vsum!(r, x3, 1)
+@test_approx_eq r reshape(sum(x3, 1), 4, 5)
+
+r = zeros(3, 5); vsum!(r, x3, 2)
+@test_approx_eq r reshape(sum(x3, 2), 3, 5)
+
+r = zeros(3, 4); vsum!(r, x3, 3)
+@test_approx_eq r reshape(sum(x3, 3), 3, 4)
+
+@test size(vsum(x3, (1, 2))) == size(sum(x3, (1, 2)))
+@test size(vsum(x3, (1, 3))) == size(sum(x3, (1, 3)))
+@test size(vsum(x3, (2, 3))) == size(sum(x3, (2, 3)))
+
+@test_approx_eq vsum(x3, (1, 2)) sum(x3, (1, 2))
+@test_approx_eq vsum(x3, (1, 3)) sum(x3, (1, 3))
+@test_approx_eq vsum(x3, (2, 3)) sum(x3, (2, 3))
+
+r = zeros(5); vsum!(r, x3, (1, 2))
+@test_approx_eq r vec(sum(x3, (1, 2)))
+
+r = zeros(4); vsum!(r, x3, (1, 3))
+@test_approx_eq r vec(sum(x3, (1, 3)))
+
+r = zeros(3); vsum!(r, x3, (2, 3))
+@test_approx_eq r vec(sum(x3, (2, 3)))
+
+# vmax
+
+@test_approx_eq vmax(x1, 1) max(x1, (), 1)
+@test_approx_eq vmax(x1, 2) max(x1, (), 2)
+@test_approx_eq vmax(x2, 1) max(x2, (), 1)
+@test_approx_eq vmax(x2, 2) max(x2, (), 2)
+@test_approx_eq vmax(x2, 3) max(x2, (), 3)
+@test_approx_eq vmax(x3, 1) max(x3, (), 1)
+@test_approx_eq vmax(x3, 2) max(x3, (), 2)
+@test_approx_eq vmax(x3, 3) max(x3, (), 3)
+@test_approx_eq vmax(x3, 4) max(x3, (), 4)
+@test_approx_eq vmax(x4, 1) max(x4, (), 1)
+@test_approx_eq vmax(x4, 2) max(x4, (), 2)
+@test_approx_eq vmax(x4, 3) max(x4, (), 3)
+@test_approx_eq vmax(x4, 4) max(x4, (), 4)
+@test_approx_eq vmax(x4, 5) max(x4, (), 5)
+
+@test_approx_eq vmax(x3, (1, 2)) max(x3, (), (1, 2))
+@test_approx_eq vmax(x3, (1, 3)) max(x3, (), (1, 3))
+@test_approx_eq vmax(x3, (2, 3)) max(x3, (), (2, 3))
+
+# vmin
+
+@test_approx_eq vmin(x1, 1) min(x1, (), 1)
+@test_approx_eq vmin(x1, 2) min(x1, (), 2)
+@test_approx_eq vmin(x2, 1) min(x2, (), 1)
+@test_approx_eq vmin(x2, 2) min(x2, (), 2)
+@test_approx_eq vmin(x2, 3) min(x2, (), 3)
+@test_approx_eq vmin(x3, 1) min(x3, (), 1)
+@test_approx_eq vmin(x3, 2) min(x3, (), 2)
+@test_approx_eq vmin(x3, 3) min(x3, (), 3)
+@test_approx_eq vmin(x3, 4) min(x3, (), 4)
+@test_approx_eq vmin(x4, 1) min(x4, (), 1)
+@test_approx_eq vmin(x4, 2) min(x4, (), 2)
+@test_approx_eq vmin(x4, 3) min(x4, (), 3)
+@test_approx_eq vmin(x4, 4) min(x4, (), 4)
+@test_approx_eq vmin(x4, 5) min(x4, (), 5)
+
+@test_approx_eq vmin(x3, (1, 2)) min(x3, (), (1, 2))
+@test_approx_eq vmin(x3, (1, 3)) min(x3, (), (1, 3))
+@test_approx_eq vmin(x3, (2, 3)) min(x3, (), (2, 3))
 
 

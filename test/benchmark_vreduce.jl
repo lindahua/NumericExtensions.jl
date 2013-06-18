@@ -44,12 +44,16 @@ macro bench_vreduce2(name, rp, a, b, f1, f2)
 	end
 end
 
+
 # data
 
 a = rand(1000, 1000)
 b = rand(1000, 1000)
 
 # benchmark
+
+println("Full reduction")
+println("=======================================")
 
 @bench_vreduce1("sum", 10, a, sum, vsum)
 @bench_vreduce1("max", 10, a, max, vmax)
@@ -81,4 +85,44 @@ diff_cubesum(a, b) = sum(abs(a - b).^3.)
 @bench_vreduce2("diff_amax", 10, a, b, diff_amax, vadiffmax)
 @bench_vreduce2("diff_amin", 10, a, b, diff_amin, vadiffmin)
 @bench_vreduce2("diff_sqsum", 10, a, b, diff_sqsum, vsqdiffsum)
+
+
+println("Colwise reduction")
+println("=======================================")
+
+colwise_sum(a) = sum(a, 1)
+colwise_vsum(a) = vsum(a, 1)
+@bench_vreduce1("colwise-sum", 10, a, colwise_sum, colwise_vsum)
+
+
+println("Rowwise reduction")
+println("=======================================")
+
+rowwise_sum(a) = sum(a, 2)
+rowwise_vsum(a) = vsum(a, 2)
+@bench_vreduce1("colwise-sum", 10, a, rowwise_sum, rowwise_vsum)
+
+
+println("Reduction along two-dims of a cube")
+println("=======================================")
+
+a = rand(500, 500, 10)
+
+sum_12(a) = sum(a, (1, 2))
+vsum_12(a) = vsum(a, (1, 2))
+@bench_vreduce1("(1,2)-sum", 10, a, sum_12, vsum_12)
+
+sum_13(a) = sum(a, (1, 3))
+vsum_13(a) = vsum(a, (1, 3))
+@bench_vreduce1("(1,3)-sum", 10, a, sum_13, vsum_13)
+
+sum_23(a) = sum(a, (2, 3))
+vsum_23(a) = vsum(a, (2, 3))
+@bench_vreduce1("(2,3)-sum", 10, a, sum_23, vsum_23)
+
+
+
+
+
+
 
