@@ -45,17 +45,21 @@ function vreduce(op::BinaryFunctor, f::UnaryFunctor, x::AbstractArray)
 end
 
 function vreduce(op::BinaryFunctor, f::BinaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber)
+	n::Int = map_length(x1, x2)
 	v = evaluate(f, get_scalar(x1, 1), get_scalar(x2, 1))
-	for i in 2 : map_length(x1, x2)
+	for i in 2 : n
 		v = evaluate(op, v, evaluate(f, get_scalar(x1, i), get_scalar(x2, i)))
 	end
 	v
 end
 
 function vreduce_fdiff(op::BinaryFunctor, f::UnaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber)
+	n::Int = map_length(x1, x2)
 	v = evaluate(f, get_scalar(x1, 1) - get_scalar(x2, 1))
-	for i in 2 : map_length(x1, x2)	
-		v = evaluate(op, v, evaluate(f, get_scalar(x1, i) - get_scalar(x2, i)))
+	for i in 2 : n
+		u1 = get_scalar(x1, i)
+		u2 = get_scalar(x2, i)
+		v = evaluate(op, v, evaluate(f, u1 - u2))
 	end
 	v
 end
