@@ -20,13 +20,10 @@ function vreduce{R<:Union(Number, Bool)}(op::BinaryFunctor, init::R, f::UnaryFun
 	v
 end
 
-function vreduce{R<:Union(Number, Bool)}(op::BinaryFunctor, init::R, f::BinaryFunctor, x1::AbstractArray, x2::AbstractArray)
-	if length(x1) != length(x2)
-		throw(ArgumentError("Argument length must match."))
-	end
+function vreduce{R<:Union(Number, Bool)}(op::BinaryFunctor, init::R, f::BinaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber)
 	v::R = init
 	for i in 1 : length(x1)
-		v = evaluate(op, v, evaluate(f, x1[i], x2[i]))
+		v = evaluate(op, v, evaluate(f, get_scalar(x1, i), get_scalar(x2, i)))
 	end
 	v
 end
@@ -47,40 +44,18 @@ function vreduce(op::BinaryFunctor, f::UnaryFunctor, x::AbstractArray)
 	v
 end
 
-function vreduce(op::BinaryFunctor, f::BinaryFunctor, x1::AbstractArray, x2::AbstractArray)
-	if length(x1) != length(x2)
-		throw(ArgumentError("Argument length must match."))
-	end
-	v = evaluate(f, x1[1], x2[1])
-	for i in 2 : length(x1)
-		v = evaluate(op, v, evaluate(f, x1[i], x2[i]))
+function vreduce(op::BinaryFunctor, f::BinaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber)
+	v = evaluate(f, get_scalar(x1, 1), get_scalar(x2, 1))
+	for i in 2 : map_length(x1, x2)
+		v = evaluate(op, v, evaluate(f, get_scalar(x1, i), get_scalar(x2, i)))
 	end
 	v
 end
 
-function vreduce_fdiff(op::BinaryFunctor, f::UnaryFunctor, x1::AbstractArray, x2::AbstractArray)
-	if length(x1) != length(x2)
-		throw(ArgumentError("Argument length must match."))
-	end
-	v = evaluate(f, x1[1] - x2[1])
-	for i in 2 : length(x1)
-		v = evaluate(op, v, evaluate(f, x1[i] - x2[i]))
-	end
-	v
-end
-
-function vreduce_fdiff(op::BinaryFunctor, f::UnaryFunctor, x1::AbstractArray, x2::Number)
-	v = evaluate(f, x1[1] - x2)
-	for i in 2 : length(x1)
-		v = evaluate(op, v, evaluate(f, x1[i] - x2))
-	end
-	v
-end
-
-function vreduce_fdiff(op::BinaryFunctor, f::UnaryFunctor, x1::Number, x2::AbstractArray)
-	v = evaluate(f, x1 - x2[1])
-	for i in 2 : length(x2)
-		v = evaluate(op, v, evaluate(f, x1 - x2[i]))
+function vreduce_fdiff(op::BinaryFunctor, f::UnaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber)
+	v = evaluate(f, get_scalar(x1, 1) - get_scalar(x2, 1))
+	for i in 2 : map_length(x1, x2)	
+		v = evaluate(op, v, evaluate(f, get_scalar(x1, i) - get_scalar(x2, i)))
 	end
 	v
 end

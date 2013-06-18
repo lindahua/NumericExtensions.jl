@@ -56,6 +56,10 @@ add_vmap(a::Array, b::Array) = vmap(Add(), a, b)
 mul_vmap(a::Array, b::Array) = vmap(Multiply(), a, b)
 @bench_vmap2("multiply", 10, a, b, .*, mul_vmap)
 
+my_inv(a::Array) = 1.0 ./ a
+inv_vmap(a::Array) = vmap(Divide(), 1.0, a)
+@bench_vmap1("inv", 10, a, my_inv, inv_vmap)
+
 pow_vmap(a::Array, b::Array) = vmap(Pow(), a, b)
 @bench_vmap2("pow", 10, a, b, .^, pow_vmap)
 
