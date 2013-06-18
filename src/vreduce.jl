@@ -4,153 +4,228 @@
 #
 #################################################
 
-function vreduce{R<:Union(Number, Bool)}(op::BinaryFunctor, init::R, x::AbstractArray)
-	v::R = init
-	for i in 1 : length(x)
-		v = evaluate(op, v, x[i])
+# vreduce with init
+
+function _code_vreduce_withinit(kergen::Symbol)
+	kernel = eval(:($kergen(:i)))
+	quote
+		v::R = init
+		for i in 1 : length(x)
+			v = evaluate(op, v, $kernel)
+		end
+		v
 	end
-	v
+end
+
+macro _vreduce_withinit(kergen)
+	esc(_code_vreduce_withinit(kergen))
+end
+
+function vreduce{R<:Union(Number, Bool)}(op::BinaryFunctor, init::R, x::AbstractArray)
+	@_vreduce_withinit _ker_nofun
 end
 
 function vreduce{R<:Union(Number, Bool)}(op::BinaryFunctor, init::R, f::UnaryFunctor, x::AbstractArray)
-	v::R = init
-	for i in 1 : length(x)
-		v = evaluate(op, v, evaluate(f, x[i]))
-	end
-	v
+	@_vreduce_withinit _ker_unaryfun
 end
 
 function vreduce{R<:Union(Number, Bool)}(op::BinaryFunctor, init::R, f::BinaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber)
-	v::R = init
-	for i in 1 : length(x1)
-		v = evaluate(op, v, evaluate(f, get_scalar(x1, i), get_scalar(x2, i)))
-	end
-	v
+	@_vreduce_withinit _ker_binaryfun
 end
 
-function vreduce(op::BinaryFunctor, x::AbstractArray)
-	v = x[1]
-	for i in 2 : length(x)
-		v = evaluate(op, v, x[i])
+# vreduce without init
+
+function _code_vreduce(kergen::Symbol)
+	ker1 = eval(:($kergen(1))) 
+	kernel = eval(:($kergen(:i)))
+	quote
+		v = $ker1
+		for i in 2 : n
+			v = evaluate(op, v, $kernel)
+		end
+		v
 	end
-	v
+end
+
+macro _vreduce(kergen)
+	esc(_code_vreduce(kergen))
+end
+
+
+function vreduce(op::BinaryFunctor, x::AbstractArray)
+	n = length(x)
+	@_vreduce _ker_nofun
 end
 
 function vreduce(op::BinaryFunctor, f::UnaryFunctor, x::AbstractArray)
-	v = evaluate(f, x[1])
-	for i in 2 : length(x)
-		v = evaluate(op, v, evaluate(f, x[i]))
-	end
-	v
+	n = length(x)
+	@_vreduce _ker_unaryfun
 end
 
 function vreduce(op::BinaryFunctor, f::BinaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber)
 	n::Int = map_length(x1, x2)
-	v = evaluate(f, get_scalar(x1, 1), get_scalar(x2, 1))
-	for i in 2 : n
-		v = evaluate(op, v, evaluate(f, get_scalar(x1, i), get_scalar(x2, i)))
-	end
-	v
+	@_vreduce _ker_binaryfun
 end
 
 function vreduce_fdiff(op::BinaryFunctor, f::UnaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber)
 	n::Int = map_length(x1, x2)
-	v = evaluate(f, get_scalar(x1, 1) - get_scalar(x2, 1))
-	for i in 2 : n
-		u1 = get_scalar(x1, i)
-		u2 = get_scalar(x2, i)
-		v = evaluate(op, v, evaluate(f, u1 - u2))
-	end
-	v
+	@_vreduce _ker_fdiff
 end
 
 
-#################################################
+########################################################
 #
-# 	Reduction along specific dimension
+# 	Core routines for reduction along dimensions
 #
-#################################################
+########################################################
 
-function vreduce_dim1!(dst::AbstractArray, op::BinaryFunctor, x::AbstractMatrix)
-	m = size(x, 1)
-	n = size(x, 2)
+# Matrix along (1,)
 
-	for j in 1 : n
-		v = x[1,j]
-		for i in 2 : m
-			v = evaluate(op, v, x[i,j])
-		end
-		dst[j] = v
-	end	
-end
-
-function vreduce_dim2!(dst::AbstractArray, op::BinaryFunctor, x::AbstractMatrix)
-	m = size(x, 1)
-	n = size(x, 2)
-
-	for i in 1 : m
-		dst[i] = x[i,1]
-	end	
-
-	for j in 2 : n
-		for i in 1 : m
-			dst[i] = evaluate(op, dst[i], x[i,j])
-		end
-	end
-end
-
-function vreduce_dim2!{T}(dst::AbstractArray, op::BinaryFunctor, x::AbstractArray{T,3})
-	m = size(x, 1)
-	n = size(x, 2)
-	k = size(x, 3)
-
-	for l in 1 : k
-		for i in 1 : m
-			dst[i,l] = x[i,1,l]
-		end
-
-		for j in 2 : n
-			for i in 1 : m
-				dst[i,l] = evaluate(op, dst[i,l], x[i,j,l])
-			end
-		end
-	end
-end
-
-function vreduce_dim12!{T}(dst::AbstractArray, op::BinaryFunctor, x::AbstractArray{T,3})
-	vreduce_dim1!(dst, op, reshape(x, size(x,1) * size(x,2), size(x,3)))
-end
-
-function vreduce_dim23!{T}(dst::AbstractArray, op::BinaryFunctor, x::AbstractArray{T,3})
-	vreduce_dim2!(dst, op, reshape(x, size(x,1), size(x,2) * size(x,3)))
-end
-
-function vreduce_dim13!{T}(dst::AbstractArray, op::BinaryFunctor, x::AbstractArray{T,3})
-	m = size(x, 1)
-	n = size(x, 2)
-	k = size(x, 3)
-
-	# first page
-	for j in 1 : n
-		v = x[1,j,1]
-		for i in 2 : m
-			v = evaluate(op, v, x[i,j,1])
-		end
-		dst[j] = v
-	end
-
-	# remaining pages
-	for l in 2 : k
+function _code_vreduce_dim1(kergen::Symbol)
+	ker1 = eval(:($kergen(1, :j))) 
+	kernel = eval(:($kergen(:i, :j)))
+	quote
 		for j in 1 : n
-			v = dst[j]
-			for i in 1 : m
-				v = evaluate(op, v, x[i,j,l])
+			v = $ker1
+			for i in 2 : m
+				v = evaluate(op, v, $kernel)
 			end
 			dst[j] = v
 		end
 	end
 end
 
+macro _vreduce_dim1(kergen)
+	esc(_code_vreduce_dim1(kergen))
+end
+
+function vreduce_dim1!(dst::AbstractArray, op::BinaryFunctor, x::AbstractMatrix)
+	m = size(x, 1)
+	n = size(x, 2)
+	@_vreduce_dim1 _ker_nofun
+end
+
+
+# Matrix along (2,)
+
+function _code_vreduce_dim2(kergen::Symbol)
+	ker1 = eval(:($kergen(:i, 1)))
+	kernel = eval(:($kergen(:i, :j)))
+	quote
+		for i in 1 : m
+			dst[i] = $ker1
+		end	
+
+		for j in 2 : n
+			for i in 1 : m
+				dst[i] = evaluate(op, dst[i], $kernel)
+			end
+		end
+	end
+end
+
+macro _vreduce_dim2(kergen)
+	esc(_code_vreduce_dim2(kergen))
+end
+
+function vreduce_dim2!(dst::AbstractArray, op::BinaryFunctor, x::AbstractMatrix)
+	m = size(x, 1)
+	n = size(x, 2)
+	@_vreduce_dim2 _ker_nofun
+end
+
+
+# Cube along (2,)
+
+function _code_vreduce_dim2_cube(kergen::Symbol)
+	ker1 = eval(:($kergen(:i, 1, :l)))
+	kernel = eval(:($kergen(:i, :j, :l)))
+
+	quote
+		for l in 1 : k
+			for i in 1 : m
+				dst[i,l] = $ker1
+			end
+
+			for j in 2 : n
+				for i in 1 : m
+					dst[i,l] = evaluate(op, dst[i,l], $kernel)
+				end
+			end
+		end
+	end
+end
+
+macro _vreduce_dim2_cube(kergen)
+	esc(_code_vreduce_dim2_cube(kergen))
+end
+
+function vreduce_dim2!{T}(dst::AbstractArray, op::BinaryFunctor, x::AbstractArray{T,3})
+	m = size(x, 1)
+	n = size(x, 2)
+	k = size(x, 3)
+	@_vreduce_dim2_cube _ker_nofun
+end
+
+
+# Cube along (1,2)
+
+function vreduce_dim12!{T}(dst::AbstractArray, op::BinaryFunctor, x::AbstractArray{T,3})
+	vreduce_dim1!(dst, op, reshape(x, size(x,1) * size(x,2), size(x,3)))
+end
+
+# Cube along (1,3)
+
+function vreduce_dim23!{T}(dst::AbstractArray, op::BinaryFunctor, x::AbstractArray{T,3})
+	vreduce_dim2!(dst, op, reshape(x, size(x,1), size(x,2) * size(x,3)))
+end
+
+# Cube along (2,3)
+
+function _code_vreduce_dim13_cube(kergen::Symbol)
+	ker1 = eval(:($kergen(:i, :j, 1)))
+	kernel = eval(:($kergen(:i, :j, :l)))
+
+	quote
+		# first page
+		for j in 1 : n
+			v = x[1,j,1]
+			for i in 2 : m
+				v = evaluate(op, v, $ker1)
+			end
+			dst[j] = v
+		end
+
+		# remaining pages
+		for l in 2 : k
+			for j in 1 : n
+				v = dst[j]
+				for i in 1 : m
+					v = evaluate(op, v, $kernel)
+				end
+				dst[j] = v
+			end
+		end		
+	end
+end
+
+macro _vreduce_dim13_cube(kergen)
+	esc(_code_vreduce_dim13_cube(kergen))
+end
+
+function vreduce_dim13!{T}(dst::AbstractArray, op::BinaryFunctor, x::AbstractArray{T,3})
+	m = size(x, 1)
+	n = size(x, 2)
+	k = size(x, 3)
+	@_vreduce_dim13_cube _ker_nofun
+end
+
+
+########################################################
+#
+# 	Generic function for reduction along dimensions
+#
+########################################################
 
 function vreduce!(dst::AbstractArray, op::BinaryFunctor, x::AbstractVector, dim::Integer)
 	if dim == 1

@@ -10,6 +10,7 @@ get_scalar(x::Number, i::Int) = x
 get_scalar(x::Number, i::Int, j::Int) = x
 get_scalar(x::Number, i::Int, j::Int, k::Int) = x
 
+typealias SymOrNum Union(Symbol, Number)
 typealias ArrayOrNumber Union(AbstractArray, Number)
 typealias VectorOrNumber Union(AbstractVector, Number)
 typealias MatrixOrNumber Union(AbstractMatrix, Number)
@@ -35,30 +36,55 @@ result_eltype{T1,T2}(op::BinaryFunctor, x1::AbstractArray{T1}, x2::AbstractArray
 result_eltype{T1,T2<:Number}(op::BinaryFunctor, x1::AbstractArray{T1}, x2::T2) = result_type(op, T1, T2)
 result_eltype{T1<:Number,T2}(op::BinaryFunctor, x1::T1, x2::AbstractArray{T2}) = result_type(op, T1, T2)
 
+# code-gen devices
+
+_ker_nofun(i::SymOrNum) = :(x[$i])
+_ker_nofun(i::SymOrNum, j::SymOrNum) = :(x[$i, $j])
+_ker_nofun(i::SymOrNum, j::SymOrNum, l::SymOrNum) = :(x[$i, $j, $l])
+
+_ker_unaryfun(i::SymOrNum) = :(evaluate(f, x[$i]))
+_ker_unaryfun(i::SymOrNum, j::SymOrNum) = :(evaluate(f, x[$i, $j]))
+_ker_unaryfun(i::SymOrNum, j::SymOrNum, l::SymOrNum) = :(evaluate(f, x[$i, $j, $l]))
+
+_ker_binaryfun(i::SymOrNum) = :(evaluate(f, get_scalar(x1, $i), get_scalar(x2, $i)))
+_ker_binaryfun(i::SymOrNum, j::SymOrNum) = :(evaluate(f, get_scalar(x1, $i, $j), get_scalar(x2, $i, $j)))
+_ker_binaryfun(i::SymOrNum, j::SymOrNum, l::SymOrNum) = :(evaluate(f, get_scalar(x1, $i, $j, $l), get_scalar(x2, $i, $j, $l)))
+
+_ker_fdiff(i::SymOrNum) = :(evaluate(f, get_scalar(x1, $i) - get_scalar(x2, $i)))
+_ker_fdiff(i::SymOrNum, j::SymOrNum) = :(evaluate(f, get_scalar(x1, $i, $j) - get_scalar(x2, $i, $j)))
+_ker_fdiff(i::SymOrNum, j::SymOrNum, l::SymOrNum) = :(evaluate(f, get_scalar(x1, $i, $j, $l) - get_scalar(x2, $i, $j, $l)))
+
+function _code_vmap(kergen::Symbol)
+	kernel = eval(:($kergen(:i)))
+	quote
+		for i in 1 : length(dst)
+			(dst)[i] = $kernel
+		end
+		dst
+	end
+end
+
+macro _vmap(kergen)
+	esc(_code_vmap(kergen))
+end
+
+
 # one argument
 
-function vmap!(op::UnaryFunctor, dst::AbstractArray, x::AbstractArray)
-	for i in 1 : length(dst)
-		dst[i] = evaluate(op, x[i])
-	end
-	dst
+function vmap!(f::UnaryFunctor, dst::AbstractArray, x::AbstractArray)
+	@_vmap _ker_unaryfun
 end
 
 vmap!(op::UnaryFunctor, x::AbstractArray) = vmap!(op, x, x)
-
 vmap(op::UnaryFunctor, x::AbstractArray) = vmap!(op, Array(result_eltype(op, x), size(x)), x)
 
 # two arguments
 
-function vmap!(op::BinaryFunctor, dst::AbstractArray, x1::ArrayOrNumber, x2::ArrayOrNumber)
-	for i in 1 : length(dst)
-		dst[i] = evaluate(op, get_scalar(x1, i), get_scalar(x2, i))
-	end
-	dst
+function vmap!(f::BinaryFunctor, dst::AbstractArray, x1::ArrayOrNumber, x2::ArrayOrNumber)
+	@_vmap _ker_binaryfun
 end
 
 vmap!(op::BinaryFunctor, x1::AbstractArray, x2::ArrayOrNumber) = vmap!(op, x1, x1, x2)
-
 function vmap(op::BinaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber)
 	vmap!(op, Array(result_eltype(op, x1, x2), map_shape(x1, x2)), x1, x2)
 end
