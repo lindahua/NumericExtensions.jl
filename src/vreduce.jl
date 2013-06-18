@@ -129,6 +129,9 @@ end
 #
 #################################################
 
+const asum = Base.LinAlg.BLAS.asum
+
+vasum(x::Array) = asum(x)
 vasum(x::AbstractArray) = vsum(Abs(), x)
 vamax(x::AbstractArray) = nonneg_vmax(Abs(), x)
 vamin(x::AbstractArray) = vmin(Abs(), x)
@@ -146,6 +149,30 @@ vadiffmax(x::AbstractArray, y::AbstractArray) = vmax(AbsDiff(), x, y)
 vadiffmin(x::AbstractArray, y::AbstractArray) = vmin(AbsDiff(), x, y)
 vsqdiffsum(x::AbstractArray, y::AbstractArray) = vsum(SqrDiff(), x, y)
 
+# vnorm
+
+function vnorm(x::AbstractArray, p::Real)
+	if !(p > 0)
+		throw(ArgumentError("p must be positive."))
+	end
+	p == 1 ? vasum(x) :
+	p == 2 ? sqrt(vsqsum(x)) :	
+	isinf(p) ? vamax(x) :
+	vsum(FixAbsPow(p), x) .^ inv(p)
+end
+
+function vdiffnorm(x::AbstractArray, y::AbstractArray, p::Real)
+	if !(p > 0)
+		throw(ArgumentError("p must be positive."))
+	end
+	p == 1 ? vadiffsum(x, y) :
+	p == 2 ? sqrt(vsqdiffsum(x, y)) :	
+	isinf(p) ? vadiffmax(x, y) :
+	vsum(FixAbsPowDiff(p), x, y) .^ inv(p)
+end
+
+vnorm(x::AbstractArray) = vnorm(x, 2)
+vdiffnorm(x::AbstractArray, y::AbstractArray) = vdiffnorm(x, y, 2)
 
 
 

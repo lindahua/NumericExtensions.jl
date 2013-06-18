@@ -14,6 +14,7 @@ module NumericFunctors
 		Erf, Erfc, Gamma, Lgamma, Digamma, 
 		Greater, GreaterEqual, Less, LessEqual, Equal, NotEqual,
 		Isfinite, Isnan, Isinf,
+		AbsDiff, SqrDiff, FixAbsPow, FixAbsPowDiff,
 
 		# vmap
 		vmap, vmap!,
@@ -22,7 +23,8 @@ module NumericFunctors
 		vreduce, vreduce!, 
 		vsum, vsum!, vmax, vmax!, vmin, vmin!, nonneg_vmax, nonneg_vmax!,
 		vasum, vamax, vamin, vsqsum, vdot, 
-		vadiffsum, vadiffmax, vadiffmin, vsqdiffsum
+		vadiffsum, vadiffmax, vadiffmin, vsqdiffsum, 
+		vnorm, vdiffnorm
 
 	include("functors.jl")
 	include("vmap.jl")
