@@ -132,10 +132,13 @@ end
 vasum(x::AbstractArray) = vsum(Abs(), x)
 vamax(x::AbstractArray) = nonneg_vmax(Abs(), x)
 vamin(x::AbstractArray) = vmin(Abs(), x)
-
 vsqsum(x::AbstractArray) = vsum(Abs2(), x)
-vdot(x::AbstractArray, y::AbstractArray) = vsum(Multiply(), x, y)
 
+vdot(x::AbstractArray, y::AbstractArray) = vsum(Multiply(), x, y)
+vadiffsum(x::AbstractArray, y::AbstractArray) = vsum(AbsDiff(), x, y)
+vadiffmax(x::AbstractArray, y::AbstractArray) = vmax(AbsDiff(), x, y)
+vadiffmin(x::AbstractArray, y::AbstractArray) = vmin(AbsDiff(), x, y)
+vsqdiffsum(x::AbstractArray, y::AbstractArray) = vsum(SqrDiff(), x, y)
 
 
 

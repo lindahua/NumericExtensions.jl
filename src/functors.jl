@@ -22,7 +22,7 @@ for e in [
     (:Isfinite, :isfinite), (:Isnan, :isnan), (:Isinf, :isinf)]
 
     @eval type $(e[1]) <: UnaryFunctor end
-    @eval evaluate{T<:Number}(::($(e[1])), x::T) = ($(e[2]))(x)
+    @eval evaluate(::($(e[1])), x::Number) = ($(e[2]))(x)
 end
 
 # binary functors
@@ -34,8 +34,24 @@ for e in [
     (:Max, :max), (:Min, :min), (:Hypot, :hypot), (:Atan2, :atan2)]
 
     @eval type $(e[1]) <: BinaryFunctor end
-    @eval evaluate{T1<:Number, T2<:Number}(::($(e[1])), x::T1, y::T2) = ($(e[2]))(x, y)
+    @eval evaluate(::($(e[1])), x::Number, y::Number) = ($(e[2]))(x, y)
 end
+
+type AbsDiff <: BinaryFunctor end
+evaluate(::AbsDiff, x::Number, y::Number) = abs(x - y)
+
+type SqrDiff <: BinaryFunctor end
+evaluate(::SqrDiff, x::Number, y::Number) = abs2(x - y)
+
+immutable FixAbsPow{T<:Real} <: UnaryFunctor 
+    p::T
+end
+evaluate(op::FixAbsPow, x::Number) = abs(x) ^ op.p
+
+immutable FixAbsPowDiff{T<:Real} <: BinaryFunctor
+    p::T
+end
+evaluate(op::FixAbsPowDiff, x::Number, y::Number) = abs(x - y) ^ op.p
 
 
 #################################################
@@ -46,7 +62,7 @@ end
 
 to_fptype{T<:Number}(x::Type{T}) = typeof(convert(FloatingPoint, zero(T)))
 
-for Op in [:Add, :Subtract, :Multiply, :Pow, :Max, :Min]
+for Op in [:Add, :Subtract, :Multiply, :Pow, :Max, :Min, :AbsDiff, :SqrDiff]
     @eval result_type{T1<:Number, T2<:Number}(::($Op), ::Type{T1}, ::Type{T2}) = promote_type(T1, T2)
 end
 
@@ -80,4 +96,9 @@ result_type{T<:Real}(::Abs, ::Type{T}) = T
 result_type{T<:Real}(::Abs, ::Type{Complex{T}}) = to_fptype(T)
 result_type{T<:Real}(::Abs2, ::Type{T}) = T
 result_type{T<:Real}(::Abs2, ::Type{Complex{T}}) = T
+
+result_type{Tp<:Real, T<:Number}(::FixAbsPow, ::Type{T}) = promote_type(Tp, T)
+result_type{Tp<:Real, T1<:Number, T2<:Number}(::FixAbsPowDiff, ::Type{T1}, ::Type{T2}) = promote_type(Tp, promote_type(T1, T2))
+
+
 

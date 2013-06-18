@@ -59,6 +59,12 @@ mul_vmap(a::Array, b::Array) = vmap(Multiply(), a, b)
 pow_vmap(a::Array, b::Array) = vmap(Pow(), a, b)
 @bench_vmap2("pow", 10, a, b, .^, pow_vmap)
 
+max_vmap(a::Array, b::Array) = vmap(Max(), a, b)
+@bench_vmap2("max", 10, a, b, max, max_vmap)
+
+min_vmap(a::Array, b::Array) = vmap(Min(), a, b)
+@bench_vmap2("min", 10, a, b, min, min_vmap)
+
 abs_vmap(a::Array) = vmap(Abs(), a)
 @bench_vmap1("abs", 10, a, abs, abs_vmap)
 
@@ -73,6 +79,5 @@ exp_vmap(a::Array) = vmap(Exp(), a)
 
 log_vmap(a::Array) = vmap(Log(), a)
 @bench_vmap1("log", 10, a, log, log_vmap)
-
 
 

@@ -21,7 +21,8 @@ module NumericFunctors
 		# vreduce
 		vreduce, vreduce!, 
 		vsum, vsum!, vmax, vmax!, vmin, vmin!, nonneg_vmax, nonneg_vmax!,
-		vasum, vamax, vamin, vsqsum, vdot
+		vasum, vamax, vamin, vsqsum, vdot, 
+		vadiffsum, vadiffmax, vadiffmin, vsqdiffsum
 
 	include("functors.jl")
 	include("vmap.jl")

@@ -16,7 +16,10 @@ y = randn(10)
 @test_approx_eq vasum(x) sum(abs(x))
 @test_approx_eq vamax(x) max(abs(x))
 @test_approx_eq vamin(x) min(abs(x))
-
 @test_approx_eq vsqsum(x) sum(abs2(x))
-@test_approx_eq vdot(x, y) sum(x .* y)
 
+@test_approx_eq vdot(x, y) sum(x .* y)
+@test_approx_eq vadiffsum(x, y) sum(abs(x - y))
+@test_approx_eq vadiffmax(x, y) max(abs(x - y))
+@test_approx_eq vadiffmin(x, y) min(abs(x - y))
+@test_approx_eq vsqdiffsum(x, y) sum(abs2(x - y))
