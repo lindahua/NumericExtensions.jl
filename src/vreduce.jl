@@ -21,8 +21,11 @@ function vreduce{R<:Union(Number, Bool)}(op::BinaryFunctor, init::R, f::UnaryFun
 end
 
 function vreduce{R<:Union(Number, Bool)}(op::BinaryFunctor, init::R, f::BinaryFunctor, x1::AbstractArray, x2::AbstractArray)
+	if length(x1) != length(x2)
+		throw(ArgumentError("Argument length must match."))
+	end
 	v::R = init
-	for i in 1 : length(x)
+	for i in 1 : length(x1)
 		v = evaluate(op, v, evaluate(f, x1[i], x2[i]))
 	end
 	v
@@ -37,7 +40,7 @@ function vreduce(op::BinaryFunctor, x::AbstractArray)
 end
 
 function vreduce(op::BinaryFunctor, f::UnaryFunctor, x::AbstractArray)
-	v = f(x[1])
+	v = evaluate(f, x[1])
 	for i in 2 : length(x)
 		v = evaluate(op, v, evaluate(f, x[i]))
 	end
@@ -45,8 +48,11 @@ function vreduce(op::BinaryFunctor, f::UnaryFunctor, x::AbstractArray)
 end
 
 function vreduce(op::BinaryFunctor, f::BinaryFunctor, x1::AbstractArray, x2::AbstractArray)
-	v = f(x1[1], x2[1])
-	for i in 2 : length(x)
+	if length(x1) != length(x2)
+		throw(ArgumentError("Argument length must match."))
+	end
+	v = evaluate(f, x1[1], x2[1])
+	for i in 2 : length(x1)
 		v = evaluate(op, v, evaluate(f, x1[i], x2[i]))
 	end
 	v
@@ -71,7 +77,7 @@ function vsum{T}(f::UnaryFunctor, x::AbstractArray{T})
 end
 
 function vsum{T1,T2}(f::BinaryFunctor, x1::AbstractArray{T1}, x2::AbstractArray{T2})
-	isempty(x) ? zero(result_type(f, T1, T2)) : vreduce(Add(), f, x1, x2)
+	isempty(x1) && isempty(x2) ? zero(result_type(f, T1, T2)) : vreduce(Add(), f, x1, x2)
 end
 
 # nonneg max
@@ -85,7 +91,7 @@ function nonneg_vmax{T}(f::UnaryFunctor, x::AbstractArray{T})
 end
 
 function nonneg_vmax{T1,T2}(f::BinaryFunctor, x1::AbstractArray{T1}, x2::AbstractArray{T2})
-	isempty(x) ? zero(result_type(f, T1, T2)) : vreduce(Max(), f, x1, x2)
+	isempty(x1) && isempty(x2) ? zero(result_type(f, T1, T2)) : vreduce(Max(), f, x1, x2)
 end
 
 # max
@@ -99,7 +105,7 @@ function vmax{T}(f::UnaryFunctor, x::AbstractArray{T})
 end
 
 function vmax{T1,T2}(f::BinaryFunctor, x1::AbstractArray{T1}, x2::AbstractArray{T2})
-	isempty(x) ? throw(ArgumentError("vmax cannot accept empty array.")) : vreduce(Max(), f, x1, x2)
+	isempty(x1) && isempty(x2) ? throw(ArgumentError("vmax cannot accept empty array.")) : vreduce(Max(), f, x1, x2)
 end
 
 # min
@@ -113,7 +119,7 @@ function vmin{T}(f::UnaryFunctor, x::AbstractArray{T})
 end
 
 function vmin{T1,T2}(f::BinaryFunctor, x1::AbstractArray{T1}, x2::AbstractArray{T2})
-	isempty(x) ? throw(ArgumentError("vmin cannot accept empty array.")) : vreduce(Min(), f, x1, x2)
+	isempty(x1) && isempty(x2) ? throw(ArgumentError("vmin cannot accept empty array.")) : vreduce(Min(), f, x1, x2)
 end
 
 
@@ -123,11 +129,13 @@ end
 #
 #################################################
 
-vasum(x::AbstractArray{T}) = vsum(Abs(), x)
-vamax(x::AbstractArray{T}) = nonneg_vmax(Abs(), x)
-vamin(x::AbstractArray{T}) = vmin(Abs(), x)
+vasum(x::AbstractArray) = vsum(Abs(), x)
+vamax(x::AbstractArray) = nonneg_vmax(Abs(), x)
+vamin(x::AbstractArray) = vmin(Abs(), x)
 
-vsqsum(x::AbstractArray{T}) = vsum(Abs2(), x)
+vsqsum(x::AbstractArray) = vsum(Abs2(), x)
+vdot(x::AbstractArray, y::AbstractArray) = vsum(Multiply(), x, y)
+
 
 
 

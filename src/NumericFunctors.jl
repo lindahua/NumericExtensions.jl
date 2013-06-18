@@ -16,9 +16,15 @@ module NumericFunctors
 		Isfinite, Isnan, Isinf,
 
 		# vmap
-		vmap, vmap!
+		vmap, vmap!,
+
+		# vreduce
+		vreduce, vreduce!, 
+		vsum, vsum!, vmax, vmax!, vmin, vmin!, nonneg_vmax, nonneg_vmax!,
+		vasum, vamax, vamin, vsqsum, vdot
 
 	include("functors.jl")
 	include("vmap.jl")
+	include("vreduce.jl")
 
 end
