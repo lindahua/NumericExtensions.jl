@@ -15,10 +15,10 @@ module NumericFunctors
 		Greater, GreaterEqual, Less, LessEqual, Equal, NotEqual,
 		Isfinite, Isnan, Isinf,
 
-		# fmap
-		fmap, fmap!
+		# vmap
+		vmap, vmap!
 
 	include("functors.jl")
-	include("fmap.jl")
+	include("vmap.jl")
 
 end
