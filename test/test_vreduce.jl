@@ -24,6 +24,13 @@ y = randn(10)
 @test_approx_eq vadiffmin(x, y) min(abs(x - y))
 @test_approx_eq vsqdiffsum(x, y) sum(abs2(x - y))
 
+@test_approx_eq vadiffsum(x, 1.5) sum(abs(x - 1.5))
+@test_approx_eq vadiffmax(x, 1.5) max(abs(x - 1.5))
+@test_approx_eq vadiffmin(x, 1.5) min(abs(x - 1.5))
+@test_approx_eq vsqdiffsum(x, 1.5) sum(abs2(x - 1.5))
+
+@test_approx_eq vreduce_fdiff(Add(), Abs2(), 2.3, x) sum(abs2(2.3 - x))
+
 @test_approx_eq vnorm(x, 1) sum(abs(x))
 @test_approx_eq vnorm(x, 2) sqrt(sum(abs2(x)))
 @test_approx_eq vnorm(x, 3) sum(abs(x) .^ 3) .^ (1/3)

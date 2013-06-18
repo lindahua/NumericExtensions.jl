@@ -5,7 +5,7 @@ module NumericFunctors
 		Functor, UnaryFunctor, BinaryFunctor, TernaryFunctor,
 		result_type, evaluate,
 		Add, Subtract, Multiply, Divide, Negate, Max, Min,
-		Abs, Abs2, Sqrt, Cbrt, Pow, Hypot, 
+		Abs, Abs2, Sqrt, Cbrt, Pow, Hypot, FixAbsPow, 
 		Floor, Ceil, Round, Trunc,
 		Exp, Exp2, Exp10, Expm1, 
 		Log, Log2, Log10, Log1p,
@@ -14,13 +14,12 @@ module NumericFunctors
 		Erf, Erfc, Gamma, Lgamma, Digamma, 
 		Greater, GreaterEqual, Less, LessEqual, Equal, NotEqual,
 		Isfinite, Isnan, Isinf,
-		AbsDiff, SqrDiff, FixAbsPow, FixAbsPowDiff,
 
 		# vmap
 		vmap, vmap!,
 
 		# vreduce
-		vreduce, vreduce!, 
+		vreduce, vreduce!, vreduce_fdiff, vreduce_fdiff!,
 		vsum, vsum!, vmax, vmax!, vmin, vmin!, nonneg_vmax, nonneg_vmax!,
 		vasum, vamax, vamin, vsqsum, vdot, 
 		vadiffsum, vadiffmax, vadiffmin, vsqdiffsum, 

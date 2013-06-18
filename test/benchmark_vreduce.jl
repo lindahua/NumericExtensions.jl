@@ -60,16 +60,21 @@ amax(a) = max(abs(a))
 amin(a) = min(abs(a))
 sqsum(a) = sum(abs2(a))
 
+cubesum(a) = sum(abs(a).^3.)
+vcubesum(a) = vsum(FixAbsPow(3.), a)
+
 @bench_vreduce1("asum", 10, a, asum, vasum)
 @bench_vreduce1("amax", 10, a, amax, vamax)
 @bench_vreduce1("amin", 10, a, amin, vamin)
 @bench_vreduce1("sqsum", 10, a, sqsum, vsqsum)
+@bench_vreduce1("cubesum", 10, a, cubesum, vcubesum)
 
 my_dot(a, b) = sum(a .* b)
 diff_asum(a, b) = sum(abs(a - b))
 diff_amax(a, b) = max(abs(a - b))
 diff_amin(a, b) = min(abs(a - b))
 diff_sqsum(a, b) = sum(abs2(a - b))
+diff_cubesum(a, b) = sum(abs(a - b).^3.)
 
 @bench_vreduce2("dot", 10, a, b, my_dot, vdot)
 @bench_vreduce2("diff_asum", 10, a, b, diff_asum, vadiffsum)

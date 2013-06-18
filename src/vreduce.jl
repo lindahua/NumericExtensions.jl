@@ -58,6 +58,33 @@ function vreduce(op::BinaryFunctor, f::BinaryFunctor, x1::AbstractArray, x2::Abs
 	v
 end
 
+function vreduce_fdiff(op::BinaryFunctor, f::UnaryFunctor, x1::AbstractArray, x2::AbstractArray)
+	if length(x1) != length(x2)
+		throw(ArgumentError("Argument length must match."))
+	end
+	v = evaluate(f, x1[1] - x2[1])
+	for i in 2 : length(x1)
+		v = evaluate(op, v, evaluate(f, x1[i] - x2[i]))
+	end
+	v
+end
+
+function vreduce_fdiff(op::BinaryFunctor, f::UnaryFunctor, x1::AbstractArray, x2::Number)
+	v = evaluate(f, x1[1] - x2)
+	for i in 2 : length(x1)
+		v = evaluate(op, v, evaluate(f, x1[i] - x2))
+	end
+	v
+end
+
+function vreduce_fdiff(op::BinaryFunctor, f::UnaryFunctor, x1::Number, x2::AbstractArray)
+	v = evaluate(f, x1 - x2[1])
+	for i in 2 : length(x2)
+		v = evaluate(op, v, evaluate(f, x1 - x2[i]))
+	end
+	v
+end
+
 
 
 #################################################
@@ -78,6 +105,20 @@ end
 
 function vsum{T1,T2}(f::BinaryFunctor, x1::AbstractArray{T1}, x2::AbstractArray{T2})
 	isempty(x1) && isempty(x2) ? zero(result_type(f, T1, T2)) : vreduce(Add(), f, x1, x2)
+end
+
+# sum on diff
+
+function vsum_fdiff{T1<:Number,T2<:Number}(f::UnaryFunctor, x1::AbstractArray{T1}, x2::AbstractArray{T2})
+	isempty(x1) && isempty(x2) ? zero(result_type(f, T1, T2)) : vreduce_fdiff(Add(), f, x1, x2)
+end
+
+function vsum_fdiff{T1<:Number,T2<:Number}(f::UnaryFunctor, x1::AbstractArray{T1}, x2::T2)
+	isempty(x1) && isempty(x2) ? zero(result_type(f, T1, T2)) : vreduce_fdiff(Add(), f, x1, x2)
+end
+
+function vsum_fdiff{T1<:Number,T2<:Number}(f::UnaryFunctor, x1::T1, x2::AbstractArray{T2})
+	isempty(x1) && isempty(x2) ? zero(result_type(f, T1, T2)) : vreduce_fdiff(Add(), f, x1, x2)
 end
 
 # nonneg max
@@ -144,10 +185,10 @@ vdot(x::Vector, y::Vector) = dot(x, y)
 vdot(x::Array, y::Array) = dot(vec(x), vec(y))
 vdot(x::AbstractArray, y::AbstractArray) = vsum(Multiply(), x, y)
 
-vadiffsum(x::AbstractArray, y::AbstractArray) = vsum(AbsDiff(), x, y)
-vadiffmax(x::AbstractArray, y::AbstractArray) = vmax(AbsDiff(), x, y)
-vadiffmin(x::AbstractArray, y::AbstractArray) = vmin(AbsDiff(), x, y)
-vsqdiffsum(x::AbstractArray, y::AbstractArray) = vsum(SqrDiff(), x, y)
+vadiffsum(x::AbstractArray, y::Union(AbstractArray,Number)) = vsum_fdiff(Abs(), x, y)
+vadiffmax(x::AbstractArray, y::Union(AbstractArray,Number)) = vreduce_fdiff(Max(), Abs(), x, y)
+vadiffmin(x::AbstractArray, y::Union(AbstractArray,Number)) = vreduce_fdiff(Min(), Abs(), x, y)
+vsqdiffsum(x::AbstractArray, y::Union(AbstractArray,Number)) = vsum_fdiff(Abs2(), x, y)
 
 # vnorm
 
@@ -161,18 +202,18 @@ function vnorm(x::AbstractArray, p::Real)
 	vsum(FixAbsPow(p), x) .^ inv(p)
 end
 
-function vdiffnorm(x::AbstractArray, y::AbstractArray, p::Real)
+function vdiffnorm(x::AbstractArray, y::Union(AbstractArray,Number), p::Real)
 	if !(p > 0)
 		throw(ArgumentError("p must be positive."))
 	end
 	p == 1 ? vadiffsum(x, y) :
 	p == 2 ? sqrt(vsqdiffsum(x, y)) :	
 	isinf(p) ? vadiffmax(x, y) :
-	vsum(FixAbsPowDiff(p), x, y) .^ inv(p)
+	vsum_fdiff(FixAbsPow(p), x, y) .^ inv(p)
 end
 
 vnorm(x::AbstractArray) = vnorm(x, 2)
-vdiffnorm(x::AbstractArray, y::AbstractArray) = vdiffnorm(x, y, 2)
+vdiffnorm(x::AbstractArray, y::Union(AbstractArray,Number)) = vdiffnorm(x, y, 2)
 
 
 
