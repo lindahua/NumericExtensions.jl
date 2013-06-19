@@ -59,4 +59,3 @@ for e in [
 	@test typeof(evaluate(T(), 2, 3.0)) === typeof(f(2, 3.0)) == result_type(T(), Int, Float64)
 end
 
-

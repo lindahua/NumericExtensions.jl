@@ -101,4 +101,33 @@ function vmapdiff(f::UnaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber)
 end
 
 
+# specific inplace functions
+
+add!(x::AbstractArray, y::ArrayOrNumber) = vmap!(Add(), x, y)
+subtract!(x::AbstractArray, y::ArrayOrNumber) = vmap!(Subtract(), x, y)
+multiply!(x::AbstractArray, y::ArrayOrNumber) = vmap!(Multiply(), x, y)
+divide!(x::AbstractArray, y::ArrayOrNumber) = vmap!(Divide(), x, y)
+
+negate!(x::AbstractArray) = vmap!(Negate(), x)
+abs!(x::AbstractArray) = vmap!(Abs(), x)
+abs2!(x::AbstractArray) = vmap!(Abs2(), x)
+rcp!{T}(x::AbstractArray{T}) = vmap!(x, Divide(), one(T), x)
+sqrt!(x::AbstractArray) = vmap!(Sqrt(), x)
+pow!(x::AbstractArray, p::ArrayOrNumber) = vmap!(Pow(), x, p)
+
+floor!(x::AbstractArray) = vmap!(Floor(), x)
+ceil!(x::AbstractArray) = vmap!(Ceil(), x)
+round!(x::AbstractArray) = vmap!(Round(), x)
+trunc!(x::AbstractArray) = vmap!(Trunc(), x)
+
+exp!(x::AbstractArray) = vmap!(Exp(), x)
+log!(x::AbstractArray) = vmap!(Log(), x)
+
+
+
+
+
+
+
+
 

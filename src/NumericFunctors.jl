@@ -1,5 +1,7 @@
 module NumericFunctors
 
+	import Base.add!
+
 	export 
 		# functors
 		Functor, UnaryFunctor, BinaryFunctor, TernaryFunctor,
@@ -17,6 +19,10 @@ module NumericFunctors
 
 		# vmap
 		vmap, vmap!, vmapdiff, vmapdiff!,
+
+		add!, subtract!, multiply!, divide!, negate!, rcp!, 
+		sqrt!, abs!, abs2!, pow!, exp!, log!,
+		floor!, ceil!, round!, trunc!,
 
 		# vreduce
 		vreduce, vreduce!, vreduce_fdiff, vreduce_fdiff!,
