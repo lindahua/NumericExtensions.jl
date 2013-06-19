@@ -71,21 +71,34 @@ end
 
 # one argument
 
-function vmap!(f::UnaryFunctor, dst::AbstractArray, x::AbstractArray)
+function vmap!(dst::AbstractArray, f::UnaryFunctor, x::AbstractArray)
 	@_vmap _ker_unaryfun
 end
 
-vmap!(op::UnaryFunctor, x::AbstractArray) = vmap!(op, x, x)
-vmap(op::UnaryFunctor, x::AbstractArray) = vmap!(op, Array(result_eltype(op, x), size(x)), x)
+vmap!(f::UnaryFunctor, x::AbstractArray) = vmap!(x, f, x)
+vmap(f::UnaryFunctor, x::AbstractArray) = vmap!(Array(result_eltype(f, x), size(x)), f, x)
 
 # two arguments
 
-function vmap!(f::BinaryFunctor, dst::AbstractArray, x1::ArrayOrNumber, x2::ArrayOrNumber)
+function vmap!(dst::AbstractArray, f::BinaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber)
 	@_vmap _ker_binaryfun
 end
 
-vmap!(op::BinaryFunctor, x1::AbstractArray, x2::ArrayOrNumber) = vmap!(op, x1, x1, x2)
-function vmap(op::BinaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber)
-	vmap!(op, Array(result_eltype(op, x1, x2), map_shape(x1, x2)), x1, x2)
+vmap!(f::BinaryFunctor, x1::AbstractArray, x2::ArrayOrNumber) = vmap!(x1, f, x1, x2)
+function vmap(f::BinaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber)
+	vmap!(Array(result_eltype(f, x1, x2), map_shape(x1, x2)), f, x1, x2)
 end
+
+# vmapdiff
+
+function vmapdiff!(dst::AbstractArray, f::UnaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber)
+	@_vmap _ker_fdiff
+end
+
+function vmapdiff(f::UnaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber)
+	rt = result_type(f, promote_type(eltype(x1), eltype(x2)))
+	vmapdiff!(Array(rt, map_shape(x1, x2)), f, x1, x2)
+end
+
+
 

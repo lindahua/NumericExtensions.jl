@@ -16,7 +16,7 @@ module NumericFunctors
 		Isfinite, Isnan, Isinf,
 
 		# vmap
-		vmap, vmap!,
+		vmap, vmap!, vmapdiff, vmapdiff!,
 
 		# vreduce
 		vreduce, vreduce!, vreduce_fdiff, vreduce_fdiff!,
