@@ -51,11 +51,6 @@ immutable FixAbsPow{T<:Real} <: UnaryFunctor
 end
 evaluate(op::FixAbsPow, x::Number) = abs(x) ^ op.p
 
-immutable FixAbsPowDiff{T<:Real} <: BinaryFunctor
-    p::T
-end
-evaluate(op::FixAbsPowDiff, x::Number, y::Number) = abs(x - y) ^ op.p
-
 
 #################################################
 #
@@ -99,9 +94,8 @@ result_type{T<:Real}(::Abs, ::Type{T}) = T
 result_type{T<:Real}(::Abs, ::Type{Complex{T}}) = to_fptype(T)
 result_type{T<:Real}(::Abs2, ::Type{T}) = T
 result_type{T<:Real}(::Abs2, ::Type{Complex{T}}) = T
-
 result_type{Tp<:Real, T<:Number}(::FixAbsPow, ::Type{T}) = promote_type(Tp, T)
-result_type{Tp<:Real, T1<:Number, T2<:Number}(::FixAbsPowDiff, ::Type{T1}, ::Type{T2}) = promote_type(Tp, promote_type(T1, T2))
+
 
 
 
