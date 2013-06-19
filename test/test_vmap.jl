@@ -101,3 +101,10 @@ r = copy(x); round!(r)
 r = copy(x); trunc!(r)
 @test_approx_eq r trunc(x)
 
+
+# Test extended functions
+
+@test_approx_eq absdiff(x, y) abs(x - y)
+@test_approx_eq sqrdiff(x, y) abs2(x - y)
+
+

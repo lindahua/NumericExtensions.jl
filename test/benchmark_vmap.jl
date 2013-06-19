@@ -86,4 +86,10 @@ exp_vmap(a::Array) = vmap(Exp(), a)
 log_vmap(a::Array) = vmap(Log(), a)
 @bench_vmap1("log", 10, a, log, log_vmap)
 
+ju_absdiff(a::Array, b::Array) = abs(a - b)
+@bench_vmap2("absdiff", 10, a, b, ju_absdiff, absdiff)
+
+ju_sqrdiff(a::Array, b::Array) = abs2(a - b)
+@bench_vmap2("sqrdiff", 10, a, b, ju_sqrdiff, sqrdiff)
+
 

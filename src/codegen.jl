@@ -23,6 +23,7 @@ get_scalar(x::Number, i::Int, j::Int, k::Int) = x
 
 # shape inference
 
+map_shape(x1::AbstractArray) = size(x1)
 map_shape(x1::AbstractArray, x2::AbstractArray) = promote_shape(size(x1), size(x2))
 map_shape(x1::AbstractArray, x2::Number) = size(x1)
 map_shape(x1::Number, x2::AbstractArray) = size(x2)
@@ -46,20 +47,27 @@ result_eltype{T1<:Number,T2}(op::BinaryFunctor, x1::T1, x2::AbstractArray{T2}) =
 
 # building block generators
 
-type _ParamList end
-type _KernelExpr end
+abstract AbstractFunCoder
 
-gen0(::_ParamList) = :(x::AbstractArray)
-gen0(::_KernelExpr, i::Symbol) = :(x[$i])
+type TrivialCoder <: AbstractFunCoder end
 
-gen1(::_ParamList) = (:(f::UnaryFunctor), :(x::AbstractArray))
-gen1(::_KernelExpr, i::Symbol) = :(evaluate(f, x[$i]))
+generate_paramlist(::TrivialCoder) = :(x::AbstractArray)
+generate_kernel(::TrivialCoder, i::Symbol) = :(x[$i])
 
-gen2(::_ParamList) = :(f::BinaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber)
-gen2(::_KernelExpr, i::Symbol) = :(evaluate(f, get_scalar(x1, $i), get_scalar(x2, $i)))
+type UnaryCoder <: AbstractFunCoder end
 
-gen2_fdiff(::_ParamList) = :(f::UnaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber)
-gen2_fdiff(::_KernelExpr, i::Symbol) = :(evaluate(f, get_scalar(x1, $i) - get_scalar(x2, $i)))
+generate_paramlist(::UnaryCoder) = (:(f::UnaryFunctor), :(x::AbstractArray))
+generate_kernel(::UnaryCoder, i::Symbol) = :(evaluate(f, x[$i]))
+
+type BinaryCoder <: AbstractFunCoder end
+
+generate_paramlist(::BinaryCoder) = (:(f::BinaryFunctor), :(x1::ArrayOrNumber), :(x2::ArrayOrNumber))
+generate_kernel(::BinaryCoder, i::Symbol) = :(evaluate(f, get_scalar(x1, $i), get_scalar(x2, $i)))
+
+type FDiffCoder <: AbstractFunCoder end
+
+generate_paramlist(::FDiffCoder) = (:(f::UnaryFunctor), :(x1::ArrayOrNumber), :(x2::ArrayOrNumber))
+generate_kernel(::FDiffCoder, i::Symbol) = :(evaluate(f, get_scalar(x1, $i) - get_scalar(x2, $i)))
 
 
 # OLD code-gen devices

@@ -24,6 +24,8 @@ module NumericFunctors
 		sqrt!, abs!, abs2!, pow!, exp!, log!,
 		floor!, ceil!, round!, trunc!,
 
+		absdiff, sqrdiff,
+
 		# vbroadcast
 		vbroadcast, vbroadcast!,
 		badd, badd!, bsubtract, bsubtract!, bmultiply, bmultiply!, bdivide, bdivide!,
