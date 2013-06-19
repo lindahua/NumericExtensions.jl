@@ -7,7 +7,7 @@ module NumericFunctors
 		Functor, UnaryFunctor, BinaryFunctor, TernaryFunctor,
 		result_type, evaluate,
 		Add, Subtract, Multiply, Divide, Negate, Max, Min,
-		Abs, Abs2, Sqrt, Cbrt, Pow, Hypot, FixAbsPow, 
+		Abs, Abs2, Sqrt, Cbrt, Pow, Hypot, FixAbsPow, FMA,
 		Floor, Ceil, Round, Trunc,
 		Exp, Exp2, Exp10, Expm1, 
 		Log, Log2, Log10, Log1p,
@@ -24,7 +24,7 @@ module NumericFunctors
 		sqrt!, abs!, abs2!, pow!, exp!, log!,
 		floor!, ceil!, round!, trunc!,
 
-		absdiff, sqrdiff,
+		absdiff, sqrdiff, fma, fma!,
 
 		# vbroadcast
 		vbroadcast, vbroadcast!,

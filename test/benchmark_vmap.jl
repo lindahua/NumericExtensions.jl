@@ -8,8 +8,6 @@ macro bench_vmap1(name, rp, a, f1, f2)
 
 		($f1)($a)
 		($f2)($a)
-		($f1)($a)
-		($f2)($a)
 
 		t1 = @elapsed for i in 1 : ($rp)
 			($f1)($a) 
@@ -46,11 +44,33 @@ macro bench_vmap2(name, rp, a, b, f1, f2)
 	end
 end
 
+macro bench_vmap3(name, rp, a, b, c, f1, f2)
+	quote
+		println("Benchmark on $($name):")
+
+		($f1)($a, $b, $c)
+		($f2)($a, $b, $c)
+
+		t1 = @elapsed for i in 1 : ($rp)
+			($f1)($a, $b, $c) 
+		end
+
+		t2 = @elapsed for i in 1 : ($rp)
+			($f2)($a, $b, $c) 
+		end
+
+		@printf("\tJulia:  %7.4f sec\n", t1)
+		@printf("\tvmap:   %7.4f sec | gain = %6.3f\n", t2, t1 / t2)
+		println()
+	end
+end
+
 
 # data
 
 a = rand(1000, 1000)
 b = rand(1000, 1000)
+c = rand(1000, 1000)
 
 add_vmap(a::Array, b::Array) = vmap(Add(), a, b)
 @bench_vmap2("add", 10, a, b, +, add_vmap)
@@ -91,5 +111,9 @@ ju_absdiff(a::Array, b::Array) = abs(a - b)
 
 ju_sqrdiff(a::Array, b::Array) = abs2(a - b)
 @bench_vmap2("sqrdiff", 10, a, b, ju_sqrdiff, sqrdiff)
+
+ju_fma(a::Array, b::Array, c::Array) = a + b .* c
+@bench_vmap3("fma", 10, a, b, c, ju_fma, fma)
+
 
 

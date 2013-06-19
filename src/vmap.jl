@@ -25,6 +25,7 @@ end
 @vmap_function vmap! UnaryCoder()
 @vmap_function vmap! BinaryCoder()
 @vmap_function vmapdiff! FDiffCoder()
+@vmap_function vmap! TernaryCoder()
 
 vmap!(f::Functor, x1, xr...) = vmap!(x1, f, x1, xr...)
 
@@ -63,3 +64,7 @@ log!(x::AbstractArray) = vmap!(Log(), x)
 
 absdiff(x::AbstractArray, y::AbstractArray) = vmapdiff(Abs(), x, y)
 sqrdiff(x::AbstractArray, y::AbstractArray) = vmapdiff(Abs2(), x, y)
+
+fma!(a::AbstractArray, b::AbstractArray, c::ArrayOrNumber) = vmap!(FMA(), a, b, c)
+fma(a::AbstractArray, b::AbstractArray, c::ArrayOrNumber) = vmap(FMA(), a, b, c)
+

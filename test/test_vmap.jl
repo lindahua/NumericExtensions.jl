@@ -108,3 +108,25 @@ r = copy(x); trunc!(r)
 @test_approx_eq sqrdiff(x, y) abs2(x - y)
 
 
+# Ternary functions
+
+a = rand(8)
+b = rand(8)
+c = rand(8)
+
+@test_approx_eq vmap(FMA(), a, b, c)  a + b .* c
+@test_approx_eq vmap(FMA(), a, b, 2.) a + b * 2.
+@test_approx_eq vmap(FMA(), a, 2., c) a + 2. * c
+@test_approx_eq vmap(FMA(), 2., b, c)  2. + b .* c
+@test_approx_eq vmap(FMA(), a, 2., 3.) a + 2. * 3.
+@test_approx_eq vmap(FMA(), 2., b, 3.) 2. + b * 3.
+@test_approx_eq vmap(FMA(), 2., 3., c) 2. + 3. * c
+
+@test_approx_eq fma(a, b, c) a + b .* c
+@test_approx_eq fma(a, b, 2.) a + b * 2.
+
+r = copy(a); fma!(r, b, c)
+@test_approx_eq r a + b .* c
+r = copy(a); fma!(r, b, 2.)
+@test_approx_eq r a + b .* 2.
+
