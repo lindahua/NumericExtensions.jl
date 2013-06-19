@@ -98,6 +98,38 @@ colwise_asum(a) = sum(abs(a), 1)
 colwise_vasum(a) = vasum(a, 1)
 @bench_vreduce1("colwise-asum", 10, a, colwise_asum, colwise_vasum)
 
+colwise_amax(a) = max(abs(a), (), 1)
+colwise_vamax(a) = vamax(a, 1)
+@bench_vreduce1("colwise-amax", 10, a, colwise_amax, colwise_vamax)
+
+colwise_amin(a) = min(abs(a), (), 1)
+colwise_vamin(a) = vamin(a, 1)
+@bench_vreduce1("colwise-amin", 10, a, colwise_amin, colwise_vamin)
+
+colwise_sqsum(a) = sum(abs2(a), 1)
+colwise_vsqsum(a) = vsqsum(a, 1)
+@bench_vreduce1("colwise-sqsum", 10, a, colwise_sqsum, colwise_vsqsum)
+
+colwise_dot(a, b) = sum(a .* b, 1)
+colwise_vdot(a, b) = vdot(a, b, 1)
+@bench_vreduce2("colwise-dot", 10, a, b, colwise_dot, colwise_vdot)
+
+colwise_adiffsum(a, b) = sum(abs(a - b), 1)
+colwise_vadiffsum(a, b) = vadiffsum(a, b, 1)
+@bench_vreduce2("colwise-adiffsum", 10, a, b, colwise_adiffsum, colwise_vadiffsum)
+
+colwise_adiffmax(a, b) = max(abs(a - b), (), 1)
+colwise_vadiffmax(a, b) = vadiffmax(a, b, 1)
+@bench_vreduce2("colwise-adiffsum", 10, a, b, colwise_adiffmax, colwise_vadiffmax)
+
+colwise_adiffmin(a, b) = min(abs(a - b), (), 1)
+colwise_vadiffmin(a, b) = vadiffmin(a, b, 1)
+@bench_vreduce2("colwise-adiffsum", 10, a, b, colwise_adiffmin, colwise_vadiffmin)
+
+colwise_sqdiffsum(a, b) = sum(abs2(a - b), 1)
+colwise_vsqdiffsum(a, b) = vsqdiffsum(a, b, 1)
+@bench_vreduce2("colwise-sqdiffsum", 10, a, b, colwise_sqdiffsum, colwise_vsqdiffsum)
+
 
 println("Rowwise reduction")
 println("=======================================")
@@ -109,6 +141,38 @@ rowwise_vsum(a) = vsum(a, 2)
 rowwise_asum(a) = sum(abs(a), 2)
 rowwise_vasum(a) = vasum(a, 2)
 @bench_vreduce1("rowwise-asum", 10, a, rowwise_asum, rowwise_vasum)
+
+rowwise_amax(a) = max(abs(a), (), 2)
+rowwise_vamax(a) = vamax(a, 2)
+@bench_vreduce1("rowwise-amax", 10, a, rowwise_amax, rowwise_vamax)
+
+rowwise_amin(a) = min(abs(a), (), 2)
+rowwise_vamin(a) = vamin(a, 2)
+@bench_vreduce1("rowwise-amin", 10, a, rowwise_amin, rowwise_vamin)
+
+rowwise_sqsum(a) = sum(abs2(a), 2)
+rowwise_vsqsum(a) = vsqsum(a, 2)
+@bench_vreduce1("rowwise-sqsum", 10, a, rowwise_sqsum, rowwise_vsqsum)
+
+rowwise_dot(a, b) = sum(a .* b, 2)
+rowwise_vdot(a, b) = vdot(a, b, 2)
+@bench_vreduce2("rowwise-dot", 10, a, b, rowwise_dot, rowwise_vdot)
+
+rowwise_adiffsum(a, b) = sum(abs(a - b), 2)
+rowwise_vadiffsum(a, b) = vadiffsum(a, b, 2)
+@bench_vreduce2("rowwise-adiffsum", 10, a, b, rowwise_adiffsum, rowwise_vadiffsum)
+
+rowwise_adiffmax(a, b) = max(abs(a - b), (), 2)
+rowwise_vadiffmax(a, b) = vadiffmax(a, b, 2)
+@bench_vreduce2("rowwise-adiffsum", 10, a, b, rowwise_adiffmax, rowwise_vadiffmax)
+
+rowwise_adiffmin(a, b) = min(abs(a - b), (), 2)
+rowwise_vadiffmin(a, b) = vadiffmin(a, b, 2)
+@bench_vreduce2("rowwise-adiffsum", 10, a, b, rowwise_adiffmin, rowwise_vadiffmin)
+
+rowwise_sqdiffsum(a, b) = sum(abs2(a - b), 2)
+rowwise_vsqdiffsum(a, b) = vsqdiffsum(a, b, 2)
+@bench_vreduce2("rowwise-sqdiffsum", 10, a, b, rowwise_sqdiffsum, rowwise_vsqdiffsum)
 
 
 println("Reduction along two-dims of a cube")
@@ -140,7 +204,17 @@ asum_23(a) = sum(abs(a), (2, 3))
 vasum_23(a) = vasum(a, (2, 3))
 @bench_vreduce1("(2,3)-asum", 10, a, asum_23, vasum_23)
 
+sqsum_12(a) = sum(abs2(a), (1, 2))
+vsqsum_12(a) = vsqsum(a, (1, 2))
+@bench_vreduce1("(1,2)-sqsum", 10, a, sqsum_12, vsqsum_12)
 
+sqsum_13(a) = sum(abs2(a), (1, 3))
+vsqsum_13(a) = vsqsum(a, (1, 3))
+@bench_vreduce1("(1,3)-sqsum", 10, a, sqsum_13, vsqsum_13)
+
+sqsum_23(a) = sum(abs2(a), (2, 3))
+vsqsum_23(a) = vsqsum(a, (2, 3))
+@bench_vreduce1("(2,3)-sqsum", 10, a, sqsum_23, vsqsum_23)
 
 
 

@@ -37,6 +37,9 @@ for e in [
     @eval evaluate(::($(e[1])), x::Number, y::Number) = ($(e[2]))(x, y)
 end
 
+evaluate{T<:Real}(::Max, x::T, y::T) = x > y ? x : y
+evaluate{T<:Real}(::Min, x::T, y::T) = x < y ? x : y
+
 type AbsDiff <: BinaryFunctor end
 evaluate(::AbsDiff, x::Number, y::Number) = abs(x - y)
 
