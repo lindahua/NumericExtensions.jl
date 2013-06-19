@@ -249,14 +249,16 @@ function vreduce_dim12!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, 
 end
 
 function vreduce_dim12!(dst::AbstractArray, op::BinaryFunctor, f::BinaryFunctor, x1::CubeOrNumber, x2::CubeOrNumber)
-	d1 = size(x, 1) * size(x, 2)
-	d2 = size(x, 3)
+	siz = map_shape(x1, x2)
+	d1::Int = siz[1] * siz[2]
+	d2::Int = siz[3]
 	vreduce_dim1!(dst, op, f, _xreshape(x1, d1, d2), _xreshape(x2, d1, d2))
 end
 
 function vreduce_fdiff_dim12!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x1::CubeOrNumber, x2::CubeOrNumber)
-	d1 = size(x, 1) * size(x, 2)
-	d2 = size(x, 3)
+	siz = map_shape(x1, x2)
+	d1::Int = siz[1] * siz[2]
+	d2::Int = siz[3]
 	vreduce_fdiff_dim1!(dst, op, f, _xreshape(x1, d1, d2), _xreshape(x2, d1, d2))
 end
 
@@ -276,19 +278,21 @@ function vreduce_dim23!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, 
 end
 
 function vreduce_dim23!(dst::AbstractArray, op::BinaryFunctor, f::BinaryFunctor, x1::CubeOrNumber, x2::CubeOrNumber)
-	d1 = size(x, 1)
-	d2 = size(x, 2) * size(x, 3)
+	siz = map_shape(x1, x2)
+	d1::Int = siz[1]
+	d2::Int = siz[2] * siz[3]
 	vreduce_dim2!(dst, op, f, _xreshape(x1, d1, d2), _xreshape(x2, d1, d2))
 end
 
 function vreduce_fdiff_dim23!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x1::CubeOrNumber, x2::CubeOrNumber)
-	d1 = size(x, 1)
-	d2 = size(x, 2) * size(x, 3)
+	siz = map_shape(x1, x2)
+	d1::Int = siz[1]
+	d2::Int = siz[2] * siz[3]
 	vreduce_fdiff_dim2!(dst, op, f, _xreshape(x1, d1, d2), _xreshape(x2, d1, d2))
 end
 
 
-# Cube along (2,3)
+# Cube along (1,3)
 
 function _code_vreduce_dim13_cube(kergen::Symbol)
 	ker0 = eval(:($kergen(1, :j, 1)))
@@ -337,16 +341,18 @@ function vreduce_dim13!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, 
 end
 
 function vreduce_dim13!(dst::AbstractArray, op::BinaryFunctor, f::BinaryFunctor, x1::CubeOrNumber, x2::CubeOrNumber)
-	m = size(x, 1)
-	n = size(x, 2)
-	k = size(x, 3)
+	siz = map_shape(x1, x2)
+	m::Int = siz[1]
+	n::Int = siz[2]
+	k::Int = siz[3]
 	@_vreduce_dim13_cube _ker_binaryfun
 end
 
 function vreduce_fdiff_dim13!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x1::CubeOrNumber, x2::CubeOrNumber)
-	m = size(x, 1)
-	n = size(x, 2)
-	k = size(x, 3)
+	siz = map_shape(x1, x2)
+	m::Int = siz[1]
+	n::Int = siz[2]
+	k::Int = siz[3]
 	@_vreduce_dim13_cube _ker_fdiff
 end
 
@@ -479,9 +485,10 @@ function vreduce!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x::Abs
 end
 
 function vreduce!(dst::AbstractArray, op::BinaryFunctor, f::BinaryFunctor, x1::CubeOrNumber, x2::CubeOrNumber, dim::Integer)
-	m = size(x, 1)
-	n = size(x, 2)
-	k = size(x, 3)
+	siz = map_shape(x1, x2)
+	m = siz[1]
+	n = siz[2]
+	k = siz[3]
 
 	if dim == 1
 		nk = n * k
@@ -498,9 +505,10 @@ function vreduce!(dst::AbstractArray, op::BinaryFunctor, f::BinaryFunctor, x1::C
 end
 
 function vreduce_fdiff!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x1::CubeOrNumber, x2::CubeOrNumber, dim::Integer)
-	m = size(x, 1)
-	n = size(x, 2)
-	k = size(x, 3)
+	siz = map_shape(x1, x2)
+	m = siz[1]
+	n = siz[2]
+	k = siz[3]
 
 	if dim == 1
 		nk = n * k
@@ -542,7 +550,7 @@ function vreduce!(dst::AbstractArray, op::BinaryFunctor, f::BinaryFunctor, x1::C
 	dst
 end
 
-function vreduce_fdiff!(dst::AbstractArray, op::BinaryFunctor, f::BinaryFunctor, x1::CubeOrNumber, x2::CubeOrNumber, rgn::(Int, Int))
+function vreduce_fdiff!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x1::CubeOrNumber, x2::CubeOrNumber, rgn::(Int, Int))
 	rgn == (1, 2) ? vreduce_fdiff_dim12!(dst, op, f, x1, x2) :
 	rgn == (1, 3) ? vreduce_fdiff_dim13!(dst, op, f, x1, x2) :
 	rgn == (2, 3) ? vreduce_fdiff_dim23!(dst, op, f, x1, x2) : 
@@ -595,7 +603,7 @@ function vreduce!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x::Abs
 end
 
 function vreduce!(dst::AbstractArray, op::BinaryFunctor, f::BinaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber, dim::Integer)
-	siz = size(x)
+	siz = map_shape(x1, x2)
 	nd = length(siz)
 	@assert nd >= 4
 
@@ -616,7 +624,7 @@ function vreduce!(dst::AbstractArray, op::BinaryFunctor, f::BinaryFunctor, x1::A
 end
 
 function vreduce_fdiff!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber, dim::Integer)
-	siz = size(x)
+	siz = map_shape(x1, x2)
 	nd = length(siz)
 	@assert nd >= 4
 
@@ -748,13 +756,12 @@ vsum(f::UnaryFunctor, x::AbstractArray, dims::DimSpec) = vreduce(Add(), f, x, di
 vsum!(dst::AbstractArray, f::UnaryFunctor, x::AbstractArray, dims::DimSpec) = vreduce!(dst, Add(), f, x, dims)
 	
 function vsum(f::BinaryFunctor, x1::AbstractArray, x2::AbstractArray, dims::DimSpec)
-	vreduce!(dst, Add(), f, x1, x2, dims)
+	vreduce(Add(), f, x1, x2, dims)
 end
 
 function vsum!(dst::AbstractArray, f::BinaryFunctor, x1::AbstractArray, x2::AbstractArray, dims::DimSpec)
 	vreduce!(dst, Add(), f, x1, x2, dims)
 end
-
 
 # sum on diff
 
@@ -769,6 +776,15 @@ end
 function vsum_fdiff{T1<:Number,T2<:Number}(f::UnaryFunctor, x1::T1, x2::AbstractArray{T2})
 	isempty(x1) && isempty(x2) ? zero(result_type(f, T1, T2)) : vreduce_fdiff(Add(), f, x1, x2)
 end
+
+function vsum_fdiff(f::UnaryFunctor, x1::AbstractArray, x2::AbstractArray, dims::DimSpec)
+	vreduce_fdiff(Add(), f, x1, x2, dims)
+end
+
+function vsum_fdiff!(dst::AbstractArray, f::UnaryFunctor, x1::AbstractArray, x2::AbstractArray, dims::DimSpec)
+	vreduce_fdiff!(dst, Add(), f, x1, x2, dims)
+end
+
 
 # nonneg max
 
@@ -801,11 +817,11 @@ end
 vmax(x::AbstractArray, dims::DimSpec) = vreduce(Max(), x, dims)
 vmax!(dst::AbstractArray, x::AbstractArray, dims::DimSpec) = vreduce!(dst, Max(), x, dims)
 
-vmax(f::UnaryFunctor, x::AbstractArray, dims::DimSpec) = vreduce!(Max(), f, x, dims)
+vmax(f::UnaryFunctor, x::AbstractArray, dims::DimSpec) = vreduce(Max(), f, x, dims)
 vmax!(dst::AbstractArray, f::UnaryFunctor, x::AbstractArray, dims::DimSpec) = vreduce!(dst, Max(), f, x, dims)
 	
 function vmax(f::BinaryFunctor, x1::AbstractArray, x2::AbstractArray, dims::DimSpec)
-	vreduce!(dst, Max(), f, x1, x2, dims)
+	vreduce(Max(), f, x1, x2, dims)
 end
 
 function vmax!(dst::AbstractArray, f::BinaryFunctor, x1::AbstractArray, x2::AbstractArray, dims::DimSpec)
@@ -830,11 +846,11 @@ end
 vmin(x::AbstractArray, dims::DimSpec) = vreduce(Min(), x, dims)
 vmin!(dst::AbstractArray, x::AbstractArray, dims::DimSpec) = vreduce!(dst, Min(), x, dims)
 
-vmin(f::UnaryFunctor, x::AbstractArray, dims::DimSpec) = vreduce!(Min(), f, x, dims)
+vmin(f::UnaryFunctor, x::AbstractArray, dims::DimSpec) = vreduce(Min(), f, x, dims)
 vmin!(dst::AbstractArray, f::UnaryFunctor, x::AbstractArray, dims::DimSpec) = vreduce!(dst, Min(), f, x, dims)
 	
 function vmin(f::BinaryFunctor, x1::AbstractArray, x2::AbstractArray, dims::DimSpec)
-	vreduce!(dst, Min(), f, x1, x2, dims)
+	vreduce(Min(), f, x1, x2, dims)
 end
 
 function vmin!(dst::AbstractArray, f::BinaryFunctor, x1::AbstractArray, x2::AbstractArray, dims::DimSpec)
@@ -853,24 +869,52 @@ const asum = Base.LinAlg.BLAS.asum
 
 vasum(x::Array) = asum(x)
 vasum(x::AbstractArray) = vsum(Abs(), x)
-vasum(x::Array, dims::DimSpec) = vsum(Abs(), x, dims)
+vasum(x::AbstractArray, dims::DimSpec) = vsum(Abs(), x, dims)
 vasum!(dst::AbstractArray, x::AbstractArray, dims::DimSpec) = vsum!(dst, Abs(), x, dims)
 
 vamax(x::AbstractArray) = nonneg_vmax(Abs(), x)
+vamax(x::AbstractArray, dims::DimSpec) = vmax(Abs(), x, dims)
+vamax!(dst::AbstractArray, x::AbstractArray, dims::DimSpec) = vmax!(dst, Abs(), x, dims)
+
 vamin(x::AbstractArray) = vmin(Abs(), x)
+vamin(x::AbstractArray, dims::DimSpec) = vmin(Abs(), x, dims)
+vamin!(dst::AbstractArray, x::AbstractArray, dims::DimSpec) = vmin!(dst, Abs(), x, dims)
 
 vsqsum(x::Vector) = dot(x, x)
 vsqsum(x::Array) = vsqsum(vec(x))
 vsqsum(x::AbstractArray) = vsum(Abs2(), x)
+vsqsum(x::AbstractArray, dims::DimSpec) = vsum(Abs2(), x, dims)
+vsqsum!(dst::AbstractArray, x::AbstractArray, dims::DimSpec) = vsum!(dst, Abs2(), x, dims)
 
 vdot(x::Vector, y::Vector) = dot(x, y)
 vdot(x::Array, y::Array) = dot(vec(x), vec(y))
 vdot(x::AbstractArray, y::AbstractArray) = vsum(Multiply(), x, y)
+vdot(x::AbstractArray, y::AbstractArray, dims::DimSpec) = vsum(Multiply(), x, y, dims)
+vdot!(dst::AbstractArray, x::AbstractArray, y::AbstractArray, dims::DimSpec) = vsum!(dst, Multiply(), x, y, dims)
 
-vadiffsum(x::AbstractArray, y::Union(AbstractArray,Number)) = vsum_fdiff(Abs(), x, y)
-vadiffmax(x::AbstractArray, y::Union(AbstractArray,Number)) = vreduce_fdiff(Max(), Abs(), x, y)
-vadiffmin(x::AbstractArray, y::Union(AbstractArray,Number)) = vreduce_fdiff(Min(), Abs(), x, y)
-vsqdiffsum(x::AbstractArray, y::Union(AbstractArray,Number)) = vsum_fdiff(Abs2(), x, y)
+vadiffsum(x::AbstractArray, y::ArrayOrNumber) = vsum_fdiff(Abs(), x, y)
+vadiffsum(x::AbstractArray, y::ArrayOrNumber, dims::DimSpec) = vsum_fdiff(Abs(), x, y, dims)
+function vadiffsum!(dst::AbstractArray, x::AbstractArray, y::ArrayOrNumber, dims::DimSpec)
+	vsum_fdiff!(dst, Abs(), x, y, dims)
+end
+
+vadiffmax(x::AbstractArray, y::ArrayOrNumber) = vreduce_fdiff(Max(), Abs(), x, y)
+vadiffmax(x::AbstractArray, y::ArrayOrNumber, dims::DimSpec) = vreduce_fdiff(Max(), Abs(), x, y, dims)
+function vadiffmax!(dst::AbstractArray, x::AbstractArray, y::ArrayOrNumber, dims::DimSpec)
+	vreduce_fdiff!(dst, Max(), Abs(), x, y, dims)
+end
+
+vadiffmin(x::AbstractArray, y::ArrayOrNumber) = vreduce_fdiff(Min(), Abs(), x, y)
+vadiffmin(x::AbstractArray, y::ArrayOrNumber, dims::DimSpec) = vreduce_fdiff(Min(), Abs(), x, y, dims)
+function vadiffmin!(dst::AbstractArray, x::AbstractArray, y::ArrayOrNumber, dims::DimSpec)
+	vreduce_fdiff!(dst, Min(), Abs(), x, y, dims)
+end
+
+vsqdiffsum(x::AbstractArray, y::ArrayOrNumber) = vsum_fdiff(Abs2(), x, y)
+vsqdiffsum(x::AbstractArray, y::ArrayOrNumber, dims::DimSpec) = vsum_fdiff(Abs2(), x, y, dims)
+function vsqdiffsum!(dst::AbstractArray, x::AbstractArray, y::ArrayOrNumber, dims::DimSpec)
+	vsum_fdiff!(dst, Abs2(), x, y, dims)
+end
 
 # vnorm
 
