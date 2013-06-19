@@ -41,9 +41,6 @@ map_length(x1::Number, x2::AbstractArray) = length(x2)
 precede_length(siz::NTuple{Int}, d::Int) = d == 2 ? siz[1] : d == 3 ? siz[1] * siz[2] : prod(siz[1:d-1])
 trail_length(siz::NTuple{Int}, d::Int) = (nd = length(siz); d == nd - 1 ? siz[nd] : prod(siz[d+1:nd]))
 
-_xreshape(x::Number, m::Int, n::Int) = x
-_xreshape(x::AbstractArray, m::Int, n::Int) = reshape(x, m, n)
-
 # value type inference
 
 result_eltype{T}(op::UnaryFunctor, x::AbstractArray{T}) = result_type(op, T)
@@ -62,6 +59,8 @@ generate_paramlist_forcubes(::TrivialCoder) = (:(x::AbstractCube),)
 
 generate_arglist(::TrivialCoder) = (:x,)
 generate_kernel(::TrivialCoder, i::SymOrNum) = :(x[$i])
+generate_emptytest(::TrivialCoder) = :(isempty(x))
+
 length_inference(::TrivialCoder) = :(length(x))
 shape_inference(::TrivialCoder) = :(size(x))
 eltype_inference(::TrivialCoder) = :(eltype(x))
@@ -73,6 +72,8 @@ generate_paramlist_forcubes(::UnaryCoder) = (:(f::UnaryFunctor), :(x::AbstractCu
 
 generate_arglist(::UnaryCoder) = (:f, :x)
 generate_kernel(::UnaryCoder, i::SymOrNum) = :(evaluate(f, x[$i]))
+generate_emptytest(::UnaryCoder) = :(isempty(x))
+
 length_inference(::UnaryCoder) = :(length(x))
 shape_inference(::UnaryCoder) = :(size(x))
 eltype_inference(::UnaryCoder) = :(result_type(f, eltype(x))) 
@@ -84,6 +85,8 @@ generate_paramlist_forcubes(::BinaryCoder) = (:(f::BinaryFunctor), :(x1::CubeOrN
 
 generate_arglist(::BinaryCoder) = (:f, :x1, :x2)
 generate_kernel(::BinaryCoder, i::SymOrNum) = :(evaluate(f, get_scalar(x1, $i), get_scalar(x2, $i)))
+generate_emptytest(::BinaryCoder) = :(isempty(x1) || isempty(x2))
+
 length_inference(::BinaryCoder) = :(map_length(x1, x2))
 shape_inference(::BinaryCoder) = :(map_shape(x1, x2))
 eltype_inference(::BinaryCoder) = :(result_type(f, eltype(x1), eltype(x2)))
@@ -95,6 +98,8 @@ generate_paramlist_forcubes(::FDiffCoder) = (:(f::UnaryFunctor), :(x1::CubeOrNum
 
 generate_arglist(::FDiffCoder) = (:f, :x1, :x2)
 generate_kernel(::FDiffCoder, i::SymOrNum) = :(evaluate(f, get_scalar(x1, $i) - get_scalar(x2, $i)))
+generate_emptytest(::FDiffCoder) = :(isempty(x1) || isempty(x2))
+
 length_inference(::FDiffCoder) = :(map_length(x1, x2))
 shape_inference(::FDiffCoder) = :(map_shape(x1, x2))
 eltype_inference(::FDiffCoder) = :(result_type(f, promote_type(eltype(x1), eltype(x2))))

@@ -269,129 +269,42 @@ end
 #
 #################################################
 
-# sum
+empty_notallowed(ty::Type) = throw(ArgumentError("Empty array is not allowed."))
 
-function vsum{T}(x::AbstractArray{T})
-	isempty(x) ? zero(T) : vreduce(Add(), x)
+function code_basic_reduction(fname::Symbol, op::Expr, coder::AbstractFunCoder, gfun::Symbol, emptyfun::Symbol)
+	paramlist = generate_paramlist(coder)
+	arglist = generate_arglist(coder)
+	vtype = eltype_inference(coder)
+	emptytest = generate_emptytest(coder)
+
+	fname! = symbol(string(fname, '!'))
+	gfun! = symbol(string(gfun, '!'))
+
+	quote
+		($fname)($(paramlist...)) = ($emptytest) ? ($emptyfun)($vtype) : ($gfun)($op, $(arglist...))
+		($fname)($(paramlist...), dims::DimSpec) = ($gfun)($op, $(arglist...), dims) 
+		($fname!)(dst::AbstractArray, $(paramlist...), dims::DimSpec) = ($gfun!)(dst, $op, $(arglist...), dims)
+	end
 end
 
-function vsum{T}(f::UnaryFunctor, x::AbstractArray{T})
-	isempty(x) ? zero(result_type(f, T)) : vreduce(Add(), f, x)
-end
+function code_basic_reduction(fname::Symbol, op::Expr, emptyfun::Symbol)
+	c0 = code_basic_reduction(fname, op, TrivialCoder(), :vreduce, emptyfun)
+	c1 = code_basic_reduction(fname, op, UnaryCoder(), :vreduce, emptyfun)
+	c2 = code_basic_reduction(fname, op, BinaryCoder(), :vreduce, emptyfun)
+	c2d = code_basic_reduction(symbol(string(fname, "_fdiff")), op, FDiffCoder(), :vreduce_fdiff, emptyfun)
 
-function vsum{T1,T2}(f::BinaryFunctor, x1::AbstractArray{T1}, x2::AbstractArray{T2})
-	isempty(x1) && isempty(x2) ? zero(result_type(f, T1, T2)) : vreduce(Add(), f, x1, x2)
-end
-
-vsum(x::AbstractArray, dims::DimSpec) = vreduce(Add(), x, dims)
-vsum!(dst::AbstractArray, x::AbstractArray, dims::DimSpec) = vreduce!(dst, Add(), x, dims)
-
-vsum(f::UnaryFunctor, x::AbstractArray, dims::DimSpec) = vreduce(Add(), f, x, dims)
-vsum!(dst::AbstractArray, f::UnaryFunctor, x::AbstractArray, dims::DimSpec) = vreduce!(dst, Add(), f, x, dims)
-	
-function vsum(f::BinaryFunctor, x1::AbstractArray, x2::AbstractArray, dims::DimSpec)
-	vreduce(Add(), f, x1, x2, dims)
-end
-
-function vsum!(dst::AbstractArray, f::BinaryFunctor, x1::AbstractArray, x2::AbstractArray, dims::DimSpec)
-	vreduce!(dst, Add(), f, x1, x2, dims)
-end
-
-# sum on diff
-
-function vsum_fdiff{T1<:Number,T2<:Number}(f::UnaryFunctor, x1::AbstractArray{T1}, x2::AbstractArray{T2})
-	isempty(x1) && isempty(x2) ? zero(result_type(f, T1, T2)) : vreduce_fdiff(Add(), f, x1, x2)
-end
-
-function vsum_fdiff{T1<:Number,T2<:Number}(f::UnaryFunctor, x1::AbstractArray{T1}, x2::T2)
-	isempty(x1) && isempty(x2) ? zero(result_type(f, T1, T2)) : vreduce_fdiff(Add(), f, x1, x2)
-end
-
-function vsum_fdiff{T1<:Number,T2<:Number}(f::UnaryFunctor, x1::T1, x2::AbstractArray{T2})
-	isempty(x1) && isempty(x2) ? zero(result_type(f, T1, T2)) : vreduce_fdiff(Add(), f, x1, x2)
-end
-
-function vsum_fdiff(f::UnaryFunctor, x1::AbstractArray, x2::AbstractArray, dims::DimSpec)
-	vreduce_fdiff(Add(), f, x1, x2, dims)
-end
-
-function vsum_fdiff!(dst::AbstractArray, f::UnaryFunctor, x1::AbstractArray, x2::AbstractArray, dims::DimSpec)
-	vreduce_fdiff!(dst, Add(), f, x1, x2, dims)
+	combined = Expr(:block, c0.args..., c1.args..., c2.args..., c2d.args...)
 end
 
 
-# nonneg max
-
-function nonneg_vmax{T}(x::AbstractArray{T})
-	isempty(x) ? zero(T) : vreduce(Max(), x)
+macro basic_reduction(fname, op, emptyfun)
+	esc(code_basic_reduction(fname, op, emptyfun))
 end
 
-function nonneg_vmax{T}(f::UnaryFunctor, x::AbstractArray{T})
-	isempty(x) ? zero(result_type(f, T)) : vreduce(Max(), f, x)
-end
-
-function nonneg_vmax{T1,T2}(f::BinaryFunctor, x1::AbstractArray{T1}, x2::AbstractArray{T2})
-	isempty(x1) && isempty(x2) ? zero(result_type(f, T1, T2)) : vreduce(Max(), f, x1, x2)
-end
-
-# max
-
-function vmax{T}(x::AbstractArray{T})
-	isempty(x) ? throw(ArgumentError("vmax cannot accept empty array.")) : vreduce(Max(), x)
-end
-
-function vmax{T}(f::UnaryFunctor, x::AbstractArray{T})
-	isempty(x) ? throw(ArgumentError("vmax cannot accept empty array.")) : vreduce(Max(), f, x)
-end
-
-function vmax{T1,T2}(f::BinaryFunctor, x1::AbstractArray{T1}, x2::AbstractArray{T2})
-	isempty(x1) && isempty(x2) ? throw(ArgumentError("vmax cannot accept empty array.")) : vreduce(Max(), f, x1, x2)
-end
-
-vmax(x::AbstractArray, dims::DimSpec) = vreduce(Max(), x, dims)
-vmax!(dst::AbstractArray, x::AbstractArray, dims::DimSpec) = vreduce!(dst, Max(), x, dims)
-
-vmax(f::UnaryFunctor, x::AbstractArray, dims::DimSpec) = vreduce(Max(), f, x, dims)
-vmax!(dst::AbstractArray, f::UnaryFunctor, x::AbstractArray, dims::DimSpec) = vreduce!(dst, Max(), f, x, dims)
-	
-function vmax(f::BinaryFunctor, x1::AbstractArray, x2::AbstractArray, dims::DimSpec)
-	vreduce(Max(), f, x1, x2, dims)
-end
-
-function vmax!(dst::AbstractArray, f::BinaryFunctor, x1::AbstractArray, x2::AbstractArray, dims::DimSpec)
-	vreduce!(dst, Max(), f, x1, x2, dims)
-end
-
-
-# min
-
-function vmin{T}(x::AbstractArray{T})
-	isempty(x) ? throw(ArgumentError("vmin cannot accept empty array.")) : vreduce(Min(), x)
-end
-
-function vmin{T}(f::UnaryFunctor, x::AbstractArray{T})
-	isempty(x) ? throw(ArgumentError("vmin cannot accept empty array.")) : vreduce(Min(), f, x)
-end
-
-function vmin{T1,T2}(f::BinaryFunctor, x1::AbstractArray{T1}, x2::AbstractArray{T2})
-	isempty(x1) && isempty(x2) ? throw(ArgumentError("vmin cannot accept empty array.")) : vreduce(Min(), f, x1, x2)
-end
-
-vmin(x::AbstractArray, dims::DimSpec) = vreduce(Min(), x, dims)
-vmin!(dst::AbstractArray, x::AbstractArray, dims::DimSpec) = vreduce!(dst, Min(), x, dims)
-
-vmin(f::UnaryFunctor, x::AbstractArray, dims::DimSpec) = vreduce(Min(), f, x, dims)
-vmin!(dst::AbstractArray, f::UnaryFunctor, x::AbstractArray, dims::DimSpec) = vreduce!(dst, Min(), f, x, dims)
-	
-function vmin(f::BinaryFunctor, x1::AbstractArray, x2::AbstractArray, dims::DimSpec)
-	vreduce(Min(), f, x1, x2, dims)
-end
-
-function vmin!(dst::AbstractArray, f::BinaryFunctor, x1::AbstractArray, x2::AbstractArray, dims::DimSpec)
-	vreduce!(dst, Min(), f, x1, x2, dims)
-end
-
-
+@basic_reduction vsum Add() zero 
+@basic_reduction nonneg_vmax Max() zero
+@basic_reduction vmax Max() empty_notallowed
+@basic_reduction vmin Min() empty_notallowed
 
 #################################################
 #
@@ -399,58 +312,72 @@ end
 #
 #################################################
 
+# generator
+
+function code_derived_reduction1(fname::Symbol, rfun::Symbol, tfunctor::Expr)
+	fname! = symbol(string(fname, '!'))
+	rfun! = symbol(string(rfun, '!'))
+
+	quote
+		($fname)(x::AbstractArray) = ($rfun)($tfunctor, x)
+		($fname)(x::AbstractArray, dims::DimSpec) = ($rfun)($tfunctor, x, dims)
+		($fname!)(dst::AbstractArray, x::AbstractArray, dims::DimSpec) = ($rfun!)(dst, $tfunctor, x, dims)
+	end
+end
+
+function code_derived_reduction2(fname::Symbol, rfun::Symbol, tfunctor::Expr)
+	fname! = symbol(string(fname, '!'))
+	rfun! = symbol(string(rfun, '!'))
+
+	quote
+		($fname)(x1::Number, x2::Number) = error("At least one of the arguments must be an array.")
+		($fname)(x1::ArrayOrNumber, x2::ArrayOrNumber) = ($rfun)($tfunctor, x1, x2)
+		($fname)(x1::ArrayOrNumber, x2::ArrayOrNumber, dims::DimSpec) = ($rfun)($tfunctor, x1, x2, dims)
+		($fname!)(dst::AbstractArray, x1::ArrayOrNumber, x2::ArrayOrNumber, dims::DimSpec) = ($rfun!)(dst, $tfunctor, x1, x2, dims)
+	end
+end
+
+macro derived_reduction1(fname, rfun, tfunctor)
+	esc(code_derived_reduction1(fname, rfun, tfunctor))
+end
+
+macro derived_reduction2(fname, rfun, tfunctor)
+	esc(code_derived_reduction2(fname, rfun, tfunctor))
+end
+
+# specific function definitions
+
+@derived_reduction1 vasum vsum Abs()
+@derived_reduction1 vamax vmax Abs()
+@derived_reduction1 vamin vmin Abs()
+@derived_reduction1 vsqsum vsum Abs2()
+
+@derived_reduction2 vdot vsum Multiply()
+
+@derived_reduction2 vadiffsum vsum_fdiff Abs()
+@derived_reduction2 vadiffmax vmax_fdiff Abs()
+@derived_reduction2 vadiffmin vmin_fdiff Abs()
+@derived_reduction2 vsqdiffsum vsum_fdiff Abs2()
+
+# BLAS-based specialization
+
+typealias BlasFP Union(Float32, Float64)
+
 const asum = Base.LinAlg.BLAS.asum
+vasum{T<:BlasFP}(x::Array{T}) = asum(x)
 
-vasum(x::Array) = asum(x)
-vasum(x::AbstractArray) = vsum(Abs(), x)
-vasum(x::AbstractArray, dims::DimSpec) = vsum(Abs(), x, dims)
-vasum!(dst::AbstractArray, x::AbstractArray, dims::DimSpec) = vsum!(dst, Abs(), x, dims)
+vsqsum{T<:BlasFP}(x::Vector{T}) = dot(x, x)
+vsqsum{T<:BlasFP}(x::Array{T}) = vsqsum(vec(x))
 
-vamax(x::AbstractArray) = nonneg_vmax(Abs(), x)
-vamax(x::AbstractArray, dims::DimSpec) = vmax(Abs(), x, dims)
-vamax!(dst::AbstractArray, x::AbstractArray, dims::DimSpec) = vmax!(dst, Abs(), x, dims)
+vdot{T<:BlasFP}(x::Vector{T}, y::Vector{T}) = dot(x, y)
+vdot{T<:BlasFP}(x::Array{T}, y::Array{T}) = dot(vec(x), vec(y))
 
-vamin(x::AbstractArray) = vmin(Abs(), x)
-vamin(x::AbstractArray, dims::DimSpec) = vmin(Abs(), x, dims)
-vamin!(dst::AbstractArray, x::AbstractArray, dims::DimSpec) = vmin!(dst, Abs(), x, dims)
 
-vsqsum(x::Vector) = dot(x, x)
-vsqsum(x::Array) = vsqsum(vec(x))
-vsqsum(x::AbstractArray) = vsum(Abs2(), x)
-vsqsum(x::AbstractArray, dims::DimSpec) = vsum(Abs2(), x, dims)
-vsqsum!(dst::AbstractArray, x::AbstractArray, dims::DimSpec) = vsum!(dst, Abs2(), x, dims)
-
-vdot(x::Vector, y::Vector) = dot(x, y)
-vdot(x::Array, y::Array) = dot(vec(x), vec(y))
-vdot(x::AbstractArray, y::AbstractArray) = vsum(Multiply(), x, y)
-vdot(x::AbstractArray, y::AbstractArray, dims::DimSpec) = vsum(Multiply(), x, y, dims)
-vdot!(dst::AbstractArray, x::AbstractArray, y::AbstractArray, dims::DimSpec) = vsum!(dst, Multiply(), x, y, dims)
-
-vadiffsum(x::AbstractArray, y::ArrayOrNumber) = vsum_fdiff(Abs(), x, y)
-vadiffsum(x::AbstractArray, y::ArrayOrNumber, dims::DimSpec) = vsum_fdiff(Abs(), x, y, dims)
-function vadiffsum!(dst::AbstractArray, x::AbstractArray, y::ArrayOrNumber, dims::DimSpec)
-	vsum_fdiff!(dst, Abs(), x, y, dims)
-end
-
-vadiffmax(x::AbstractArray, y::ArrayOrNumber) = vreduce_fdiff(Max(), Abs(), x, y)
-vadiffmax(x::AbstractArray, y::ArrayOrNumber, dims::DimSpec) = vreduce_fdiff(Max(), Abs(), x, y, dims)
-function vadiffmax!(dst::AbstractArray, x::AbstractArray, y::ArrayOrNumber, dims::DimSpec)
-	vreduce_fdiff!(dst, Max(), Abs(), x, y, dims)
-end
-
-vadiffmin(x::AbstractArray, y::ArrayOrNumber) = vreduce_fdiff(Min(), Abs(), x, y)
-vadiffmin(x::AbstractArray, y::ArrayOrNumber, dims::DimSpec) = vreduce_fdiff(Min(), Abs(), x, y, dims)
-function vadiffmin!(dst::AbstractArray, x::AbstractArray, y::ArrayOrNumber, dims::DimSpec)
-	vreduce_fdiff!(dst, Min(), Abs(), x, y, dims)
-end
-
-vsqdiffsum(x::AbstractArray, y::ArrayOrNumber) = vsum_fdiff(Abs2(), x, y)
-vsqdiffsum(x::AbstractArray, y::ArrayOrNumber, dims::DimSpec) = vsum_fdiff(Abs2(), x, y, dims)
-function vsqdiffsum!(dst::AbstractArray, x::AbstractArray, y::ArrayOrNumber, dims::DimSpec)
-	vsum_fdiff!(dst, Abs2(), x, y, dims)
-end
-
-# vnorm
+#################################################
+#
+# 	Derived vector norms
+#
+#################################################
 
 function vnorm(x::AbstractArray, p::Real)
 	if !(p > 0)
