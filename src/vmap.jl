@@ -17,6 +17,8 @@ typealias MatrixOrNumber Union(AbstractMatrix, Number)
 typealias AbstractCube{T} AbstractArray{T,3}
 typealias CubeOrNumber Union(AbstractCube, Number)
 
+typealias DimSpec Union(Int, (Int, Int))
+
 map_shape(x1::AbstractArray, x2::AbstractArray) = promote_shape(size(x1), size(x2))
 map_shape(x1::AbstractArray, x2::Number) = size(x1)
 map_shape(x1::Number, x2::AbstractArray) = size(x2)

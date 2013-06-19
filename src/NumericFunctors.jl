@@ -24,6 +24,10 @@ module NumericFunctors
 		sqrt!, abs!, abs2!, pow!, exp!, log!,
 		floor!, ceil!, round!, trunc!,
 
+		# vbroadcast
+		vbroadcast, vbroadcast!,
+		badd, badd!, bsubtract, bsubtract!, bmultiply, bmultiply!, bdivide, bdivide!,
+
 		# vreduce
 		vreduce, vreduce!, vreduce_fdiff, vreduce_fdiff!,
 		vsum, vsum!, vmax, vmax!, vmin, vmin!, nonneg_vmax, nonneg_vmax!,
@@ -34,6 +38,7 @@ module NumericFunctors
 
 	include("functors.jl")
 	include("vmap.jl")
+	include("vbroadcast.jl")
 	include("vreduce.jl")
 
 end

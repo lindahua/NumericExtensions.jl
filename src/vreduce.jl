@@ -647,8 +647,6 @@ end
 
 # out-of-place vreduce along dimensions
 
-typealias DimSpec Union(Int, (Int, Int))
-
 function reduced_size(siz::(Int,), dim::Integer)
 	dim == 1 ? (1,) : siz
 end
