@@ -359,7 +359,7 @@ end
 
 ########################################################
 #
-# 	Generic function for reduction along dimensions
+# 	Generic dispatch functions
 #
 ########################################################
 
@@ -928,7 +928,28 @@ function vnorm(x::AbstractArray, p::Real)
 	vsum(FixAbsPow(p), x) .^ inv(p)
 end
 
-function vdiffnorm(x::AbstractArray, y::Union(AbstractArray,Number), p::Real)
+vnorm(x::AbstractArray) = vnorm(x, 2)
+
+function vnorm!(dst::AbstractArray, x::AbstractArray, p::Real, dims::DimSpec)
+	if !(p > 0)
+		throw(ArgumentError("p must be positive."))
+	end
+	p == 1 ? vasum!(dst, x, dims) :
+	p == 2 ? vmap!(Sqrt(), vsqsum!(dst, x, dims)) :	
+	isinf(p) ? vamax!(dst, x, dims) :
+	vmap!(FixAbsPow(inv(p)), vsum!(dst, FixAbsPow(p), x, dims))
+end
+
+function vnorm{Tx<:Number,Tp<:Real}(x::AbstractArray{Tx}, p::Tp, dims::DimSpec) 
+	tt = to_fptype(promote_type(Tx, Tp))
+	r = Array(tt, reduced_size(size(x), dims))
+	vnorm!(r, x, p, dims)
+	r
+end
+
+# vdiffnorm
+
+function vdiffnorm(x::AbstractArray, y::ArrayOrNumber, p::Real)
 	if !(p > 0)
 		throw(ArgumentError("p must be positive."))
 	end
@@ -938,8 +959,22 @@ function vdiffnorm(x::AbstractArray, y::Union(AbstractArray,Number), p::Real)
 	vsum_fdiff(FixAbsPow(p), x, y) .^ inv(p)
 end
 
-vnorm(x::AbstractArray) = vnorm(x, 2)
-vdiffnorm(x::AbstractArray, y::Union(AbstractArray,Number)) = vdiffnorm(x, y, 2)
+vdiffnorm(x::AbstractArray, y::ArrayOrNumber) = vdiffnorm(x, y, 2)
 
+function vdiffnorm!(dst::AbstractArray, x::AbstractArray, y::ArrayOrNumber, p::Real, dims::DimSpec)
+	if !(p > 0)
+		throw(ArgumentError("p must be positive."))
+	end
+	p == 1 ? vadiffsum!(dst, x, y, dims) :
+	p == 2 ? vmap!(Sqrt(), vsqdiffsum!(dst, x, y, dims)) :	
+	isinf(p) ? vadiffmax!(dst, x, y, dims) :
+	vmap!(FixAbsPow(inv(p)), vsum_fdiff!(dst, FixAbsPow(p), x, y, dims))
+end
 
+function vdiffnorm{Tx<:Number,Ty<:Number,Tp<:Real}(x::AbstractArray{Tx}, y::AbstractArray{Ty}, p::Tp, dims::DimSpec) 
+	tt = to_fptype(promote_type(promote_type(Tx, Ty), Tp))
+	r = Array(tt, reduced_size(size(x), dims))
+	vdiffnorm!(r, x, y, p, dims)
+	r
+end
 
