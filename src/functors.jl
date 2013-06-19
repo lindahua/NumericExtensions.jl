@@ -45,6 +45,12 @@ immutable FixAbsPow{T<:Real} <: UnaryFunctor
 end
 evaluate(op::FixAbsPow, x::Number) = abs(x) ^ op.p
 
+# ternary functors
+
+type FMA <: TernaryFunctor end
+
+evaluate(op::FMA, a::Number, b::Number, c::Number) = a + b * c
+
 
 #################################################
 #
@@ -56,10 +62,13 @@ to_fptype{T<:Number}(x::Type{T}) = typeof(convert(FloatingPoint, zero(T)))
 
 for Op in [:Add, :Subtract, :Multiply, :Pow, :Max, :Min]
     @eval result_type{T1<:Number, T2<:Number}(::($Op), ::Type{T1}, ::Type{T2}) = promote_type(T1, T2)
+    @eval result_type{T<:Number}(::($Op), ::Type{T}, ::Type{T}) = T
 end
 
 for Op in [:Divide, :Hypot, :Atan2]
     @eval result_type{T1<:Number, T2<:Number}(::$(Op), ::Type{T1}, ::Type{T2}) = to_fptype(promote_type(T1, T2))
+    @eval result_type{T<:Number}(::$(Op), ::Type{T}, ::Type{T}) = to_fptype(T)
+    @eval result_type{T<:FloatingPoint}(::$(Op), ::Type{T}, ::Type{T}) = T
 end
 
 for Op in [:Negate, :Floor, :Ceil, :Round, :Trunc]
@@ -90,6 +99,6 @@ result_type{T<:Real}(::Abs2, ::Type{T}) = T
 result_type{T<:Real}(::Abs2, ::Type{Complex{T}}) = T
 result_type{Tp<:Real, T<:Number}(::FixAbsPow, ::Type{T}) = promote_type(Tp, T)
 
-
-
+result_type{T1<:Number,T2<:Number,T3<:Number}(::FMA, ::Type{T1}, ::Type{T2}, ::Type{T3}) = promote_type(T1, promote_type(T2, T3))
+result_type{T<:Number}(::FMA, ::Type{T}, ::Type{T}, ::Type{T}) = T
 
