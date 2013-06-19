@@ -29,6 +29,7 @@ end
 @full_reduction vreduce TrivialCoder()
 @full_reduction vreduce UnaryCoder()
 @full_reduction vreduce BinaryCoder()
+@full_reduction vreduce TernaryCoder()
 @full_reduction vreduce_fdiff FDiffCoder()
 
 ########################################################
@@ -131,7 +132,9 @@ end
 @singledim_reduction vreduce TrivialCoder() copy!
 @singledim_reduction vreduce UnaryCoder() vmap!
 @singledim_reduction vreduce BinaryCoder() vmap!
+@singledim_reduction vreduce TernaryCoder() vmap!
 @singledim_reduction vreduce_fdiff FDiffCoder() vmapdiff!
+
 
 
 ########################################################
@@ -196,6 +199,7 @@ end
 @doubledims_reduction vreduce TrivialCoder()
 @doubledims_reduction vreduce UnaryCoder()
 @doubledims_reduction vreduce BinaryCoder()
+@doubledims_reduction vreduce TernaryCoder()
 @doubledims_reduction vreduce_fdiff FDiffCoder()
 
 
@@ -260,6 +264,7 @@ end
 @vreduce_function vreduce TrivialCoder()
 @vreduce_function vreduce UnaryCoder()
 @vreduce_function vreduce BinaryCoder()
+@vreduce_function vreduce TernaryCoder()
 @vreduce_function vreduce_fdiff FDiffCoder()
 
 
@@ -291,9 +296,10 @@ function code_basic_reduction(fname::Symbol, op::Expr, emptyfun::Symbol)
 	c0 = code_basic_reduction(fname, op, TrivialCoder(), :vreduce, emptyfun)
 	c1 = code_basic_reduction(fname, op, UnaryCoder(), :vreduce, emptyfun)
 	c2 = code_basic_reduction(fname, op, BinaryCoder(), :vreduce, emptyfun)
+	c3 = code_basic_reduction(fname, op, TernaryCoder(), :vreduce, emptyfun)
 	c2d = code_basic_reduction(symbol(string(fname, "_fdiff")), op, FDiffCoder(), :vreduce_fdiff, emptyfun)
 
-	combined = Expr(:block, c0.args..., c1.args..., c2.args..., c2d.args...)
+	combined = Expr(:block, c0.args..., c1.args..., c2.args..., c3.args..., c2d.args...)
 end
 
 

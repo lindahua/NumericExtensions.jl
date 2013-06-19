@@ -7,6 +7,7 @@ using Base.Test
 
 x = randn(3, 4)
 y = randn(3, 4)
+z = randn(3, 4)
 
 @test_approx_eq vsum(x) sum(x)
 @test vsum(x) == vreduce(Add(), x) 
@@ -43,20 +44,31 @@ y = randn(3, 4)
 @test_approx_eq vdiffnorm(x, y, 3) sum(abs(x - y) .^ 3) .^ (1/3)
 @test_approx_eq vdiffnorm(x, y, Inf) max(abs(x - y))
 
+@test_approx_eq vsum(FMA(), x, y, z) sum(x + y .* z)
+@test_approx_eq vsum(FMA(), x, y, 2.) sum(x + y .* 2)
+@test_approx_eq vsum(FMA(), x, 2., y) sum(x + 2 .* y)
+@test_approx_eq vsum(FMA(), 2., x, y) sum(2. + x .* y)
+@test_approx_eq vsum(FMA(), x, 2., 3.) sum(x + 6.)
+@test_approx_eq vsum(FMA(), 2., x, 3.) sum(2. + x * 3.)
+@test_approx_eq vsum(FMA(), 2., 3., x) sum(2. + 3. * x)
 
 ### partial reduction ###
 
 x1 = randn(6)
 y1 = randn(6)
+z1 = randn(6)
 
 x2 = randn(5, 6)
 y2 = randn(5, 6)
+z2 = randn(5, 6)
 
 x3 = randn(3, 4, 5)
 y3 = randn(3, 4, 5)
+z3 = randn(3, 4, 5)
 
 x4 = randn(3, 4, 5, 2)
 y4 = randn(3, 4, 5, 2)
+z4 = randn(3, 4, 5, 2)
 
 # vsum
 
@@ -379,6 +391,27 @@ r = zeros(6); vadiffmin!(r, x2, y2, 1)
 
 r = zeros(6); vsqdiffsum!(r, x2, y2, 1)
 @test_approx_eq r vec(sum(abs2(x2 - y2), 1))
+
+# vreduce on fma
+
+@test_approx_eq vsum(FMA(), x1, y1, z1, 1) sum(x1 + y1 .* z1, 1)
+@test_approx_eq vsum(FMA(), x1, y1, z1, 2) sum(x1 + y1 .* z1, 2)
+@test_approx_eq vsum(FMA(), x2, y2, z2, 1) sum(x2 + y2 .* z2, 1)
+@test_approx_eq vsum(FMA(), x2, y2, z2, 2) sum(x2 + y2 .* z2, 2)
+@test_approx_eq vsum(FMA(), x2, y2, z2, 3) sum(x2 + y2 .* z2, 3)
+@test_approx_eq vsum(FMA(), x3, y3, z3, 1) sum(x3 + y3 .* z3, 1)
+@test_approx_eq vsum(FMA(), x3, y3, z3, 2) sum(x3 + y3 .* z3, 2)
+@test_approx_eq vsum(FMA(), x3, y3, z3, 3) sum(x3 + y3 .* z3, 3)
+@test_approx_eq vsum(FMA(), x3, y3, z3, 4) sum(x3 + y3 .* z3, 4)
+@test_approx_eq vsum(FMA(), x4, y4, z4, 1) sum(x4 + y4 .* z4, 1)
+@test_approx_eq vsum(FMA(), x4, y4, z4, 2) sum(x4 + y4 .* z4, 2)
+@test_approx_eq vsum(FMA(), x4, y4, z4, 3) sum(x4 + y4 .* z4, 3)
+@test_approx_eq vsum(FMA(), x4, y4, z4, 4) sum(x4 + y4 .* z4, 4)
+@test_approx_eq vsum(FMA(), x4, y4, z4, 5) sum(x4 + y4 .* z4, 5)
+
+@test_approx_eq vsum(FMA(), x3, y3, z3, (1, 2)) sum(x3 + y3 .* z3, (1, 2))
+@test_approx_eq vsum(FMA(), x3, y3, z3, (1, 3)) sum(x3 + y3 .* z3, (1, 3))
+@test_approx_eq vsum(FMA(), x3, y3, z3, (2, 3)) sum(x3 + y3 .* z3, (2, 3))
 
 # vnorm
 
