@@ -40,12 +40,6 @@ end
 evaluate{T<:Real}(::Max, x::T, y::T) = x > y ? x : y
 evaluate{T<:Real}(::Min, x::T, y::T) = x < y ? x : y
 
-type AbsDiff <: BinaryFunctor end
-evaluate(::AbsDiff, x::Number, y::Number) = abs(x - y)
-
-type SqrDiff <: BinaryFunctor end
-evaluate(::SqrDiff, x::Number, y::Number) = abs2(x - y)
-
 immutable FixAbsPow{T<:Real} <: UnaryFunctor 
     p::T
 end
@@ -60,7 +54,7 @@ evaluate(op::FixAbsPow, x::Number) = abs(x) ^ op.p
 
 to_fptype{T<:Number}(x::Type{T}) = typeof(convert(FloatingPoint, zero(T)))
 
-for Op in [:Add, :Subtract, :Multiply, :Pow, :Max, :Min, :AbsDiff, :SqrDiff]
+for Op in [:Add, :Subtract, :Multiply, :Pow, :Max, :Min]
     @eval result_type{T1<:Number, T2<:Number}(::($Op), ::Type{T1}, ::Type{T2}) = promote_type(T1, T2)
 end
 
