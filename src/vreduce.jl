@@ -85,8 +85,6 @@ end
 # Matrix along (1,)
 
 function _code_vreduce_dim1(kergen::Symbol)
-	# ker1 = eval(:($kergen(1, :j))) 
-	# kernel = eval(:($kergen(:i, :j)))
 	kernel = eval(:($kergen(:idx)))
 
 	quote
@@ -188,20 +186,28 @@ end
 # Cube along (2,)
 
 function _code_vreduce_dim2_cube(kergen::Symbol)
-	ker1 = eval(:($kergen(:i, 1, :l)))
-	kernel = eval(:($kergen(:i, :j, :l)))
+	# ker1 = eval(:($kergen(:i, 1, :l)))
+	# kernel = eval(:($kergen(:i, :j, :l)))
+	kernel = eval(:($kergen(:idx)))
 
 	quote
+		od = 0
+		idx = 0
 		for l in 1 : k
 			for i in 1 : m
-				dst[i,l] = $ker1
+				idx += 1
+				dst[od + i] = $kernel
 			end
 
 			for j in 2 : n
 				for i in 1 : m
-					dst[i,l] = evaluate(op, dst[i,l], $kernel)
+					odi = od + i
+					idx += 1
+					dst[odi] = evaluate(op, dst[odi], $kernel)
 				end
 			end
+
+			od += m
 		end
 	end
 end

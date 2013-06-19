@@ -50,6 +50,9 @@ end
 a = rand(1000, 1000)
 b = rand(1000, 1000)
 
+cube_a = rand(500, 500, 4)
+cube_b = rand(500, 500, 4)
+
 # benchmark
 
 println("Full reduction")
@@ -120,11 +123,11 @@ colwise_vadiffsum(a, b) = vadiffsum(a, b, 1)
 
 colwise_adiffmax(a, b) = max(abs(a - b), (), 1)
 colwise_vadiffmax(a, b) = vadiffmax(a, b, 1)
-@bench_vreduce2("colwise-adiffsum", 10, a, b, colwise_adiffmax, colwise_vadiffmax)
+@bench_vreduce2("colwise-adiffmax", 10, a, b, colwise_adiffmax, colwise_vadiffmax)
 
 colwise_adiffmin(a, b) = min(abs(a - b), (), 1)
 colwise_vadiffmin(a, b) = vadiffmin(a, b, 1)
-@bench_vreduce2("colwise-adiffsum", 10, a, b, colwise_adiffmin, colwise_vadiffmin)
+@bench_vreduce2("colwise-adiffmin", 10, a, b, colwise_adiffmin, colwise_vadiffmin)
 
 colwise_sqdiffsum(a, b) = sum(abs2(a - b), 1)
 colwise_vsqdiffsum(a, b) = vsqdiffsum(a, b, 1)
@@ -164,15 +167,45 @@ rowwise_vadiffsum(a, b) = vadiffsum(a, b, 2)
 
 rowwise_adiffmax(a, b) = max(abs(a - b), (), 2)
 rowwise_vadiffmax(a, b) = vadiffmax(a, b, 2)
-@bench_vreduce2("rowwise-adiffsum", 10, a, b, rowwise_adiffmax, rowwise_vadiffmax)
+@bench_vreduce2("rowwise-adiffmax", 10, a, b, rowwise_adiffmax, rowwise_vadiffmax)
 
 rowwise_adiffmin(a, b) = min(abs(a - b), (), 2)
 rowwise_vadiffmin(a, b) = vadiffmin(a, b, 2)
-@bench_vreduce2("rowwise-adiffsum", 10, a, b, rowwise_adiffmin, rowwise_vadiffmin)
+@bench_vreduce2("rowwise-adiffmin", 10, a, b, rowwise_adiffmin, rowwise_vadiffmin)
 
 rowwise_sqdiffsum(a, b) = sum(abs2(a - b), 2)
 rowwise_vsqdiffsum(a, b) = vsqdiffsum(a, b, 2)
 @bench_vreduce2("rowwise-sqdiffsum", 10, a, b, rowwise_sqdiffsum, rowwise_vsqdiffsum)
+
+
+println("Colwise Reduction for Cube")
+println("=======================================")
+
+@bench_vreduce1("colwise-sum (cube)", 10, cube_a, colwise_sum, colwise_vsum)
+@bench_vreduce1("colwise-asum (cube)", 10, cube_a, colwise_asum, colwise_vasum)
+@bench_vreduce1("colwise-amax (cube)", 10, cube_a, colwise_amax, colwise_vamax)
+@bench_vreduce1("colwise-amin (cube)", 10, cube_a, colwise_amin, colwise_vamin)
+@bench_vreduce1("colwise-sqsum (cube)", 10, cube_a, colwise_sqsum, colwise_vsqsum)
+@bench_vreduce2("colwise-dot (cube)", 10, cube_a, cube_b, colwise_dot, colwise_vdot)
+@bench_vreduce2("colwise-adiffsum (cube)", 10, cube_a, cube_b, colwise_adiffsum, colwise_vadiffsum)
+@bench_vreduce2("colwise-adiffmax (cube)", 10, cube_a, cube_b, colwise_adiffmax, colwise_vadiffmax)
+@bench_vreduce2("colwise-adiffmin (cube)", 10, cube_a, cube_b, colwise_adiffmin, colwise_vadiffmin)
+@bench_vreduce2("colwise-sqdiffsum (cube)", 10, cube_a, cube_b, colwise_sqdiffsum, colwise_vsqdiffsum)
+
+
+println("Rowwise Reduction for Cube")
+println("=======================================")
+
+@bench_vreduce1("rowwise-sum (cube)", 10, cube_a, rowwise_sum, rowwise_vsum)
+@bench_vreduce1("rowwise-asum (cube)", 10, cube_a, rowwise_asum, rowwise_vasum)
+@bench_vreduce1("rowwise-amax (cube)", 10, cube_a, rowwise_amax, rowwise_vamax)
+@bench_vreduce1("rowwise-amin (cube)", 10, cube_a, rowwise_amin, rowwise_vamin)
+@bench_vreduce1("rowwise-sqsum (cube)", 10, cube_a, rowwise_sqsum, rowwise_vsqsum)
+@bench_vreduce2("rowwise-dot (cube)", 10, cube_a, cube_b, rowwise_dot, rowwise_vdot)
+@bench_vreduce2("rowwise-adiffsum (cube)", 10, cube_a, cube_b, rowwise_adiffsum, rowwise_vadiffsum)
+@bench_vreduce2("rowwise-adiffmax (cube)", 10, cube_a, cube_b, rowwise_adiffmax, rowwise_vadiffmax)
+@bench_vreduce2("rowwise-adiffmin (cube)", 10, cube_a, cube_b, rowwise_adiffmin, rowwise_vadiffmin)
+@bench_vreduce2("rowwise-sqdiffsum (cube)", 10, cube_a, cube_b, rowwise_sqdiffsum, rowwise_vsqdiffsum)
 
 
 println("Reduction along two-dims of a cube")
