@@ -4,77 +4,32 @@
 #
 #################################################
 
-_xreshape(x::Number, m::Int, n::Int) = x
-_xreshape(x::AbstractArray, m::Int, n::Int) = reshape(x, m, n)
-
-# vreduce with init
-
-function _code_vreduce_withinit(kergen::Symbol)
-	kernel = eval(:($kergen(:i)))
+function code_vreduce_function(fname::Symbol, coder_expr::Expr)
+	coder = eval(coder_expr)
+	paramlist = generate_paramlist(coder)
+	ker1 = generate_kernel(coder, 1)
+	kernel = generate_kernel(coder, :i)
+	len = length_inference(coder)
 	quote
-		v::R = init
-		for i in 1 : length(x)
-			v = evaluate(op, v, $kernel)
+		function ($fname)(op::BinaryFunctor, $(paramlist...))
+			n::Int = $len
+			v = $ker1
+			for i in 2 : n
+				v = evaluate(op, v, $kernel)
+			end
+			v
 		end
-		v
 	end
 end
 
-macro _vreduce_withinit(kergen)
-	esc(_code_vreduce_withinit(kergen))
+macro vreduce_function(fname, coder)
+	esc(code_vreduce_function(fname, coder))
 end
 
-function vreduce{R<:Union(Number, Bool)}(op::BinaryFunctor, init::R, x::AbstractArray)
-	@_vreduce_withinit _ker_nofun
-end
-
-function vreduce{R<:Union(Number, Bool)}(op::BinaryFunctor, init::R, f::UnaryFunctor, x::AbstractArray)
-	@_vreduce_withinit _ker_unaryfun
-end
-
-function vreduce{R<:Union(Number, Bool)}(op::BinaryFunctor, init::R, f::BinaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber)
-	@_vreduce_withinit _ker_binaryfun
-end
-
-# vreduce without init
-
-function _code_vreduce(kergen::Symbol)
-	ker1 = eval(:($kergen(1))) 
-	kernel = eval(:($kergen(:i)))
-	quote
-		v = $ker1
-		for i in 2 : n
-			v = evaluate(op, v, $kernel)
-		end
-		v
-	end
-end
-
-macro _vreduce(kergen)
-	esc(_code_vreduce(kergen))
-end
-
-
-function vreduce(op::BinaryFunctor, x::AbstractArray)
-	n = length(x)
-	@_vreduce _ker_nofun
-end
-
-function vreduce(op::BinaryFunctor, f::UnaryFunctor, x::AbstractArray)
-	n = length(x)
-	@_vreduce _ker_unaryfun
-end
-
-function vreduce(op::BinaryFunctor, f::BinaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber)
-	n::Int = map_length(x1, x2)
-	@_vreduce _ker_binaryfun
-end
-
-function vreduce_fdiff(op::BinaryFunctor, f::UnaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber)
-	n::Int = map_length(x1, x2)
-	@_vreduce _ker_fdiff
-end
-
+@vreduce_function vreduce TrivialCoder()
+@vreduce_function vreduce UnaryCoder()
+@vreduce_function vreduce BinaryCoder()
+@vreduce_function vreduce_fdiff FDiffCoder()
 
 ########################################################
 #

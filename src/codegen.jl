@@ -38,6 +38,9 @@ end
 map_length(x1::AbstractArray, x2::Number) = length(x1)
 map_length(x1::Number, x2::AbstractArray) = length(x2)
 
+_xreshape(x::Number, m::Int, n::Int) = x
+_xreshape(x::AbstractArray, m::Int, n::Int) = reshape(x, m, n)
+
 # value type inference
 
 result_eltype{T}(op::UnaryFunctor, x::AbstractArray{T}) = result_type(op, T)
@@ -51,23 +54,27 @@ abstract AbstractFunCoder
 
 type TrivialCoder <: AbstractFunCoder end
 
-generate_paramlist(::TrivialCoder) = :(x::AbstractArray)
-generate_kernel(::TrivialCoder, i::Symbol) = :(x[$i])
+generate_paramlist(::TrivialCoder) = (:(x::AbstractArray),)
+generate_kernel(::TrivialCoder, i::SymOrNum) = :(x[$i])
+length_inference(::TrivialCoder) = :(length(x))
 
 type UnaryCoder <: AbstractFunCoder end
 
 generate_paramlist(::UnaryCoder) = (:(f::UnaryFunctor), :(x::AbstractArray))
-generate_kernel(::UnaryCoder, i::Symbol) = :(evaluate(f, x[$i]))
+generate_kernel(::UnaryCoder, i::SymOrNum) = :(evaluate(f, x[$i]))
+length_inference(::UnaryCoder) = :(length(x))
 
 type BinaryCoder <: AbstractFunCoder end
 
 generate_paramlist(::BinaryCoder) = (:(f::BinaryFunctor), :(x1::ArrayOrNumber), :(x2::ArrayOrNumber))
-generate_kernel(::BinaryCoder, i::Symbol) = :(evaluate(f, get_scalar(x1, $i), get_scalar(x2, $i)))
+generate_kernel(::BinaryCoder, i::SymOrNum) = :(evaluate(f, get_scalar(x1, $i), get_scalar(x2, $i)))
+length_inference(::BinaryCoder) = :(map_length(x1, x2))
 
 type FDiffCoder <: AbstractFunCoder end
 
 generate_paramlist(::FDiffCoder) = (:(f::UnaryFunctor), :(x1::ArrayOrNumber), :(x2::ArrayOrNumber))
-generate_kernel(::FDiffCoder, i::Symbol) = :(evaluate(f, get_scalar(x1, $i) - get_scalar(x2, $i)))
+generate_kernel(::FDiffCoder, i::SymOrNum) = :(evaluate(f, get_scalar(x1, $i) - get_scalar(x2, $i)))
+length_inference(::FDiffCoder) = :(map_length(x1, x2))
 
 
 # OLD code-gen devices

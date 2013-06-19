@@ -9,10 +9,10 @@ x = randn(3, 4)
 y = randn(3, 4)
 
 @test_approx_eq vsum(x) sum(x)
-@test vsum(x) == vreduce(Add(), x) == vreduce(Add(), 0., x)
+@test vsum(x) == vreduce(Add(), x) 
 
-@test max(x) == vmax(x) == vreduce(Max(), x) == vreduce(Max(), -Inf, x)
-@test min(x) == vmin(x) == vreduce(Min(), x) == vreduce(Min(), Inf, x)
+@test max(x) == vmax(x) == vreduce(Max(), x) 
+@test min(x) == vmin(x) == vreduce(Min(), x)
 @test nonneg_vmax(x) == max(max(x), 0.)
 
 @test_approx_eq vasum(x) sum(abs(x))
