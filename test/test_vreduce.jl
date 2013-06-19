@@ -164,3 +164,30 @@ r = zeros(3); vsum!(r, x3, (2, 3))
 @test_approx_eq vmin(x3, (2, 3)) min(x3, (), (2, 3))
 
 
+# vasum
+
+@test_approx_eq vasum(x1, 1) sum(abs(x1), 1)
+@test_approx_eq vasum(x1, 2) sum(abs(x1), 2)
+@test_approx_eq vasum(x2, 1) sum(abs(x2), 1)
+@test_approx_eq vasum(x2, 2) sum(abs(x2), 2)
+@test_approx_eq vasum(x2, 3) sum(abs(x2), 3)
+@test_approx_eq vasum(x3, 1) sum(abs(x3), 1)
+@test_approx_eq vasum(x3, 2) sum(abs(x3), 2)
+@test_approx_eq vasum(x3, 3) sum(abs(x3), 3)
+@test_approx_eq vasum(x3, 4) sum(abs(x3), 4)
+@test_approx_eq vasum(x4, 1) sum(abs(x4), 1)
+@test_approx_eq vasum(x4, 2) sum(abs(x4), 2)
+@test_approx_eq vasum(x4, 3) sum(abs(x4), 3)
+@test_approx_eq vasum(x4, 4) sum(abs(x4), 4)
+@test_approx_eq vasum(x4, 5) sum(abs(x4), 5)
+
+@test_approx_eq vasum(x3, (1, 2)) sum(abs(x3), (1, 2))
+@test_approx_eq vasum(x3, (1, 3)) sum(abs(x3), (1, 3))
+@test_approx_eq vasum(x3, (2, 3)) sum(abs(x3), (2, 3))
+
+r = zeros(6); vasum!(r, x2, 1)
+@test_approx_eq r vec(sum(abs(x2), 1))
+
+
+
+

@@ -94,13 +94,21 @@ colwise_sum(a) = sum(a, 1)
 colwise_vsum(a) = vsum(a, 1)
 @bench_vreduce1("colwise-sum", 10, a, colwise_sum, colwise_vsum)
 
+colwise_asum(a) = sum(abs(a), 1)
+colwise_vasum(a) = vasum(a, 1)
+@bench_vreduce1("colwise-asum", 10, a, colwise_asum, colwise_vasum)
+
 
 println("Rowwise reduction")
 println("=======================================")
 
 rowwise_sum(a) = sum(a, 2)
 rowwise_vsum(a) = vsum(a, 2)
-@bench_vreduce1("colwise-sum", 10, a, rowwise_sum, rowwise_vsum)
+@bench_vreduce1("rowwise-sum", 10, a, rowwise_sum, rowwise_vsum)
+
+rowwise_asum(a) = sum(abs(a), 2)
+rowwise_vasum(a) = vasum(a, 2)
+@bench_vreduce1("rowwise-asum", 10, a, rowwise_asum, rowwise_vasum)
 
 
 println("Reduction along two-dims of a cube")
@@ -119,6 +127,18 @@ vsum_13(a) = vsum(a, (1, 3))
 sum_23(a) = sum(a, (2, 3))
 vsum_23(a) = vsum(a, (2, 3))
 @bench_vreduce1("(2,3)-sum", 10, a, sum_23, vsum_23)
+
+asum_12(a) = sum(abs(a), (1, 2))
+vasum_12(a) = vasum(a, (1, 2))
+@bench_vreduce1("(1,2)-asum", 10, a, asum_12, vasum_12)
+
+asum_13(a) = sum(abs(a), (1, 3))
+vasum_13(a) = vasum(a, (1, 3))
+@bench_vreduce1("(1,3)-asum", 10, a, asum_13, vasum_13)
+
+asum_23(a) = sum(abs(a), (2, 3))
+vasum_23(a) = vasum(a, (2, 3))
+@bench_vreduce1("(2,3)-asum", 10, a, asum_23, vasum_23)
 
 
 

@@ -4,6 +4,9 @@
 #
 #################################################
 
+_xreshape(x::Number, m::Int, n::Int) = x
+_xreshape(x::AbstractArray, m::Int, n::Int) = reshape(x, m, n)
+
 # vreduce with init
 
 function _code_vreduce_withinit(kergen::Symbol)
@@ -105,6 +108,26 @@ function vreduce_dim1!(dst::AbstractArray, op::BinaryFunctor, x::AbstractMatrix)
 	@_vreduce_dim1 _ker_nofun
 end
 
+function vreduce_dim1!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x::AbstractMatrix)
+	m = size(x, 1)
+	n = size(x, 2)
+	@_vreduce_dim1 _ker_unaryfun
+end
+
+function vreduce_dim1!(dst::AbstractArray, op::BinaryFunctor, f::BinaryFunctor, x1::MatrixOrNumber, x2::MatrixOrNumber)
+	siz = map_shape(x1, x2)
+	m::Int = siz[1]
+	n::Int = siz[2]
+	@_vreduce_dim1 _ker_binaryfun
+end
+
+function vreduce_fdiff_dim1!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x1::MatrixOrNumber, x2::MatrixOrNumber)
+	siz = map_shape(x1, x2)
+	m::Int = siz[1]
+	n::Int = siz[2]
+	@_vreduce_dim1 _ker_fdiff
+end
+
 
 # Matrix along (2,)
 
@@ -134,6 +157,26 @@ function vreduce_dim2!(dst::AbstractArray, op::BinaryFunctor, x::AbstractMatrix)
 	@_vreduce_dim2 _ker_nofun
 end
 
+function vreduce_dim2!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x::AbstractMatrix)
+	m = size(x, 1)
+	n = size(x, 2)
+	@_vreduce_dim2 _ker_unaryfun
+end
+
+function vreduce_dim2!(dst::AbstractArray, op::BinaryFunctor, f::BinaryFunctor, x1::MatrixOrNumber, x2::MatrixOrNumber)
+	siz = map_shape(x1, x2)
+	m::Int = siz[1]
+	n::Int = siz[2]
+	@_vreduce_dim2 _ker_binaryfun
+end
+
+function vreduce_fdiff_dim2!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x1::MatrixOrNumber, x2::MatrixOrNumber)
+	siz = map_shape(x1, x2)
+	m::Int = siz[1]
+	n::Int = siz[2]
+	@_vreduce_dim2 _ker_fdiff
+end
+
 
 # Cube along (2,)
 
@@ -160,36 +203,102 @@ macro _vreduce_dim2_cube(kergen)
 	esc(_code_vreduce_dim2_cube(kergen))
 end
 
-function vreduce_dim2!{T}(dst::AbstractArray, op::BinaryFunctor, x::AbstractArray{T,3})
+function vreduce_dim2!(dst::AbstractArray, op::BinaryFunctor, x::AbstractCube)
 	m = size(x, 1)
 	n = size(x, 2)
 	k = size(x, 3)
 	@_vreduce_dim2_cube _ker_nofun
 end
 
+function vreduce_dim2!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x::AbstractCube)
+	m = size(x, 1)
+	n = size(x, 2)
+	k = size(x, 3)
+	@_vreduce_dim2_cube _ker_unaryfun
+end
+
+function vreduce_dim2!(dst::AbstractArray, op::BinaryFunctor, f::BinaryFunctor, x1::CubeOrNumber, x2::CubeOrNumber)
+	siz = map_shape(x1, x2)
+	m::Int = siz[1]
+	n::Int = siz[2]
+	k::Int = siz[3]
+	@_vreduce_dim2_cube _ker_binaryfun
+end
+
+function vreduce_fdiff_dim2!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x1::CubeOrNumber, x2::CubeOrNumber)
+	siz = map_shape(x1, x2)
+	m::Int = siz[1]
+	n::Int = siz[2]
+	k::Int = siz[3]
+	@_vreduce_dim2_cube _ker_fdiff
+end
+
 
 # Cube along (1,2)
 
-function vreduce_dim12!{T}(dst::AbstractArray, op::BinaryFunctor, x::AbstractArray{T,3})
-	vreduce_dim1!(dst, op, reshape(x, size(x,1) * size(x,2), size(x,3)))
+function vreduce_dim12!(dst::AbstractArray, op::BinaryFunctor, x::AbstractCube)
+	d1 = size(x, 1) * size(x, 2)
+	d2 = size(x, 3)
+	vreduce_dim1!(dst, op, reshape(x, d1, d2))
 end
+
+function vreduce_dim12!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x::AbstractCube)
+	d1 = size(x, 1) * size(x, 2)
+	d2 = size(x, 3)
+	vreduce_dim1!(dst, op, f, reshape(x, d1, d2))
+end
+
+function vreduce_dim12!(dst::AbstractArray, op::BinaryFunctor, f::BinaryFunctor, x1::CubeOrNumber, x2::CubeOrNumber)
+	d1 = size(x, 1) * size(x, 2)
+	d2 = size(x, 3)
+	vreduce_dim1!(dst, op, f, _xreshape(x1, d1, d2), _xreshape(x2, d1, d2))
+end
+
+function vreduce_fdiff_dim12!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x1::CubeOrNumber, x2::CubeOrNumber)
+	d1 = size(x, 1) * size(x, 2)
+	d2 = size(x, 3)
+	vreduce_fdiff_dim1!(dst, op, f, _xreshape(x1, d1, d2), _xreshape(x2, d1, d2))
+end
+
 
 # Cube along (1,3)
 
-function vreduce_dim23!{T}(dst::AbstractArray, op::BinaryFunctor, x::AbstractArray{T,3})
-	vreduce_dim2!(dst, op, reshape(x, size(x,1), size(x,2) * size(x,3)))
+function vreduce_dim23!(dst::AbstractArray, op::BinaryFunctor, x::AbstractCube)
+	d1 = size(x, 1)
+	d2 = size(x, 2) * size(x, 3)
+	vreduce_dim2!(dst, op, reshape(x, d1, d2))
 end
+
+function vreduce_dim23!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x::AbstractCube)
+	d1 = size(x, 1)
+	d2 = size(x, 2) * size(x, 3)
+	vreduce_dim2!(dst, op, f, reshape(x, d1, d2))
+end
+
+function vreduce_dim23!(dst::AbstractArray, op::BinaryFunctor, f::BinaryFunctor, x1::CubeOrNumber, x2::CubeOrNumber)
+	d1 = size(x, 1)
+	d2 = size(x, 2) * size(x, 3)
+	vreduce_dim2!(dst, op, f, _xreshape(x1, d1, d2), _xreshape(x2, d1, d2))
+end
+
+function vreduce_fdiff_dim23!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x1::CubeOrNumber, x2::CubeOrNumber)
+	d1 = size(x, 1)
+	d2 = size(x, 2) * size(x, 3)
+	vreduce_fdiff_dim2!(dst, op, f, _xreshape(x1, d1, d2), _xreshape(x2, d1, d2))
+end
+
 
 # Cube along (2,3)
 
 function _code_vreduce_dim13_cube(kergen::Symbol)
+	ker0 = eval(:($kergen(1, :j, 1)))
 	ker1 = eval(:($kergen(:i, :j, 1)))
 	kernel = eval(:($kergen(:i, :j, :l)))
 
 	quote
 		# first page
 		for j in 1 : n
-			v = x[1,j,1]
+			v = $ker0
 			for i in 2 : m
 				v = evaluate(op, v, $ker1)
 			end
@@ -213,11 +322,32 @@ macro _vreduce_dim13_cube(kergen)
 	esc(_code_vreduce_dim13_cube(kergen))
 end
 
-function vreduce_dim13!{T}(dst::AbstractArray, op::BinaryFunctor, x::AbstractArray{T,3})
+function vreduce_dim13!(dst::AbstractArray, op::BinaryFunctor, x::AbstractCube)
 	m = size(x, 1)
 	n = size(x, 2)
 	k = size(x, 3)
 	@_vreduce_dim13_cube _ker_nofun
+end
+
+function vreduce_dim13!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x::AbstractCube)
+	m = size(x, 1)
+	n = size(x, 2)
+	k = size(x, 3)
+	@_vreduce_dim13_cube _ker_unaryfun
+end
+
+function vreduce_dim13!(dst::AbstractArray, op::BinaryFunctor, f::BinaryFunctor, x1::CubeOrNumber, x2::CubeOrNumber)
+	m = size(x, 1)
+	n = size(x, 2)
+	k = size(x, 3)
+	@_vreduce_dim13_cube _ker_binaryfun
+end
+
+function vreduce_fdiff_dim13!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x1::CubeOrNumber, x2::CubeOrNumber)
+	m = size(x, 1)
+	n = size(x, 2)
+	k = size(x, 3)
+	@_vreduce_dim13_cube _ker_fdiff
 end
 
 
@@ -227,6 +357,8 @@ end
 #
 ########################################################
 
+# vector
+
 function vreduce!(dst::AbstractArray, op::BinaryFunctor, x::AbstractVector, dim::Integer)
 	if dim == 1
 		dst[1] = vreduce(op, x)
@@ -235,6 +367,35 @@ function vreduce!(dst::AbstractArray, op::BinaryFunctor, x::AbstractVector, dim:
 	end
 	dst
 end
+
+function vreduce!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x::AbstractVector, dim::Integer)
+	if dim == 1
+		dst[1] = vreduce(op, f, x)
+	else
+		vmap!(dst, f, x)
+	end
+	dst
+end
+
+function vreduce!(dst::AbstractArray, op::BinaryFunctor, f::BinaryFunctor, x1::VectorOrNumber, x2::VectorOrNumber, dim::Integer)
+	if dim == 1
+		dst[1] = vreduce(op, f, x1, x2)
+	else
+		vmap!(dst, f, x1, x2)
+	end
+	dst
+end
+
+function vreduce_fdiff!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x1::VectorOrNumber, x2::VectorOrNumber, dim::Integer)
+	if dim == 1
+		dst[1] = vreduce_fdiff(op, f, x1, x2)
+	else
+		vmapdiff!(dst, f, x1, x2)
+	end
+	dst
+end
+
+# matrix
 
 function vreduce!(dst::AbstractArray, op::BinaryFunctor, x::AbstractMatrix, dim::Integer)
 	if dim == 1
@@ -247,18 +408,149 @@ function vreduce!(dst::AbstractArray, op::BinaryFunctor, x::AbstractMatrix, dim:
 	dst
 end
 
-function vreduce!{T}(dst::AbstractArray, op::BinaryFunctor, x::AbstractArray{T,3}, dim::Integer)
+function vreduce!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x::AbstractMatrix, dim::Integer)
 	if dim == 1
-		vreduce_dim1!(dst, op, reshape(x, size(x,1), size(x,2) * size(x,3)))
+		vreduce_dim1!(dst, op, f, x)
 	elseif dim == 2
-		vreduce_dim2!(reshape(dst, size(x,1), size(x,3)), op, x)
+		vreduce_dim2!(dst, op, f, x)
+	else
+		vmap!(dst, f, x)
+	end
+	dst
+end
+
+function vreduce!(dst::AbstractArray, op::BinaryFunctor, f::BinaryFunctor, x1::MatrixOrNumber, x2::MatrixOrNumber, dim::Integer)
+	if dim == 1
+		vreduce_dim1!(dst, op, f, x1, x2)
+	elseif dim == 2
+		vreduce_dim2!(dst, op, f, x1, x2)
+	else
+		vmap!(dst, f, x1, x2)
+	end
+	dst
+end
+
+function vreduce_fdiff!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x1::MatrixOrNumber, x2::MatrixOrNumber, dim::Integer)
+	if dim == 1
+		vreduce_fdiff_dim1!(dst, op, f, x1, x2)
+	elseif dim == 2
+		vreduce_fdiff_dim2!(dst, op, f, x1, x2)
+	else
+		vmapdiff!(dst, f, x1, x2)
+	end
+	dst
+end
+
+
+# cube
+
+function vreduce!(dst::AbstractArray, op::BinaryFunctor, x::AbstractCube, dim::Integer)
+	m = size(x, 1)
+	n = size(x, 2)
+	k = size(x, 3)
+
+	if dim == 1
+		vreduce_dim1!(dst, op, reshape(x, m, n * k))
+	elseif dim == 2
+		vreduce_dim2!(reshape(dst, m, k), op, x)
 	elseif dim == 3
-		vreduce_dim2!(dst, op, reshape(x, size(x,1) * size(x,2), size(x,3)))
+		vreduce_dim2!(dst, op, reshape(x, m * n, k))
 	else
 		copy!(dst, x)
 	end
 	dst
 end
+
+function vreduce!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x::AbstractCube, dim::Integer)
+	m = size(x, 1)
+	n = size(x, 2)
+	k = size(x, 3)
+
+	if dim == 1
+		vreduce_dim1!(dst, op, f, reshape(x, m, n * k))
+	elseif dim == 2
+		vreduce_dim2!(reshape(dst, m, k), op, f, x)
+	elseif dim == 3
+		vreduce_dim2!(dst, op, f, reshape(x, m * n, k))
+	else
+		vmap!(dst, f, x)
+	end
+	dst
+end
+
+function vreduce!(dst::AbstractArray, op::BinaryFunctor, f::BinaryFunctor, x1::CubeOrNumber, x2::CubeOrNumber, dim::Integer)
+	m = size(x, 1)
+	n = size(x, 2)
+	k = size(x, 3)
+
+	if dim == 1
+		nk = n * k
+		vreduce_dim1!(dst, op, f, _xreshape(x1, m, nk), _xreshape(x2, m, nk))
+	elseif dim == 2
+		vreduce_dim2!(reshape(dst, m, k), op, f, x1, x2)
+	elseif dim == 3
+		mn = m * n
+		vreduce_dim2!(dst, op, f, _xreshape(x1, mn, k), _xreshape(x2, mn, k))
+	else
+		vmap!(dst, f, x1, x2)
+	end
+	dst
+end
+
+function vreduce_fdiff!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x1::CubeOrNumber, x2::CubeOrNumber, dim::Integer)
+	m = size(x, 1)
+	n = size(x, 2)
+	k = size(x, 3)
+
+	if dim == 1
+		nk = n * k
+		vreduce_fdiff_dim1!(dst, op, f, _xreshape(x1, m, nk), _xreshape(x2, m, nk))
+	elseif dim == 2
+		vreduce_fdiff_dim2!(reshape(dst, m, k), op, f, x1, x2)
+	elseif dim == 3
+		mn = m * n
+		vreduce_fdiff_dim2!(dst, op, f, _xreshape(x1, mn, k), _xreshape(x2, mn, k))
+	else
+		vmapdiff!(dst, f, x1, x2)
+	end
+	dst
+end
+
+# cube with rgn
+
+function vreduce!(dst::AbstractArray, op::BinaryFunctor, x::AbstractCube, rgn::(Int, Int))
+	rgn == (1, 2) ? vreduce_dim12!(dst, op, x) :
+	rgn == (1, 3) ? vreduce_dim13!(dst, op, x) :
+	rgn == (2, 3) ? vreduce_dim23!(dst, op, x) : 
+	throw(ArgumentError("rgn must be either of (1, 2), (1, 3), or (2, 3)."))
+	dst
+end
+
+function vreduce!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x::AbstractCube, rgn::(Int, Int))
+	rgn == (1, 2) ? vreduce_dim12!(dst, op, f, x) :
+	rgn == (1, 3) ? vreduce_dim13!(dst, op, f, x) :
+	rgn == (2, 3) ? vreduce_dim23!(dst, op, f, x) : 
+	throw(ArgumentError("rgn must be either of (1, 2), (1, 3), or (2, 3)."))
+	dst
+end
+
+function vreduce!(dst::AbstractArray, op::BinaryFunctor, f::BinaryFunctor, x1::CubeOrNumber, x2::CubeOrNumber, rgn::(Int, Int))
+	rgn == (1, 2) ? vreduce_dim12!(dst, op, f, x1, x2) :
+	rgn == (1, 3) ? vreduce_dim13!(dst, op, f, x1, x2) :
+	rgn == (2, 3) ? vreduce_dim23!(dst, op, f, x1, x2) : 
+	throw(ArgumentError("rgn must be either of (1, 2), (1, 3), or (2, 3)."))
+	dst
+end
+
+function vreduce_fdiff!(dst::AbstractArray, op::BinaryFunctor, f::BinaryFunctor, x1::CubeOrNumber, x2::CubeOrNumber, rgn::(Int, Int))
+	rgn == (1, 2) ? vreduce_fdiff_dim12!(dst, op, f, x1, x2) :
+	rgn == (1, 3) ? vreduce_fdiff_dim13!(dst, op, f, x1, x2) :
+	rgn == (2, 3) ? vreduce_fdiff_dim23!(dst, op, f, x1, x2) : 
+	throw(ArgumentError("rgn must be either of (1, 2), (1, 3), or (2, 3)."))
+	dst
+end
+
+# higher order arrays
 
 function vreduce!(dst::AbstractArray, op::BinaryFunctor, x::AbstractArray, dim::Integer)
 	siz = size(x)
@@ -266,9 +558,11 @@ function vreduce!(dst::AbstractArray, op::BinaryFunctor, x::AbstractArray, dim::
 	@assert nd >= 4
 
 	if dim == 1
-		vreduce_dim1!(dst, op, reshape(x, siz[1], prod(siz[2:])))
+		dl = prod(siz[2:])
+		vreduce_dim1!(dst, op, reshape(x, siz[1], dl))
 	elseif dim == nd
-		vreduce_dim2!(dst, op, reshape(x, prod(siz[1:end-1]), siz[end]))
+		df = prod(siz[1:end-1])
+		vreduce_dim2!(dst, op, reshape(x, df, siz[nd]))
 	elseif 1 < dim < nd
 		df = prod(siz[1:dim-1])
 		dl = prod(siz[dim+1:])
@@ -279,14 +573,73 @@ function vreduce!(dst::AbstractArray, op::BinaryFunctor, x::AbstractArray, dim::
 	dst
 end
 
-function vreduce!{T}(dst::AbstractArray, op::BinaryFunctor, x::AbstractArray{T,3}, rgn::(Int, Int))
-	rgn == (1, 2) ? vreduce_dim12!(dst, op, x) :
-	rgn == (1, 3) ? vreduce_dim13!(dst, op, x) :
-	rgn == (2, 3) ? vreduce_dim23!(dst, op, x) : 
-	throw(ArgumentError("rgn must be either of (1, 2), (1, 3), or (2, 3)."))
+function vreduce!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x::AbstractArray, dim::Integer)
+	siz = size(x)
+	nd = length(siz)
+	@assert nd >= 4
+
+	if dim == 1
+		dl = prod(siz[2:])
+		vreduce_dim1!(dst, op, f, reshape(x, siz[1], dl))
+	elseif dim == nd
+		df = prod(siz[1:end-1])
+		vreduce_dim2!(dst, op, f, reshape(x, df, siz[nd]))
+	elseif 1 < dim < nd
+		df = prod(siz[1:dim-1])
+		dl = prod(siz[dim+1:])
+		vreduce_dim2!(reshape(dst, df, dl), op, f, reshape(x, df, siz[dim], dl))
+	else
+		vmap!(dst, f, x)
+	end
 	dst
 end
 
+function vreduce!(dst::AbstractArray, op::BinaryFunctor, f::BinaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber, dim::Integer)
+	siz = size(x)
+	nd = length(siz)
+	@assert nd >= 4
+
+	if dim == 1
+		dl = prod(siz[2:])
+		vreduce_dim1!(dst, op, f, reshape(x1, siz[1], dl), reshape(x2, siz[1], dl))
+	elseif dim == nd
+		df = prod(siz[1:end-1])
+		vreduce_dim2!(dst, op, f, reshape(x1, df, siz[nd]), reshape(x2, df, siz[nd]))
+	elseif 1 < dim < nd
+		df = prod(siz[1:dim-1])
+		dl = prod(siz[dim+1:])
+		vreduce_dim2!(reshape(dst, df, dl), op, f, reshape(x1, df, siz[dim], dl), reshape(x2, df, siz[dim], dl))
+	else
+		vmap!(dst, f, x1, x2)
+	end
+	dst
+end
+
+function vreduce_fdiff!(dst::AbstractArray, op::BinaryFunctor, f::UnaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber, dim::Integer)
+	siz = size(x)
+	nd = length(siz)
+	@assert nd >= 4
+
+	if dim == 1
+		dl = prod(siz[2:])
+		vreduce_fdiff_dim1!(dst, op, f, reshape(x1, siz[1], dl), reshape(x2, siz[1], dl))
+	elseif dim == nd
+		df = prod(siz[1:end-1])
+		vreduce_fdiff_dim2!(dst, op, f, reshape(x1, df, siz[nd]), reshape(x2, df, siz[nd]))
+	elseif 1 < dim < nd
+		df = prod(siz[1:dim-1])
+		dl = prod(siz[dim+1:])
+		vreduce_fdiff_dim2!(reshape(dst, df, dl), op, f, reshape(x1, df, siz[dim], dl), reshape(x2, df, siz[dim], dl))
+	else
+		vmapdiff!(dst, f, x1, x2)
+	end
+	dst
+end
+
+
+# out-of-place vreduce along dimensions
+
+typealias DimSpec Union(Int, (Int, Int))
 
 function reduced_size(siz::(Int,), dim::Integer)
 	dim == 1 ? (1,) : siz
@@ -320,14 +673,51 @@ function reduced_size(siz::NTuple{Int}, rgn::NTuple{Int})
 end
 
 
-function vreduce{T}(op::BinaryFunctor, x::AbstractArray{T}, dim::Integer)
-	r = Array(result_type(op, T, T), reduced_size(size(x), dim))
-	vreduce!(r, op, x, dim)
+function vreduce{T}(op::BinaryFunctor, x::AbstractArray{T}, dims::DimSpec)
+	r = Array(result_type(op, T, T), reduced_size(size(x), dims))
+	vreduce!(r, op, x, dims)
 end
 
-function vreduce{T}(op::BinaryFunctor, x::AbstractArray{T,3}, rgn::(Int, Int))
-	r = Array(result_type(op, T, T), reduced_size(size(x), rgn))
-	vreduce!(r, op, x, rgn)
+function vreduce{T}(op::BinaryFunctor, f::UnaryFunctor, x::AbstractArray{T}, dims::DimSpec)
+	tt = result_type(f, T)
+	r = Array(result_type(op, tt, tt), reduced_size(size(x), dims))
+	vreduce!(r, op, f, x, dims)
+end
+
+function vreduce{T1,T2}(op::BinaryFunctor, f::BinaryFunctor, x1::AbstractArray{T1}, x2::AbstractArray{T2}, dims::DimSpec)
+	tt = result_type(f, T1, T2)
+	r = Array(result_type(op, tt, tt), reduced_size(map_shape(x1, x2), dims))
+	vreduce!(r, op, f, x1, x2, dims)
+end
+
+function vreduce{T1,T2<:Number}(op::BinaryFunctor, f::BinaryFunctor, x1::AbstractArray{T1}, x2::T2, dims::DimSpec)
+	tt = result_type(f, T1, T2)
+	r = Array(result_type(op, tt, tt), reduced_size(size(x1), dims))
+	vreduce!(r, op, f, x1, x2, dims)
+end
+
+function vreduce{T1<:Number,T2}(op::BinaryFunctor, f::BinaryFunctor, x1::T1, x2::AbstractArray{T2}, dims::DimSpec)
+	tt = result_type(f, T1, T2)
+	r = Array(result_type(op, tt, tt), reduced_size(size(x2), dims))
+	vreduce!(r, op, f, x1, x2, dims)
+end
+
+function vreduce_fdiff{T1,T2}(op::BinaryFunctor, f::UnaryFunctor, x1::AbstractArray{T1}, x2::AbstractArray{T2}, dims::DimSpec)
+	tt = result_type(f, promote_type(T1, T2))
+	r = Array(result_type(op, tt, tt), reduced_size(map_shape(x1, x2), dims))
+	vreduce_fdiff!(r, op, f, x1, x2, dims)
+end
+
+function vreduce_fdiff{T1,T2<:Number}(op::BinaryFunctor, f::UnaryFunctor, x1::AbstractArray{T1}, x2::T2, dims::DimSpec)
+	tt = result_type(f, promote_type(T1, T2))
+	r = Array(result_type(op, tt, tt), reduced_size(size(x1), dims))
+	vreduce_fdiff!(r, op, f, x1, x2, dims)
+end
+
+function vreduce_fdiff{T1<:Number,T2}(op::BinaryFunctor, f::UnaryFunctor, x1::T1, x2::AbstractArray{T2}, dims::DimSpec)
+	tt = result_type(f, promote_type(T1, T2))
+	r = Array(result_type(op, tt, tt), reduced_size(size(x2), dims))
+	vreduce_fdiff!(r, op, f, x1, x2, dims)
 end
 
 
@@ -336,8 +726,6 @@ end
 # 	Basic reduction functions
 #
 #################################################
-
-typealias DimSpec Union(Int, (Int, Int))
 
 # sum
 
@@ -356,7 +744,7 @@ end
 vsum(x::AbstractArray, dims::DimSpec) = vreduce(Add(), x, dims)
 vsum!(dst::AbstractArray, x::AbstractArray, dims::DimSpec) = vreduce!(dst, Add(), x, dims)
 
-vsum(f::UnaryFunctor, x::AbstractArray, dims::DimSpec) = vreduce!(Add(), f, x, dims)
+vsum(f::UnaryFunctor, x::AbstractArray, dims::DimSpec) = vreduce(Add(), f, x, dims)
 vsum!(dst::AbstractArray, f::UnaryFunctor, x::AbstractArray, dims::DimSpec) = vreduce!(dst, Add(), f, x, dims)
 	
 function vsum(f::BinaryFunctor, x1::AbstractArray, x2::AbstractArray, dims::DimSpec)
