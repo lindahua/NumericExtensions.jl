@@ -37,6 +37,7 @@ module NumericFunctors
 		vnorm, vnorm!, vdiffnorm, vdiffnorm!
 
 	include("functors.jl")
+	include("codegen.jl")
 	include("vmap.jl")
 	include("vbroadcast.jl")
 	include("vreduce.jl")

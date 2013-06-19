@@ -8,6 +8,8 @@ macro bench_vmap1(name, rp, a, f1, f2)
 
 		($f1)($a)
 		($f2)($a)
+		($f1)($a)
+		($f2)($a)
 
 		t1 = @elapsed for i in 1 : ($rp)
 			($f1)($a) 
