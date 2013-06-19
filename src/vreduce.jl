@@ -186,8 +186,6 @@ end
 # Cube along (2,)
 
 function _code_vreduce_dim2_cube(kergen::Symbol)
-	# ker1 = eval(:($kergen(:i, 1, :l)))
-	# kernel = eval(:($kergen(:i, :j, :l)))
 	kernel = eval(:($kergen(:idx)))
 
 	quote
@@ -308,16 +306,18 @@ end
 # Cube along (1,3)
 
 function _code_vreduce_dim13_cube(kergen::Symbol)
-	ker0 = eval(:($kergen(1, :j, 1)))
-	ker1 = eval(:($kergen(:i, :j, 1)))
-	kernel = eval(:($kergen(:i, :j, :l)))
+	kernel = eval(:($kergen(:idx)))
 
 	quote
 		# first page
+		idx = 0
 		for j in 1 : n
-			v = $ker0
+			idx += 1
+			v = $kernel
+
 			for i in 2 : m
-				v = evaluate(op, v, $ker1)
+				idx += 1
+				v = evaluate(op, v, $kernel)
 			end
 			dst[j] = v
 		end
@@ -327,6 +327,7 @@ function _code_vreduce_dim13_cube(kergen::Symbol)
 			for j in 1 : n
 				v = dst[j]
 				for i in 1 : m
+					idx += 1
 					v = evaluate(op, v, $kernel)
 				end
 				dst[j] = v
