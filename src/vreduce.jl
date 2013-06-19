@@ -85,12 +85,17 @@ end
 # Matrix along (1,)
 
 function _code_vreduce_dim1(kergen::Symbol)
-	ker1 = eval(:($kergen(1, :j))) 
-	kernel = eval(:($kergen(:i, :j)))
+	# ker1 = eval(:($kergen(1, :j))) 
+	# kernel = eval(:($kergen(:i, :j)))
+	kernel = eval(:($kergen(:idx)))
+
 	quote
+		idx = 0
 		for j in 1 : n
-			v = $ker1
+			idx += 1
+			v = $kernel
 			for i in 2 : m
+				idx += 1
 				v = evaluate(op, v, $kernel)
 			end
 			dst[j] = v
@@ -132,15 +137,17 @@ end
 # Matrix along (2,)
 
 function _code_vreduce_dim2(kergen::Symbol)
-	ker1 = eval(:($kergen(:i, 1)))
-	kernel = eval(:($kergen(:i, :j)))
+	ker_i = eval(:($kergen(:i)))
+	kernel = eval(:($kergen(:idx)))
 	quote
 		for i in 1 : m
-			dst[i] = $ker1
+			dst[i] = $ker_i
 		end	
+		idx = m
 
 		for j in 2 : n
 			for i in 1 : m
+				idx += 1
 				dst[i] = evaluate(op, dst[i], $kernel)
 			end
 		end
