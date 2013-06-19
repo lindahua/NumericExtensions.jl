@@ -44,12 +44,15 @@ function vbroadcast!{R,T}(dst::Array{R,3}, f::BinaryFunctor, a::Array{T,3}, b::A
 		nk = n * k
 		vbroadcast!(reshape(dst, m, nk), f, reshape(a, m, nk), b, 1)
 	elseif dim == 2
+		o = 0
 		for l in 1 : k
 			for j in 1 : n
 				bj = b[j]
 				for i in 1 : m
-					dst[i,j,l] = evaluate(f, a[i,j,l], bj)
+					oi = o + i
+					dst[oi] = evaluate(f, a[oi], bj)
 				end
+				o += m
 			end
 		end
 	elseif dim == 3
@@ -74,12 +77,17 @@ function vbroadcast!{R,T}(dst::Array{R,3}, f::BinaryFunctor, a::Array{T,3}, b::A
 		mn = m * n
 		vbroadcast!(reshape(dst, mn, k), f, reshape(a, mn, k), b, 1)
 	elseif dims == (1, 3)
+		o = 0
+		o2 = 0
 		for l in 1 : k
 			for j in 1 : n
 				for i in 1 : m
-					dst[i,j,l] = evaluate(f, a[i,j,l], b[i,l])
+					oi = o + i
+					dst[oi] = evaluate(f, a[oi], b[o2 + i])
 				end
+				o += m
 			end
+			o2 += m
 		end
 	elseif dims == (2, 3)
 		nk = n * k
