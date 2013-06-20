@@ -183,4 +183,50 @@ For simple functions, such as ``x + y`` or ``exp(x)``, the performance of the vm
 * The script ``test/benchmark_vmap.jl`` runs a series of benchmarks to compare the performance ``vmap`` and the Julia vectorized expressions for a variety of computation.
 
 
+### Broadcasting
+
+Julia has a very nice and performant ``broadcast`` and ``broadcast!`` function, which however does not work with functors. For customized computation, you have to pass in function argument, which would lead to severe performance degradation. This package provides ``vbroadcast`` and ``vbroadcast!`` to address this issue.
+
+```julia
+vbroadcast(f, x, y, dim)  # apply vector y to vectors of x along dimension dim
+
+vbroadcast(f, x, y, 1)    # r[:,i] = f(x[:,i], y)
+vbroadcast(f, x, y, 2)    # r[i,:] = f(x[i,:], y)
+
+vbroadcast(f, x, y, 3)    # r[i,j,:] = f(x[i,j,:], y)
+```
+
+Unlike ``broadcast``, you have to specify the vector dimension for ``vbroadcast``. The benefit is two-fold: (1) the overhead of figuring out broadcasting shape information is elimintated; (2) the shape of ``y`` can be flexible. It is fine as along as ``length(y) == size(x, dim)``. For example
+
+```julia
+x = rand(5, 6)
+y = rand(6)
+
+vbroadcast(Add(), x, y, 2)    # this adds y to each row of x
+broadcast(+, x, reshape(y, 1, 6))  # with broadcast, you have to first shape y into a row
+```
+
+For cubes, it supports computation along two dimensions
+```julia
+x = rand(2, 3, 4)
+y = rand(2, 3)
+
+vbroadcast(x, y, (1, 2))    # this adds y to each page of x
+```
+
+The function ``vbroadcast!`` supports inplace computation:
+```julia
+vbroadcast!(dst, f, x, y)   # results written to a pre-allocated array dst
+vbroadcast!(f, x, y)        # x will be overrided by results
+```
+
+``broadcast`` is more general than ``vbroadcast`` in functionality. However, ``vbroadcast`` can offer better performance in various cases:
+
+* Benchmark (``test/benchmark_vbroadcast.jl``) shows that ``vbroadcast(x, y, 2)`` and ``vbroadcast(x, y, 3)`` improve the performance by ``50%`` to ``80%`` as compared to ``broadcast``, while ``vbroadcast(x, y, 1)`` is comparable to ``broadcast``.
+
+* ``vbroadcast`` allows the use of functors (instead of functions) as argument, which can lead to over ``20x`` speed-up in most cases. 
+
+* At the expense of requiring the user to input ``dims``, the overhead of broadcasting shape computation is reduced. 
+
+
 
