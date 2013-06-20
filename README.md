@@ -372,7 +372,7 @@ The reduction and map-reduction functions are carefully optimized. In particular
 * inner loops use linear indexing (with pre-computed offset);
 * opportunities of using BLAS are exploited.
 
-Below is a table that compares the performance with vectorized Julia expressions (when gain > 1, it means the function in this package is faster than the ordinary Julia expression):
+Below is a table that compares the performance with vectorized Julia expressions (the numbers in the table are speed-up ratio of the functions in this package as opposed to the Julia expressions):
 
 | function     | full reduction  | colwise reduction | rowwise reduction |   
 |--------------|-----------------|-------------------|-------------------|
