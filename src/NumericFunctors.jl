@@ -1,5 +1,6 @@
 module NumericFunctors
 
+	import Base.map, Base.map!
 	import Base.add!
 
 	export 
@@ -18,7 +19,7 @@ module NumericFunctors
 		Isfinite, Isnan, Isinf,
 
 		# vmap
-		vmap, vmap!, vmapdiff, vmapdiff!,
+		map, map!, map1!, mapdiff, mapdiff!,
 
 		add!, subtract!, multiply!, divide!, negate!, rcp!, 
 		sqrt!, abs!, abs2!, pow!, exp!, log!,
@@ -40,7 +41,7 @@ module NumericFunctors
 
 	include("functors.jl")
 	include("codegen.jl")
-	include("vmap.jl")
+	include("map.jl")
 	include("vbroadcast.jl")
 	include("vreduce.jl")
 

@@ -1,6 +1,6 @@
 # run all tests
 
-tests = ["functors", "vmap", "vbroadcast", "vreduce"]
+tests = ["functors", "map", "vbroadcast", "vreduce"]
 
 for t in tests
 	tf = joinpath("test", "test_$t.jl")

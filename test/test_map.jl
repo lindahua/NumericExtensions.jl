@@ -5,31 +5,31 @@ using Base.Test
 x = [1., 2., 3.]
 y = [6., 5., 4.]
 
-@test vmap(Abs2(), x) == abs2(x)
+@test map(Abs2(), x) == abs2(x)
 
 r = copy(x)
-vmap!(Abs2(), r)
+map!(Abs2(), r)
 @test r == abs2(x)
 
-@test vmap(Add(), x, y) == x + y
-@test vmap(Multiply(), x, y) == x .* y
-@test vmap(Subtract(), x, 1) == x - 1
-@test vmap(Subtract(), 1, x) == 1 - x
+@test map(Add(), x, y) == x + y
+@test map(Multiply(), x, y) == x .* y
+@test map(Subtract(), x, 1) == x - 1
+@test map(Subtract(), 1, x) == 1 - x
 
-@test vmapdiff(Abs2(), x, y) == abs2(x - y)
-@test vmapdiff(Abs2(), 1., y) == abs2(1 - y)
-@test vmapdiff(Abs2(), x, 1.) == abs2(x - 1)
+@test mapdiff(Abs2(), x, y) == abs2(x - y)
+@test mapdiff(Abs2(), 1., y) == abs2(1 - y)
+@test mapdiff(Abs2(), x, 1.) == abs2(x - 1)
 
 r = copy(x)
-vmap!(Add(), r, y)
+map1!(Add(), r, y)
 @test r == x + y
 
 r = copy(x)
-vmap!(Add(), r, 1)
+map1!(Add(), r, 1)
 @test r == x + 1
 
 r = copy(x)
-vmapdiff!(r, Abs2(), x, y)
+mapdiff!(r, Abs2(), x, y)
 @test r == abs2(x - y)
 
 
@@ -114,13 +114,13 @@ a = rand(8)
 b = rand(8)
 c = rand(8)
 
-@test_approx_eq vmap(FMA(), a, b, c)  a + b .* c
-@test_approx_eq vmap(FMA(), a, b, 2.) a + b * 2.
-@test_approx_eq vmap(FMA(), a, 2., c) a + 2. * c
-@test_approx_eq vmap(FMA(), 2., b, c)  2. + b .* c
-@test_approx_eq vmap(FMA(), a, 2., 3.) a + 2. * 3.
-@test_approx_eq vmap(FMA(), 2., b, 3.) 2. + b * 3.
-@test_approx_eq vmap(FMA(), 2., 3., c) 2. + 3. * c
+@test_approx_eq map(FMA(), a, b, c)  a + b .* c
+@test_approx_eq map(FMA(), a, b, 2.) a + b * 2.
+@test_approx_eq map(FMA(), a, 2., c) a + 2. * c
+@test_approx_eq map(FMA(), 2., b, c)  2. + b .* c
+@test_approx_eq map(FMA(), a, 2., 3.) a + 2. * 3.
+@test_approx_eq map(FMA(), 2., b, 3.) 2. + b * 3.
+@test_approx_eq map(FMA(), 2., 3., c) 2. + 3. * c
 
 @test_approx_eq fma(a, b, c) a + b .* c
 @test_approx_eq fma(a, b, 2.) a + b * 2.
@@ -136,7 +136,7 @@ type Plus <: BinaryFunctor end
 NumericFunctors.evaluate(::Plus, x, y) = x + y
 NumericFunctors.result_type{T1,T2}(::Plus, ::Type{T1}, ::Type{T2}) = promote_type(T1, T2)
 
-@test_approx_eq vmap(Plus(), a, b) a + b
+@test_approx_eq map(Plus(), a, b) a + b
 
 
 

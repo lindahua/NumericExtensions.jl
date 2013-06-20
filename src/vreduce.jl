@@ -276,7 +276,7 @@ end
 
 empty_notallowed(ty::Type) = throw(ArgumentError("Empty array is not allowed."))
 
-function code_basic_reduction(fname::Symbol, op::Expr, coder::AbstractFunCoder, gfun::Symbol, emptyfun::Symbol)
+function code_basic_reduction(fname::Symbol, op::Expr, coder::EwiseCoder, gfun::Symbol, emptyfun::Symbol)
 	paramlist = generate_paramlist(coder)
 	arglist = generate_arglist(coder)
 	vtype = eltype_inference(coder)
