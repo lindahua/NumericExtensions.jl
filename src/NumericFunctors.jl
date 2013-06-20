@@ -41,7 +41,7 @@ module NumericFunctors
 		vnorm, vnorm!, vdiffnorm, vdiffnorm!,
 
 		# benchmark
-		BenchmarkTable, nrows, ncolumns, add_row!, gain_table
+		BenchmarkTable, nrows, ncolumns, add_row!
 
 
 	include("functors.jl")

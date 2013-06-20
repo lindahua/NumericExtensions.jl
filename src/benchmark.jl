@@ -94,18 +94,3 @@ function Base.show(io::IO, tab::BenchmarkTable)
 end
 
 
-function gain_table(raw::BenchmarkTable, name::ASCIIString, oldc::ASCIIString, newc::ASCIIString)
-	j0::Int = raw.colmap[oldc]
-	j1::Int = raw.colmap[newc]
-
-	rtab = BenchmarkTable(name, [oldc, newc, "gain"])
-	m = nrows(raw)
-	for i in 1 : m
-		row = raw.rows[i]
-		newrow = [row[j0], row[j1], row[j0] / row[j1]]
-		add_row!(rtab, raw.rownames[i], newrow)
-	end
-
-	rtab
-end
-
