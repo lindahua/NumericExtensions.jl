@@ -8,7 +8,7 @@ y = [6., 5., 4.]
 @test map(Abs2(), x) == abs2(x)
 
 r = copy(x)
-map!(Abs2(), r)
+map1!(Abs2(), r)
 @test r == abs2(x)
 
 @test map(Add(), x, y) == x + y
@@ -29,7 +29,7 @@ map1!(Add(), r, 1)
 @test r == x + 1
 
 r = copy(x)
-mapdiff!(r, Abs2(), x, y)
+mapdiff!(Abs2(), r, x, y)
 @test r == abs2(x - y)
 
 

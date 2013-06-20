@@ -27,44 +27,44 @@ end
 @map_function mapdiff! FDiffCoder()
 @map_function map! TernaryCoder()
 
-map1!(f::Functor, x1, xr...) = map1!(x1, f, x1, xr...)
+map1!(f::Functor, x1, xr...) = map!(f, x1, x1, xr...)
 
 function map(f::Functor, xs...)
-	map!(Array(result_eltype(f, xs...), map_shape(xs...)), f, xs...)
+	map!(f, Array(result_eltype(f, xs...), map_shape(xs...)), xs...)
 end
 
 function mapdiff(f::UnaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber)
 	rt = result_type(f, promote_type(eltype(x1), eltype(x2)))
-	mapdiff!(Array(rt, map_shape(x1, x2)), f, x1, x2)
+	mapdiff!(f, Array(rt, map_shape(x1, x2)), x1, x2)
 end	
 
 # specific inplace functions
 
-add!(x::AbstractArray, y::ArrayOrNumber) = map!(Add(), x, y)
-subtract!(x::AbstractArray, y::ArrayOrNumber) = map!(Subtract(), x, y)
-multiply!(x::AbstractArray, y::ArrayOrNumber) = map!(Multiply(), x, y)
-divide!(x::AbstractArray, y::ArrayOrNumber) = map!(Divide(), x, y)
+add!(x::AbstractArray, y::ArrayOrNumber) = map1!(Add(), x, y)
+subtract!(x::AbstractArray, y::ArrayOrNumber) = map1!(Subtract(), x, y)
+multiply!(x::AbstractArray, y::ArrayOrNumber) = map1!(Multiply(), x, y)
+divide!(x::AbstractArray, y::ArrayOrNumber) = map1!(Divide(), x, y)
 
-negate!(x::AbstractArray) = map!(Negate(), x)
-abs!(x::AbstractArray) = map!(Abs(), x)
-abs2!(x::AbstractArray) = map!(Abs2(), x)
-rcp!{T}(x::AbstractArray{T}) = map!(x, Divide(), one(T), x)
-sqrt!(x::AbstractArray) = map!(Sqrt(), x)
-pow!(x::AbstractArray, p::ArrayOrNumber) = map!(Pow(), x, p)
+negate!(x::AbstractArray) = map1!(Negate(), x)
+abs!(x::AbstractArray) = map1!(Abs(), x)
+abs2!(x::AbstractArray) = map1!(Abs2(), x)
+rcp!{T}(x::AbstractArray{T}) = map!(Divide(), x, one(T), x)
+sqrt!(x::AbstractArray) = map1!(Sqrt(), x)
+pow!(x::AbstractArray, p::ArrayOrNumber) = map1!(Pow(), x, p)
 
-floor!(x::AbstractArray) = map!(Floor(), x)
-ceil!(x::AbstractArray) = map!(Ceil(), x)
-round!(x::AbstractArray) = map!(Round(), x)
-trunc!(x::AbstractArray) = map!(Trunc(), x)
+floor!(x::AbstractArray) = map1!(Floor(), x)
+ceil!(x::AbstractArray) = map1!(Ceil(), x)
+round!(x::AbstractArray) = map1!(Round(), x)
+trunc!(x::AbstractArray) = map1!(Trunc(), x)
 
-exp!(x::AbstractArray) = map!(Exp(), x)
-log!(x::AbstractArray) = map!(Log(), x)
+exp!(x::AbstractArray) = map1!(Exp(), x)
+log!(x::AbstractArray) = map1!(Log(), x)
 
 # extensions
 
 absdiff(x::AbstractArray, y::AbstractArray) = mapdiff(Abs(), x, y)
 sqrdiff(x::AbstractArray, y::AbstractArray) = mapdiff(Abs2(), x, y)
 
-fma!(a::AbstractArray, b::AbstractArray, c::ArrayOrNumber) = map!(FMA(), a, b, c)
+fma!(a::AbstractArray, b::AbstractArray, c::ArrayOrNumber) = map1!(FMA(), a, b, c)
 fma(a::AbstractArray, b::AbstractArray, c::ArrayOrNumber) = map(FMA(), a, b, c)
 
