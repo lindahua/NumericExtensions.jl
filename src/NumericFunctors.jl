@@ -1,7 +1,7 @@
 module NumericFunctors
 
 	import Base.map, Base.map!, Base.reduce
-	import Base.add!
+	import Base.add!, Base.show, Base.getindex
 	import Base.sum, Base.max, Base.min, Base.mean, Base.dot, Base.LinAlg.BLAS.asum, Base.norm
 
 	export 
@@ -38,12 +38,18 @@ module NumericFunctors
 		asum, asum!, amax, amax!, amin, amin!, sqsum, sqsum!,  
 		dot!, adiffsum, adiffsum!, sqdiffsum, sqdiffsum!,
 		adiffmax, adiffmax!, adiffmin, adiffmin!,  
-		vnorm, vnorm!, vdiffnorm, vdiffnorm!
+		vnorm, vnorm!, vdiffnorm, vdiffnorm!,
+
+		# benchmark
+		BenchmarkTable, nrows, ncolumns, add_row!, gain_table
+
 
 	include("functors.jl")
 	include("codegen.jl")
 	include("map.jl")
 	include("vbroadcast.jl")
 	include("reduce.jl")
+
+	include("benchmark.jl")
 
 end
