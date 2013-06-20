@@ -82,7 +82,7 @@ Except for several functors that corresponding to operators, most functors are n
 User can define new functors by sub-typing ``Functor``. For example, to define a functor that calculates squared difference, we can do the following:
 
 ```julia
-type SqrDiff <: BinaryFunctor
+type SqrDiff <: BinaryFunctor end
 
 NumericFunctors.evaluate(::SqrDiff, x, y) = abs2(x - y)
 NumericFunctors.result_type(::SqrDiff, t1::Type, t2::Type) = promote_type(t1, t2)
@@ -93,7 +93,7 @@ To define multiple functors, it would be more concise to first import ``evaluate
 ```julia
 import NumericFunctors.evaluate, NumericFunctors.result_type
 
-type SqrDiff <: BinaryFunctor
+type SqrDiff <: BinaryFunctor end
 
 evaluate(::SqrDiff, x, y) = abs2(x - y)
 result_type(::SqrDiff, t1::Type, t2::Type) = promote_type(t1, t2)
