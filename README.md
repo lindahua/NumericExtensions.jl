@@ -1,7 +1,8 @@
-NumericFunctors.jl
-====================
+## NumericFunctors.jl
 
 Fast vectorized computation for Julia, based on typed functors.
+
+## Motivation
 
 Passing functions as arguments are essential in writing generic algorithms. However, function arguments do not get inlined in Julia (at current version), usually resulting in suboptimal performance. Consider the following example:
 
@@ -34,6 +35,17 @@ using NumericFunctors
 ```  
 
 Here, using a typed functor ``Add`` and the ``vmap`` function provided in this package, statement (1) is *20%* faster than statement (2) in my benchmark (run ``test/benchmark_vmap.jl``). The reason is that typed functors triggered the compilation of specialized methods, where the codes associated with the functor will probably be *inlined*.
+
+## Main Features
+
+The package aims to provide generic and high performance functions for numerical computation, especially *mapping* and *reduction*.
+
+* A large collection of pre-defined functors cover most typical mathematical computation.
+* User can easily define customized functors.
+* Higher order functions ``vmap`` and ``vreduce`` are provided for mapping and reduction (both full reduction and reduction along specific dimensions). They are carefully optimized and tuned, often resulting in *2x - 10x* speed up compared to the counterpart in Julia Base.
+* Map-reduce can be done in one call of ``vreduce``, which performs the computation in a cache-friendly manner and without creating any intermediate arrays.
+* Broadcasting computation (supporting both inplace updating and writing results to new arrays).
+
 
 
 
