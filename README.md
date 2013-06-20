@@ -23,7 +23,23 @@ map_plus(a, b)
 
 Run this script in you computer, you will find that statement (2) is over *20+ times* slower than statement (1). The reason is that the function argument ``plus`` is resolved and called at each iteration of the inner loop within the ``map`` function.
 
-This package introduces *typed functors*, which can be used as arguments to various higher order functions without compromising the run-time performance. This package also introduces a series of functions for element-wise map, reduction, and reduction along specific dimensions. These functions are highly optimized, which typically yield *2x - 10x* speed up as compared to the counterpart functions in Julia Base.
+This package addresses this issue through *type functors* (*i.e.* function-like objects with specific types) and a set of highly optimized higher level functions for mapping and reduction. The codes above can be rewritten as
+
+```julia
+using NumericFunctors
+
+ # benchmark
+@time for i in 1 : 10 vmap(Add(), a, b) end     # -- statement(1)
+@time for i in 1 : 10 a + b end                 # -- statement(2)
+```  
+
+Here, using a typed functor ``Add`` and the ``vmap`` function provided in this package, statement (1) is *20%* faster than statement (2) in my benchmark (run ``test/benchmark_vmap.jl``). The reason is that typed functors triggered the compilation of specialized methods, where the codes associated with the functor will probably be *inlined*.
+
+
+
+
+
+
 
 
 

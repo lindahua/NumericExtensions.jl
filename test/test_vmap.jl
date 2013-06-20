@@ -130,3 +130,15 @@ r = copy(a); fma!(r, b, c)
 r = copy(a); fma!(r, b, 2.)
 @test_approx_eq r a + b .* 2.
 
+# customized functions
+
+type Plus <: BinaryFunctor end
+NumericFunctors.evaluate(::Plus, x, y) = x + y
+NumericFunctors.result_type{T1,T2}(::Plus, ::Type{T1}, ::Type{T2}) = promote_type(T1, T2)
+
+@test_approx_eq vmap(Plus(), a, b) a + b
+
+
+
+
+
