@@ -46,6 +46,39 @@ The package aims to provide generic and high performance functions for numerical
 * Map-reduce can be done in one call of ``vreduce``, which performs the computation in a cache-friendly manner and without creating any intermediate arrays.
 * Broadcasting computation (supporting both inplace updating and writing results to new arrays).
 
+### Functors
+
+``Functor`` is the abstract base type for all functors, which are formally defined as below
+
+```julia
+abstract Functor{N}  # N: the number of arguments
+
+typealias UnaryFunctor Functor{1}
+typealias BinaryFunctor Functor{2}
+typealias TernaryFunctor Functor{3}
+```
+
+##### Predefined functors
+
+Following is a list of pre-defined functors provided by this package:
+
+* Arithmetic functors: ``Add``, ``Subtract``, ``Multiply``, ``Divide``, ``Negate``, ``Abs``
+* Max and Min functors: ``Max``, ``Min``
+* Rounding functors: ``Floor``, ``Ceil``, ``Round``, ``Trunc``
+* Power functors: ``Pow``, ``Sqrt``, ``Cbrt``, ``Abs2``, ``Hypot``
+* Exp and log functors: ``Exp``, ``Exp2``, ``Exp10``, ``Log``, ``Log2``, ``Log10``, ``Expm1``, ``Log1p``
+* Trigonometric functors: ``Sin``, ``Cos``, ``Tan``, ``Asin``, ``Acos``, ``Atan``, ``Atan2``
+* Hyperbolic functors: ``Sinh``, ``Cosh``, ``Tanh``, ``Asinh``, ``Acosh``, ``Atanh``
+* Error functors: ``Erf``, ``Erfc``
+* Gamma functors: ``Gamma``, ``Lgamma``, ``Digamma``
+* Comparison functors: ``Greater``, ``GreaterEqual``, ``Less``, ``LessEqual``, ``Equal``, ``NotEqual``
+* Number class functors: ``Isfinite``, ``Isinf``, ``Isnan``
+* Fused multiply and add: ``FMA`` (i.e. ``(a, b, c) -> a + b * c``)
+
+Except for several functors that corresponding to operators, most functors are named using the capitalized version of the corresponding math function. Therefore, you don't have to look up this list to find the names. The collection of pre-defined functors will be extended in future. Please refer to ``src/functors.jl`` for the most updated list.
+
+
+
 
 
 
