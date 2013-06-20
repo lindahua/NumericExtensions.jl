@@ -26,11 +26,11 @@ macro full_reduction(fname, coder)
 	esc(code_full_reduction(fname, coder))
 end
 
-@full_reduction vreduce TrivialCoder()
-@full_reduction vreduce UnaryCoder()
-@full_reduction vreduce BinaryCoder()
-@full_reduction vreduce TernaryCoder()
-@full_reduction vreduce_fdiff FDiffCoder()
+@full_reduction reduce TrivialCoder()
+@full_reduction reduce UnaryCoder()
+@full_reduction reduce BinaryCoder()
+@full_reduction reduce TernaryCoder()
+@full_reduction reduce_fdiff FDiffCoder()
 
 ########################################################
 #
@@ -129,12 +129,14 @@ macro singledim_reduction(fname, coder, mapfun)
 	esc(code_singledim_reduction(fname, coder, mapfun))
 end
 
-@singledim_reduction vreduce TrivialCoder() copy!
-@singledim_reduction vreduce UnaryCoder() vmap!
-@singledim_reduction vreduce BinaryCoder() vmap!
-@singledim_reduction vreduce TernaryCoder() vmap!
-@singledim_reduction vreduce_fdiff FDiffCoder() vmapdiff!
+_map_to_dest!(dst::EwiseArray, f::Functor, xs...) = map!(f, dst, xs...)
+_mapdiff_to_dest!(dst::EwiseArray, f::UnaryFunctor, x1, x2) = mapdiff!(f, dst, x1, x2)
 
+@singledim_reduction reduce TrivialCoder() copy!
+@singledim_reduction reduce UnaryCoder() _map_to_dest!
+@singledim_reduction reduce BinaryCoder() _map_to_dest!
+@singledim_reduction reduce TernaryCoder() _map_to_dest!
+@singledim_reduction reduce_fdiff FDiffCoder() _mapdiff_to_dest!
 
 
 ########################################################
@@ -196,16 +198,16 @@ macro doubledims_reduction(fname, coder)
 	esc(code_doubledims_reduction(fname, coder))
 end
 
-@doubledims_reduction vreduce TrivialCoder()
-@doubledims_reduction vreduce UnaryCoder()
-@doubledims_reduction vreduce BinaryCoder()
-@doubledims_reduction vreduce TernaryCoder()
-@doubledims_reduction vreduce_fdiff FDiffCoder()
+@doubledims_reduction reduce TrivialCoder()
+@doubledims_reduction reduce UnaryCoder()
+@doubledims_reduction reduce BinaryCoder()
+@doubledims_reduction reduce TernaryCoder()
+@doubledims_reduction reduce_fdiff FDiffCoder()
 
 
 ########################################################
 #
-# 	vreduce (non in-place functions)
+# 	reduce (non in-place functions)
 #
 ########################################################
 
@@ -240,7 +242,7 @@ function reduced_size(siz::NTuple{Int}, rgn::NTuple{Int})
 	tuple(rsiz...)
 end
 
-function code_vreduce_function(fname::Symbol, coder_expr::Expr)
+function code_reduce_function(fname::Symbol, coder_expr::Expr)
 	coder = eval(coder_expr)
 	paramlist = generate_paramlist(coder)
 	arglist = generate_arglist(coder)
@@ -257,15 +259,15 @@ function code_vreduce_function(fname::Symbol, coder_expr::Expr)
 	end
 end
 
-macro vreduce_function(fname, coder)
-	esc(code_vreduce_function(fname, coder))
+macro reduce_function(fname, coder)
+	esc(code_reduce_function(fname, coder))
 end
 
-@vreduce_function vreduce TrivialCoder()
-@vreduce_function vreduce UnaryCoder()
-@vreduce_function vreduce BinaryCoder()
-@vreduce_function vreduce TernaryCoder()
-@vreduce_function vreduce_fdiff FDiffCoder()
+@reduce_function reduce TrivialCoder()
+@reduce_function reduce UnaryCoder()
+@reduce_function reduce BinaryCoder()
+@reduce_function reduce TernaryCoder()
+@reduce_function reduce_fdiff FDiffCoder()
 
 
 #################################################
@@ -293,11 +295,11 @@ function code_basic_reduction(fname::Symbol, op::Expr, coder::EwiseCoder, gfun::
 end
 
 function code_basic_reduction(fname::Symbol, op::Expr, emptyfun::Symbol)
-	c0 = code_basic_reduction(fname, op, TrivialCoder(), :vreduce, emptyfun)
-	c1 = code_basic_reduction(fname, op, UnaryCoder(), :vreduce, emptyfun)
-	c2 = code_basic_reduction(fname, op, BinaryCoder(), :vreduce, emptyfun)
-	c3 = code_basic_reduction(fname, op, TernaryCoder(), :vreduce, emptyfun)
-	c2d = code_basic_reduction(symbol(string(fname, "_fdiff")), op, FDiffCoder(), :vreduce_fdiff, emptyfun)
+	c0 = code_basic_reduction(fname, op, TrivialCoder(), :reduce, emptyfun)
+	c1 = code_basic_reduction(fname, op, UnaryCoder(), :reduce, emptyfun)
+	c2 = code_basic_reduction(fname, op, BinaryCoder(), :reduce, emptyfun)
+	c3 = code_basic_reduction(fname, op, TernaryCoder(), :reduce, emptyfun)
+	c2d = code_basic_reduction(symbol(string(fname, "_fdiff")), op, FDiffCoder(), :reduce_fdiff, emptyfun)
 
 	combined = Expr(:block, c0.args..., c1.args..., c2.args..., c3.args..., c2d.args...)
 end
@@ -402,9 +404,9 @@ function vnorm!(dst::AbstractArray, x::AbstractArray, p::Real, dims::DimSpec)
 		throw(ArgumentError("p must be positive."))
 	end
 	p == 1 ? vasum!(dst, x, dims) :
-	p == 2 ? vmap!(Sqrt(), vsqsum!(dst, x, dims)) :	
+	p == 2 ? map1!(Sqrt(), vsqsum!(dst, x, dims)) :	
 	isinf(p) ? vamax!(dst, x, dims) :
-	vmap!(FixAbsPow(inv(p)), vsum!(dst, FixAbsPow(p), x, dims))
+	map1!(FixAbsPow(inv(p)), vsum!(dst, FixAbsPow(p), x, dims))
 end
 
 function vnorm{Tx<:Number,Tp<:Real}(x::AbstractArray{Tx}, p::Tp, dims::DimSpec) 
@@ -433,9 +435,9 @@ function vdiffnorm!(dst::AbstractArray, x::AbstractArray, y::ArrayOrNumber, p::R
 		throw(ArgumentError("p must be positive."))
 	end
 	p == 1 ? vadiffsum!(dst, x, y, dims) :
-	p == 2 ? vmap!(Sqrt(), vsqdiffsum!(dst, x, y, dims)) :	
+	p == 2 ? map1!(Sqrt(), vsqdiffsum!(dst, x, y, dims)) :	
 	isinf(p) ? vadiffmax!(dst, x, y, dims) :
-	vmap!(FixAbsPow(inv(p)), vsum_fdiff!(dst, FixAbsPow(p), x, y, dims))
+	map1!(FixAbsPow(inv(p)), vsum_fdiff!(dst, FixAbsPow(p), x, y, dims))
 end
 
 function vdiffnorm{Tx<:Number,Ty<:Number,Tp<:Real}(x::AbstractArray{Tx}, y::AbstractArray{Ty}, p::Tp, dims::DimSpec) 

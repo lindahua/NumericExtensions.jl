@@ -10,10 +10,10 @@ y = randn(3, 4)
 z = randn(3, 4)
 
 @test_approx_eq vsum(x) sum(x)
-@test vsum(x) == vreduce(Add(), x) 
+@test vsum(x) == reduce(Add(), x) 
 
-@test max(x) == vmax(x) == vreduce(Max(), x) 
-@test min(x) == vmin(x) == vreduce(Min(), x)
+@test max(x) == vmax(x) == reduce(Max(), x) 
+@test min(x) == vmin(x) == reduce(Min(), x)
 @test nonneg_vmax(x) == max(max(x), 0.)
 
 @test_approx_eq vasum(x) sum(abs(x))
@@ -32,7 +32,7 @@ z = randn(3, 4)
 @test_approx_eq vadiffmin(x, 1.5) min(abs(x - 1.5))
 @test_approx_eq vsqdiffsum(x, 1.5) sum(abs2(x - 1.5))
 
-@test_approx_eq vreduce_fdiff(Add(), Abs2(), 2.3, x) sum(abs2(2.3 - x))
+@test_approx_eq reduce_fdiff(Add(), Abs2(), 2.3, x) sum(abs2(2.3 - x))
 
 @test_approx_eq vnorm(x, 1) sum(abs(x))
 @test_approx_eq vnorm(x, 2) sqrt(sum(abs2(x)))
@@ -392,7 +392,7 @@ r = zeros(6); vadiffmin!(r, x2, y2, 1)
 r = zeros(6); vsqdiffsum!(r, x2, y2, 1)
 @test_approx_eq r vec(sum(abs2(x2 - y2), 1))
 
-# vreduce on fma
+# reduce on fma
 
 @test_approx_eq vsum(FMA(), x1, y1, z1, 1) sum(x1 + y1 .* z1, 1)
 @test_approx_eq vsum(FMA(), x1, y1, z1, 2) sum(x1 + y1 .* z1, 2)

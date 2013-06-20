@@ -1,6 +1,6 @@
 module NumericFunctors
 
-	import Base.map, Base.map!
+	import Base.map, Base.map!, Base.reduce
 	import Base.add!
 
 	export 
@@ -32,7 +32,7 @@ module NumericFunctors
 		badd, badd!, bsubtract, bsubtract!, bmultiply, bmultiply!, bdivide, bdivide!,
 
 		# vreduce
-		vreduce, vreduce!, vreduce_fdiff, vreduce_fdiff!,
+		reduce, reduce!, reduce_fdiff, reduce_fdiff!,
 		vsum, vsum!, vmax, vmax!, vmin, vmin!, nonneg_vmax, nonneg_vmax!,
 		vasum, vasum!, vamax, vamax!, vamin, vamin!, vsqsum, vsqsum!,  
 		vdot, vdot!, vadiffsum, vadiffsum!, vsqdiffsum, vsqdiffsum!,
@@ -43,6 +43,6 @@ module NumericFunctors
 	include("codegen.jl")
 	include("map.jl")
 	include("vbroadcast.jl")
-	include("vreduce.jl")
+	include("reduce.jl")
 
 end
