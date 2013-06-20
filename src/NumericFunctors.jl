@@ -35,9 +35,9 @@ module NumericFunctors
 		# vreduce
 		reduce, reduce!, reduce_fdiff, reduce_fdiff!,
 		sum!, max!, min!, nonneg_max, nonneg_max!,
-		vasum, vasum!, vamax, vamax!, vamin, vamin!, vsqsum, vsqsum!,  
-		vdot, vdot!, vadiffsum, vadiffsum!, vsqdiffsum, vsqdiffsum!,
-		vadiffmax, vadiffmax!, vadiffmin, vadiffmin!,  
+		asum, asum!, amax, amax!, amin, amin!, sqsum, sqsum!,  
+		dot!, adiffsum, adiffsum!, sqdiffsum, sqdiffsum!,
+		adiffmax, adiffmax!, adiffmin, adiffmin!,  
 		vnorm, vnorm!, vdiffnorm, vdiffnorm!
 
 	include("functors.jl")

@@ -370,29 +370,27 @@ end
 
 # specific function definitions
 
-@derived_reduction1 vasum sum Abs()
-@derived_reduction1 vamax max Abs()
-@derived_reduction1 vamin min Abs()
-@derived_reduction1 vsqsum sum Abs2()
+@derived_reduction1 asum sum Abs()
+@derived_reduction1 amax max Abs()
+@derived_reduction1 amin min Abs()
+@derived_reduction1 sqsum sum Abs2()
 
-@derived_reduction2 vdot sum Multiply()
+@derived_reduction2 adiffsum sum_fdiff Abs()
+@derived_reduction2 adiffmax max_fdiff Abs()
+@derived_reduction2 adiffmin min_fdiff Abs()
+@derived_reduction2 sqdiffsum sum_fdiff Abs2()
 
-@derived_reduction2 vadiffsum sum_fdiff Abs()
-@derived_reduction2 vadiffmax max_fdiff Abs()
-@derived_reduction2 vadiffmin min_fdiff Abs()
-@derived_reduction2 vsqdiffsum sum_fdiff Abs2()
+# special treatment for dot for sqsum
 
-# BLAS-based specialization
+typealias BlasFP Union(Float32, Float64, Complex{Float32}, Complex{Float64})
+const blas_dot = Base.LinAlg.BLAS.dot
 
-typealias BlasFP Union(Float32, Float64)
+dot(x1::StridedArray, x2::StridedArray) = sum(Multiply(), x1, x2)
+dot(x1::StridedArray, x2::StridedArray, dims::DimSpec) = sum(Multiply(), x1, x2, dims)
+dot!(dst::StridedArray, x1::StridedArray, x2::StridedArray, dims::DimSpec) = sum!(dst, Multiply(), x1, x2, dims)
 
-vasum{T<:BlasFP}(x::Array{T}) = asum(x)
-
-vsqsum{T<:BlasFP}(x::Vector{T}) = dot(x, x)
-vsqsum{T<:BlasFP}(x::Array{T}) = vsqsum(vec(x))
-
-vdot{T<:BlasFP}(x::Vector{T}, y::Vector{T}) = dot(x, y)
-vdot{T<:BlasFP}(x::Array{T}, y::Array{T}) = dot(vec(x), vec(y))
+dot{T<:BlasFP}(x1::Array{T}, x2::Array{T}) = blas_dot(x1, x2)
+sqsum{T<:BlasFP}(x::Array{T}) = blas_dot(x, x)
 
 
 #################################################
@@ -405,9 +403,9 @@ function vnorm(x::AbstractArray, p::Real)
 	if !(p > 0)
 		throw(ArgumentError("p must be positive."))
 	end
-	p == 1 ? vasum(x) :
-	p == 2 ? sqrt(vsqsum(x)) :	
-	isinf(p) ? vamax(x) :
+	p == 1 ? asum(x) :
+	p == 2 ? sqrt(sqsum(x)) :	
+	isinf(p) ? amax(x) :
 	sum(FixAbsPow(p), x) .^ inv(p)
 end
 
@@ -417,9 +415,9 @@ function vnorm!(dst::AbstractArray, x::AbstractArray, p::Real, dims::DimSpec)
 	if !(p > 0)
 		throw(ArgumentError("p must be positive."))
 	end
-	p == 1 ? vasum!(dst, x, dims) :
-	p == 2 ? map1!(Sqrt(), vsqsum!(dst, x, dims)) :	
-	isinf(p) ? vamax!(dst, x, dims) :
+	p == 1 ? asum!(dst, x, dims) :
+	p == 2 ? map1!(Sqrt(), sqsum!(dst, x, dims)) :	
+	isinf(p) ? amax!(dst, x, dims) :
 	map1!(FixAbsPow(inv(p)), sum!(dst, FixAbsPow(p), x, dims))
 end
 
@@ -436,9 +434,9 @@ function vdiffnorm(x::AbstractArray, y::ArrayOrNumber, p::Real)
 	if !(p > 0)
 		throw(ArgumentError("p must be positive."))
 	end
-	p == 1 ? vadiffsum(x, y) :
-	p == 2 ? sqrt(vsqdiffsum(x, y)) :	
-	isinf(p) ? vadiffmax(x, y) :
+	p == 1 ? adiffsum(x, y) :
+	p == 2 ? sqrt(sqdiffsum(x, y)) :	
+	isinf(p) ? adiffmax(x, y) :
 	sum_fdiff(FixAbsPow(p), x, y) .^ inv(p)
 end
 
@@ -448,9 +446,9 @@ function vdiffnorm!(dst::AbstractArray, x::AbstractArray, y::ArrayOrNumber, p::R
 	if !(p > 0)
 		throw(ArgumentError("p must be positive."))
 	end
-	p == 1 ? vadiffsum!(dst, x, y, dims) :
-	p == 2 ? map1!(Sqrt(), vsqdiffsum!(dst, x, y, dims)) :	
-	isinf(p) ? vadiffmax!(dst, x, y, dims) :
+	p == 1 ? adiffsum!(dst, x, y, dims) :
+	p == 2 ? map1!(Sqrt(), sqdiffsum!(dst, x, y, dims)) :	
+	isinf(p) ? adiffmax!(dst, x, y, dims) :
 	map1!(FixAbsPow(inv(p)), sum_fdiff!(dst, FixAbsPow(p), x, y, dims))
 end
 
