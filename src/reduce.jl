@@ -308,20 +308,21 @@ macro basic_mapreduction(fname, op, emptyfun)
 	esc(code_basic_mapreduction(fname, op, emptyfun))
 end
 
+
 sum{T}(x::StridedArray{T}) = isempty(x) ? zero(T) : reduce(Add(), x)
-sum{T}(x::StridedArray, dims::DimSpec) = isempty(x) ? zeros(T, reduced_size(x, dims)) : reduce(Add(), x, dims)
+sum{T}(x::StridedArray{T}, dims::DimSpec) = isempty(x) ? zeros(T, reduced_size(x, dims)) : reduce(Add(), x, dims)
 sum!(dst::StridedArray, x::StridedArray, dims::DimSpec) = reduce!(dst, Add(), x, dims) 
 
 nonneg_max{T}(x::StridedArray{T}) = isempty(x) ? zero(T) : reduce(Max(), x)
-nonneg_max{T}(x::StridedArray, dims::DimSpec) = isempty(x) ? zeros(T, reduced_size(x, dims)) : reduce(Max(), x, dims)
+nonneg_max{T}(x::StridedArray{T}, dims::DimSpec) = isempty(x) ? zeros(T, reduced_size(x, dims)) : reduce(Max(), x, dims)
 nonneg_max!(dst::StridedArray, x::StridedArray, dims::DimSpec) = reduce!(dst, Max(), x, dims) 
 
 max{T}(x::StridedArray{T}) = isempty(x) ? empty_notallowed(T) : reduce(Max(), x)
-max{T}(x::StridedArray, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(Max(), x, dims)
+max{T}(x::StridedArray{T}, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(Max(), x, dims)
 max!(dst::StridedArray, x::StridedArray, dims::DimSpec) = reduce!(dst, Max(), x, dims) 
 
 min{T}(x::StridedArray{T}) = isempty(x) ? empty_notallowed(T) : reduce(Min(), x)
-min{T}(x::StridedArray, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(Min(), x, dims)
+min{T}(x::StridedArray{T}, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(Min(), x, dims)
 min!(dst::StridedArray, x::StridedArray, dims::DimSpec) = reduce!(dst, Min(), x, dims) 
 
 @basic_mapreduction sum Add() zero 
