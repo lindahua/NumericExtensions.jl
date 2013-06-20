@@ -22,7 +22,7 @@ map_plus(a, b)
 @time for i in 1 : 10 a + b end           # -- statement (2)
 ```
 
-Run this script in you computer, you will find that statement (2) is over *20+ times* slower than statement (1). The reason is that the function argument ``plus`` is resolved and called at each iteration of the inner loop within the ``map`` function.
+Run this script in you computer, you will find that statement (1) is over *20+ times* slower than statement (2). The reason is that the function argument ``plus`` is resolved and called at each iteration of the inner loop within the ``map`` function.
 
 This package addresses this issue through *type functors* (*i.e.* function-like objects with specific types) and a set of highly optimized higher level functions for mapping and reduction. The codes above can be rewritten as
 
