@@ -65,7 +65,7 @@ a = rand(1000, 1000)
 b = rand(1000, 1000) + 0.5
 c = rand(1000, 1000)
 
-perftable = BenchmarkTable("Comparison of element-wise map", ["Julia-expr", "Functor-map", "gain"])
+const perftable = BenchmarkTable("Comparison of element-wise map", ["Julia-expr", "Functor-map", "gain"])
 
 add_map(a::Array, b::Array) = map(Add(), a, b)
 @bench_map2("add", 10, +, add_map)

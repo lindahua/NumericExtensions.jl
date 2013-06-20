@@ -4,7 +4,7 @@ using NumericFunctors
 
 macro bench_bsx(name, rp, a, b1, b2, f1, f2, dims)
 	quote
-		println("Benchmark on $($name):")
+		println("Benchmark on $($name) ...")
 
 		ac = copy($a)
 		b1c = copy($b1)
@@ -21,13 +21,13 @@ macro bench_bsx(name, rp, a, b1, b2, f1, f2, dims)
 			($f2)(ac, b2c, $dims) 
 		end
 
-		@printf("\tbroadcast:  %7.4f usec\n", t1 * 1e6 / $rp)
-		@printf("\tvbroadcast: %7.4f usec | gain = %6.3f\n", t2 * 1e6 / $rp, t1 / t2)
-		println()
+		add_row!(perftable, $name, [t1, t2, t1 / t2])
 	end
 end
 
 # benchmarks
+
+const perftable = BenchmarkTable("Comparison of broadcasting", ["broadcast", "vbroadcast", "gain"])
 
 # matrices
 
@@ -63,3 +63,9 @@ b23m = reshape(b23, 1, 100, 4)
 @bench_bsx "cube-dim(1,2)" 5000 a b12m b12 (.+) badd! (1,2)
 @bench_bsx "cube-dim(1,3)" 5000 a b13m b13 (.+) badd! (1,3)
 @bench_bsx "cube-dim(2,3)" 5000 a b23m b23 (.+) badd! (2,3)
+
+# print results
+
+println()
+println(perftable)
+
