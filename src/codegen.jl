@@ -4,12 +4,10 @@
 
 typealias SymOrNum Union(Symbol, Number)
 
-typealias StridedCube{T} Union(Array{T,3}, SubArray{T,3})
-
-typealias EwiseArray Union(StridedArray,BitArray)
-typealias EwiseVector Union(StridedVector,BitVector)
-typealias EwiseMatrix Union(StridedMatrix,BitMatrix)
-typealias EwiseCube Union(StridedCube, BitArray{3})
+typealias EwiseArray Union(Array,BitArray)
+typealias EwiseVector Union(Vector,BitVector)
+typealias EwiseMatrix Union(Matrix,BitMatrix)
+typealias EwiseCube{T} Union(Array{T, 3}, BitArray{3})
 
 typealias ArrayOrNumber Union(EwiseArray, Number)
 typealias VectorOrNumber Union(EwiseVector, Number)

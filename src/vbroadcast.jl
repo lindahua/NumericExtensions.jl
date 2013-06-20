@@ -6,7 +6,7 @@ end
 
 # broadcast along specific dimension(s)
 
-function vbroadcast!(dst::StridedMatrix, f::BinaryFunctor, a::Matrix, b::AbstractArray, dim::Int)
+function vbroadcast!(dst::EwiseMatrix, f::BinaryFunctor, a::Matrix, b::EwiseArray, dim::Int)
 	_check_dimlen(a, b, dim)
 	m = size(a, 1)
 	n = size(a, 2)
@@ -35,7 +35,7 @@ function vbroadcast!(dst::StridedMatrix, f::BinaryFunctor, a::Matrix, b::Abstrac
 	dst
 end
 
-function vbroadcast!{R,T}(dst::Array{R,3}, f::BinaryFunctor, a::Array{T,3}, b::AbstractArray, dim::Int)
+function vbroadcast!{R,T}(dst::Array{R,3}, f::BinaryFunctor, a::Array{T,3}, b::EwiseArray, dim::Int)
 	_check_dimlen(a, b, dim)
 	m = size(a, 1)
 	n = size(a, 2)
@@ -64,7 +64,7 @@ function vbroadcast!{R,T}(dst::Array{R,3}, f::BinaryFunctor, a::Array{T,3}, b::A
 	dst
 end
 
-function vbroadcast!{R,T}(dst::Array{R,3}, f::BinaryFunctor, a::Array{T,3}, b::AbstractMatrix, dims::(Int, Int))
+function vbroadcast!{R,T}(dst::Array{R,3}, f::BinaryFunctor, a::Array{T,3}, b::EwiseMatrix, dims::(Int, Int))
 	if !(size(b, 1) == size(a, dims[1]) && size(b, 2) == size(a, dims[2]))
 		throw(ArgumentError("Argument dimensions must match."))
 	end
@@ -98,23 +98,23 @@ function vbroadcast!{R,T}(dst::Array{R,3}, f::BinaryFunctor, a::Array{T,3}, b::A
 	dst
 end
 
-vbroadcast!(f::BinaryFunctor, a::Array, b::AbstractArray, dims::DimSpec) = vbroadcast!(a, f, a, b, dims)
+vbroadcast!(f::BinaryFunctor, a::Array, b::EwiseArray, dims::DimSpec) = vbroadcast!(a, f, a, b, dims)
 
-function vbroadcast(f::BinaryFunctor, a::Array, b::AbstractArray, dims::DimSpec)
+function vbroadcast(f::BinaryFunctor, a::Array, b::EwiseArray, dims::DimSpec)
 	R = result_type(f, eltype(a), eltype(b))
 	vbroadcast!(Array(R, size(a)), f, a, b, dims)
 end
 
 # Specific broadcasting function
 
-badd!(a::Array, b::AbstractArray, dims::DimSpec) = vbroadcast!(Add(), a, b, dims)
-bsubtract!(a::Array, b::AbstractArray, dims::DimSpec) = vbroadcast!(Subtract(), a, b, dims)
-bmultiply!(a::Array, b::AbstractArray, dims::DimSpec) = vbroadcast!(Multiply(), a, b, dims)
-bdivide!(a::Array, b::AbstractArray, dims::DimSpec) = vbroadcast!(Divide(), a, b, dims)
+badd!(a::EwiseArray, b::EwiseArray, dims::DimSpec) = vbroadcast!(Add(), a, b, dims)
+bsubtract!(a::EwiseArray, b::EwiseArray, dims::DimSpec) = vbroadcast!(Subtract(), a, b, dims)
+bmultiply!(a::EwiseArray, b::EwiseArray, dims::DimSpec) = vbroadcast!(Multiply(), a, b, dims)
+bdivide!(a::EwiseArray, b::EwiseArray, dims::DimSpec) = vbroadcast!(Divide(), a, b, dims)
 
-badd(a::Array, b::AbstractArray, dims::DimSpec) = vbroadcast(Add(), a, b, dims)
-bsubtract(a::Array, b::AbstractArray, dims::DimSpec) = vbroadcast(Subtract(), a, b, dims)
-bmultiply(a::Array, b::AbstractArray, dims::DimSpec) = vbroadcast(Multiply(), a, b, dims)
-bdivide(a::Array, b::AbstractArray, dims::DimSpec) = vbroadcast(Divide(), a, b, dims)
+badd(a::EwiseArray, b::EwiseArray, dims::DimSpec) = vbroadcast(Add(), a, b, dims)
+bsubtract(a::EwiseArray, b::EwiseArray, dims::DimSpec) = vbroadcast(Subtract(), a, b, dims)
+bmultiply(a::EwiseArray, b::EwiseArray, dims::DimSpec) = vbroadcast(Multiply(), a, b, dims)
+bdivide(a::EwiseArray, b::EwiseArray, dims::DimSpec) = vbroadcast(Divide(), a, b, dims)
 
 

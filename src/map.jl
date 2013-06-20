@@ -40,31 +40,31 @@ end
 
 # specific inplace functions
 
-add!(x::AbstractArray, y::ArrayOrNumber) = map1!(Add(), x, y)
-subtract!(x::AbstractArray, y::ArrayOrNumber) = map1!(Subtract(), x, y)
-multiply!(x::AbstractArray, y::ArrayOrNumber) = map1!(Multiply(), x, y)
-divide!(x::AbstractArray, y::ArrayOrNumber) = map1!(Divide(), x, y)
+add!(x::EwiseArray, y::ArrayOrNumber) = map1!(Add(), x, y)
+subtract!(x::EwiseArray, y::ArrayOrNumber) = map1!(Subtract(), x, y)
+multiply!(x::EwiseArray, y::ArrayOrNumber) = map1!(Multiply(), x, y)
+divide!(x::EwiseArray, y::ArrayOrNumber) = map1!(Divide(), x, y)
 
-negate!(x::AbstractArray) = map1!(Negate(), x)
-abs!(x::AbstractArray) = map1!(Abs(), x)
-abs2!(x::AbstractArray) = map1!(Abs2(), x)
-rcp!{T}(x::AbstractArray{T}) = map!(Divide(), x, one(T), x)
-sqrt!(x::AbstractArray) = map1!(Sqrt(), x)
-pow!(x::AbstractArray, p::ArrayOrNumber) = map1!(Pow(), x, p)
+negate!(x::EwiseArray) = map1!(Negate(), x)
+abs!(x::EwiseArray) = map1!(Abs(), x)
+abs2!(x::EwiseArray) = map1!(Abs2(), x)
+rcp!(x::EwiseArray) = map!(Divide(), x, one(eltype(x)), x)
+sqrt!(x::EwiseArray) = map1!(Sqrt(), x)
+pow!(x::EwiseArray, p::ArrayOrNumber) = map1!(Pow(), x, p)
 
-floor!(x::AbstractArray) = map1!(Floor(), x)
-ceil!(x::AbstractArray) = map1!(Ceil(), x)
-round!(x::AbstractArray) = map1!(Round(), x)
-trunc!(x::AbstractArray) = map1!(Trunc(), x)
+floor!(x::EwiseArray) = map1!(Floor(), x)
+ceil!(x::EwiseArray) = map1!(Ceil(), x)
+round!(x::EwiseArray) = map1!(Round(), x)
+trunc!(x::EwiseArray) = map1!(Trunc(), x)
 
-exp!(x::AbstractArray) = map1!(Exp(), x)
-log!(x::AbstractArray) = map1!(Log(), x)
+exp!(x::EwiseArray) = map1!(Exp(), x)
+log!(x::EwiseArray) = map1!(Log(), x)
 
 # extensions
 
-absdiff(x::AbstractArray, y::AbstractArray) = mapdiff(Abs(), x, y)
-sqrdiff(x::AbstractArray, y::AbstractArray) = mapdiff(Abs2(), x, y)
+absdiff(x::EwiseArray, y::EwiseArray) = mapdiff(Abs(), x, y)
+sqrdiff(x::EwiseArray, y::EwiseArray) = mapdiff(Abs2(), x, y)
 
-fma!(a::AbstractArray, b::AbstractArray, c::ArrayOrNumber) = map1!(FMA(), a, b, c)
-fma(a::AbstractArray, b::AbstractArray, c::ArrayOrNumber) = map(FMA(), a, b, c)
+fma!(a::EwiseArray, b::EwiseArray, c::ArrayOrNumber) = map1!(FMA(), a, b, c)
+fma(a::EwiseArray, b::EwiseArray, c::ArrayOrNumber) = map(FMA(), a, b, c)
 
