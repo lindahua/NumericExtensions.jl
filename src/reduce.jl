@@ -1,3 +1,31 @@
+
+# auxiliary code-generation routines
+
+function _reduc_paramlist(cdr::Union(UnaryCoder, BinaryCoder, TernaryCoder, FDiffCoder), plist)
+	tuple(plist[1], :(op::BinaryFunctor), plist[2:]...)
+end
+
+function _reduc_paramlist(cdr::TrivialCoder, plist)
+	tuple(:(op::BinaryFunctor), plist...)
+end
+
+function _reduc_arglist(cdr::Union(UnaryCoder, BinaryCoder, TernaryCoder, FDiffCoder), alist)
+	tuple(alist[1], :op, alist[2:]...)
+end
+
+function _reduc_arglist(cdr::TrivialCoder, alist)
+	tuple(:op, alist...)
+end
+
+function _reduc_paramlist_withinit(cdr::Union(UnaryCoder, BinaryCoder, TernaryCoder, FDiffCoder), plist)
+	tuple(plist[1], :(op::BinaryFunctor), :(initval), plist[2:]...)
+end
+
+function _reduc_paramlist_withinit(cdr::TrivialCoder, plist)
+	tuple(:(op::BinaryFunctor), :(initval), plist...)
+end
+
+
 #################################################
 #
 # 	Full reduction
@@ -7,14 +35,26 @@
 function code_full_reduction(fname::Symbol, coder_expr::Expr)
 	coder = eval(coder_expr)
 	paramlist = generate_paramlist(coder)
+	rparamlist = _reduc_paramlist(coder, paramlist)
+	rparamlist_withinit = _reduc_paramlist_withinit(coder, paramlist)
+
 	ker1 = generate_kernel(coder, 1)
 	kernel = generate_kernel(coder, :i)
 	len = length_inference(coder)
 	quote
-		function ($fname)(op::BinaryFunctor, $(paramlist...))
+		function ($fname)($(rparamlist...))
 			n::Int = $len
 			v = $ker1
 			for i in 2 : n
+				v = evaluate(op, v, $kernel)
+			end
+			v
+		end
+
+		function ($fname)($(rparamlist_withinit...))
+			n::Int = $len
+			v = initval
+			for i in 1 : n
 				v = evaluate(op, v, $kernel)
 			end
 			v
@@ -27,10 +67,11 @@ macro full_reduction(fname, coder)
 end
 
 @full_reduction reduce TrivialCoder()
-@full_reduction reduce UnaryCoder()
-@full_reduction reduce BinaryCoder()
-@full_reduction reduce TernaryCoder()
-@full_reduction reduce_fdiff FDiffCoder()
+@full_reduction mapreduce UnaryCoder()
+@full_reduction mapreduce BinaryCoder()
+@full_reduction mapreduce TernaryCoder()
+@full_reduction mapdiff_reduce FDiffCoder()
+
 
 ########################################################
 #
@@ -41,6 +82,8 @@ end
 function code_singledim_reduction(fname::Symbol, coder_expr::Expr, mapfun!::Symbol)
 	coder = eval(coder_expr)
 	paramlist = generate_paramlist(coder)
+	rparamlist = _reduc_paramlist(coder, paramlist)
+
 	arglist = generate_arglist(coder)
 	shape = shape_inference(coder)
 
@@ -101,7 +144,7 @@ function code_singledim_reduction(fname::Symbol, coder_expr::Expr, mapfun!::Symb
 			end
 		end
 
-		function ($fname!)(dst::EwiseArray, op::BinaryFunctor, $(paramlist...), dim::Int)
+		function ($fname!)(dst::EwiseArray, $(rparamlist...), dim::Int)
 			rsiz = $shape
 			nd = length(rsiz)
 			if dim == 1
@@ -133,10 +176,10 @@ _map_to_dest!(dst::EwiseArray, f::Functor, xs...) = map!(f, dst, xs...)
 _mapdiff_to_dest!(dst::EwiseArray, f::UnaryFunctor, x1, x2) = mapdiff!(f, dst, x1, x2)
 
 @singledim_reduction reduce TrivialCoder() copy!
-@singledim_reduction reduce UnaryCoder() _map_to_dest!
-@singledim_reduction reduce BinaryCoder() _map_to_dest!
-@singledim_reduction reduce TernaryCoder() _map_to_dest!
-@singledim_reduction reduce_fdiff FDiffCoder() _mapdiff_to_dest!
+@singledim_reduction mapreduce UnaryCoder() _map_to_dest!
+@singledim_reduction mapreduce BinaryCoder() _map_to_dest!
+@singledim_reduction mapreduce TernaryCoder() _map_to_dest!
+@singledim_reduction mapdiff_reduce FDiffCoder() _mapdiff_to_dest!
 
 
 ########################################################
@@ -148,6 +191,7 @@ _mapdiff_to_dest!(dst::EwiseArray, f::UnaryFunctor, x1, x2) = mapdiff!(f, dst, x
 function code_doubledims_reduction(fname::Symbol, coder_expr::Expr)
 	coder = eval(coder_expr)
 	paramlist = generate_paramlist_forcubes(coder)
+	rparamlist = _reduc_paramlist(coder, paramlist)
 	arglist = generate_arglist(coder)
 	shape = shape_inference(coder)
 	kernel = generate_kernel(coder, :idx)
@@ -183,7 +227,7 @@ function code_doubledims_reduction(fname::Symbol, coder_expr::Expr)
 			end				
 		end
 
-		function ($fname!)(dst::EwiseArray, op::BinaryFunctor, $(paramlist...), dims::(Int, Int))
+		function ($fname!)(dst::EwiseArray, $(rparamlist...), dims::(Int, Int))
 			siz = $shape
 			dims == (1, 2) ? ($fname_firstdim!)(dst, op, siz[1] * siz[2], siz[3], $(arglist...)) :
 			dims == (1, 3) ? ($fname_dim13!)(dst, op, siz[1], siz[2], siz[3], $(arglist...)) :
@@ -199,10 +243,10 @@ macro doubledims_reduction(fname, coder)
 end
 
 @doubledims_reduction reduce TrivialCoder()
-@doubledims_reduction reduce UnaryCoder()
-@doubledims_reduction reduce BinaryCoder()
-@doubledims_reduction reduce TernaryCoder()
-@doubledims_reduction reduce_fdiff FDiffCoder()
+@doubledims_reduction mapreduce UnaryCoder()
+@doubledims_reduction mapreduce BinaryCoder()
+@doubledims_reduction mapreduce TernaryCoder()
+@doubledims_reduction mapdiff_reduce FDiffCoder()
 
 
 ########################################################
@@ -245,16 +289,20 @@ end
 function code_reduce_function(fname::Symbol, coder_expr::Expr)
 	coder = eval(coder_expr)
 	paramlist = generate_paramlist(coder)
+	rparamlist = _reduc_paramlist(coder, paramlist)
+
 	arglist = generate_arglist(coder)
+	rarglist = _reduc_arglist(coder, arglist)
+
 	shape = shape_inference(coder)
 	vtype = eltype_inference(coder)
 
 	fname! = symbol(string(fname, '!'))
 
 	quote 
-		function ($fname)(op::BinaryFunctor, $(paramlist...), dims::DimSpec)
+		function ($fname)($(rparamlist...), dims::DimSpec)
 			r = Array($vtype, reduced_size($shape, dims))
-			($fname!)(r, op, $(arglist...), dims)
+			($fname!)(r, $(rarglist...), dims)
 		end
 	end
 end
@@ -264,10 +312,10 @@ macro reduce_function(fname, coder)
 end
 
 @reduce_function reduce TrivialCoder()
-@reduce_function reduce UnaryCoder()
-@reduce_function reduce BinaryCoder()
-@reduce_function reduce TernaryCoder()
-@reduce_function reduce_fdiff FDiffCoder()
+@reduce_function mapreduce UnaryCoder()
+@reduce_function mapreduce BinaryCoder()
+@reduce_function mapreduce TernaryCoder()
+@reduce_function mapdiff_reduce FDiffCoder()
 
 
 #################################################
@@ -288,18 +336,17 @@ function code_basic_reduction(fname::Symbol, op::Expr, coder::EwiseCoder, gfun::
 	gfun! = symbol(string(gfun, '!'))
 
 	quote
-		($fname)($(paramlist...)) = ($emptytest) ? ($emptyfun)($vtype) : ($gfun)($op, $(arglist...))
-		($fname)($(paramlist...), dims::DimSpec) = ($gfun)($op, $(arglist...), dims) 
-		($fname!)(dst::EwiseArray, $(paramlist...), dims::DimSpec) = ($gfun!)(dst, $op, $(arglist...), dims)
+		($fname)($(paramlist...)) = ($emptytest) ? ($emptyfun)($vtype) : ($gfun)($(arglist[1]), $op, $(arglist[2:]...))
+		($fname)($(paramlist...), dims::DimSpec) = ($gfun)($(arglist[1]), $op, $(arglist[2:]...), dims) 
+		($fname!)(dst::EwiseArray, $(paramlist...), dims::DimSpec) = ($gfun!)(dst, $(arglist[1]), $op, $(arglist[2:]...), dims)
 	end
 end
 
 function code_basic_mapreduction(fname::Symbol, op::Expr, emptyfun::Symbol)
-	#c0 = code_basic_reduction(fname, op, TrivialCoder(), :reduce, emptyfun)
-	c1 = code_basic_reduction(fname, op, UnaryCoder(), :reduce, emptyfun)
-	c2 = code_basic_reduction(fname, op, BinaryCoder(), :reduce, emptyfun)
-	c3 = code_basic_reduction(fname, op, TernaryCoder(), :reduce, emptyfun)
-	c2d = code_basic_reduction(symbol(string(fname, "_fdiff")), op, FDiffCoder(), :reduce_fdiff, emptyfun)
+	c1 = code_basic_reduction(fname, op, UnaryCoder(), :mapreduce, emptyfun)
+	c2 = code_basic_reduction(fname, op, BinaryCoder(), :mapreduce, emptyfun)
+	c3 = code_basic_reduction(fname, op, TernaryCoder(), :mapreduce, emptyfun)
+	c2d = code_basic_reduction(symbol(string(fname, "_fdiff")), op, FDiffCoder(), :mapdiff_reduce, emptyfun)
 
 	combined = Expr(:block, c1.args..., c2.args..., c3.args..., c2d.args...)
 end
@@ -313,10 +360,6 @@ sum{T}(x::Array{T}) = isempty(x) ? zero(T) : reduce(Add(), x)
 sum{T}(x::Array{T}, dims::DimSpec) = isempty(x) ? zeros(T, reduced_size(x, dims)) : reduce(Add(), x, dims)
 sum!(dst::Array, x::Array, dims::DimSpec) = reduce!(dst, Add(), x, dims) 
 
-nonneg_max{T}(x::Array{T}) = isempty(x) ? zero(T) : reduce(Max(), x)
-nonneg_max{T}(x::Array{T}, dims::DimSpec) = isempty(x) ? zeros(T, reduced_size(x, dims)) : reduce(Max(), x, dims)
-nonneg_max!(dst::Array, x::Array, dims::DimSpec) = reduce!(dst, Max(), x, dims) 
-
 max{T}(x::Array{T}) = isempty(x) ? empty_notallowed(T) : reduce(Max(), x)
 max{T}(x::Array{T}, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(Max(), x, dims)
 max!(dst::Array, x::Array, dims::DimSpec) = reduce!(dst, Max(), x, dims) 
@@ -326,7 +369,6 @@ min{T}(x::Array{T}, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : re
 min!(dst::Array, x::Array, dims::DimSpec) = reduce!(dst, Min(), x, dims) 
 
 @basic_mapreduction sum Add() zero 
-@basic_mapreduction nonneg_max Max() zero
 @basic_mapreduction max Max() empty_notallowed
 @basic_mapreduction min Min() empty_notallowed
 

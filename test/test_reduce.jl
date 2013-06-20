@@ -112,11 +112,9 @@ y = randn(3, 4)
 z = randn(3, 4)
 
 @test_approx_eq sum(x) safe_sum(x)
-@test sum(x) == reduce(Add(), x) 
-
-@test max(x) == reduce(Max(), x) == safe_max(x)
-@test min(x) == reduce(Min(), x) == safe_min(x)
-@test nonneg_max(x) == max(safe_max(x), 0.)
+@test sum(x) == reduce(Add(), x) == reduce(Add(), 0., x)
+@test max(x) == reduce(Max(), x) == reduce(Max(), -Inf, x) == safe_max(x)
+@test min(x) == reduce(Min(), x) == reduce(Min(), Inf, x) == safe_min(x)
 
 @test_approx_eq asum(x) safe_sum(abs(x))
 @test_approx_eq amax(x) safe_max(abs(x))
@@ -134,7 +132,9 @@ z = randn(3, 4)
 @test_approx_eq adiffmin(x, 1.5) safe_min(abs(x - 1.5))
 @test_approx_eq sqdiffsum(x, 1.5) safe_sum(abs2(x - 1.5))
 
-@test_approx_eq reduce_fdiff(Add(), Abs2(), 2.3, x) safe_sum(abs2(2.3 - x))
+@test_approx_eq mapreduce(Abs2(), Add(), x) safe_sum(abs2(x))
+@test_approx_eq mapreduce(Multiply(), Add(), x, y) safe_sum(x .* y)
+@test_approx_eq mapdiff_reduce(Abs2(), Add(), 2.3, x) safe_sum(abs2(2.3 - x))
 
 @test_approx_eq vnorm(x, 1) safe_sum(abs(x))
 @test_approx_eq vnorm(x, 2) sqrt(safe_sum(abs2(x)))
@@ -277,6 +277,22 @@ r = zeros(3); sum!(r, x3, (2, 3))
 @test_approx_eq min(x3, (), (1, 2)) safe_min(x3, (1, 2))
 @test_approx_eq min(x3, (), (1, 3)) safe_min(x3, (1, 3))
 @test_approx_eq min(x3, (), (2, 3)) safe_min(x3, (2, 3))
+
+# mapreduce
+
+@test_approx_eq mapreduce(Abs2(), Add(), x2, 1) safe_sum(abs2(x2), 1)
+@test_approx_eq mapreduce(Multiply(), Add(), x2, y2, 1) safe_sum(x2 .* y2, 1)
+@test_approx_eq mapdiff_reduce(Abs2(), Add(), x2, y2, 1) safe_sum(abs2(x2  - y2), 1)
+
+r = zeros(1, 6); mapreduce!(r, Abs2(), Add(), x2, 1)
+@test_approx_eq r sum(abs2(x2), 1)
+
+r = zeros(1, 6); mapreduce!(r, Multiply(), Add(), x2, y2, 1)
+@test_approx_eq r sum(x2 .* y2, 1)
+
+r = zeros(1, 6); mapdiff_reduce!(r, Abs2(), Add(), x2, y2, 1)
+@test_approx_eq r sum(abs2(x2 - y2), 1)
+
 
 # asum
 

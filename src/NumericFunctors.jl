@@ -1,6 +1,6 @@
 module NumericFunctors
 
-	import Base.map, Base.map!, Base.reduce
+	import Base.map, Base.map!, Base.reduce, Base.mapreduce
 	import Base.add!, Base.show, Base.getindex
 	import Base.sum, Base.max, Base.min, Base.mean, Base.dot, Base.LinAlg.BLAS.asum, Base.norm
 
@@ -33,8 +33,10 @@ module NumericFunctors
 		badd, badd!, bsubtract, bsubtract!, bmultiply, bmultiply!, bdivide, bdivide!,
 
 		# vreduce
-		reduce, reduce!, reduce_fdiff, reduce_fdiff!,
-		sum!, max!, min!, nonneg_max, nonneg_max!,
+		reduce!, mapreduce!, mapdiff_reduce, mapdiff_reduce!,
+		sum!, sum_fdiff, sum_fdiff!,
+		max!, max_fdiff, max_fdiff!,
+		min!, min_fdiff, min_fdiff!,
 		asum, asum!, amax, amax!, amin, amin!, sqsum, sqsum!,  
 		dot!, adiffsum, adiffsum!, sqdiffsum, sqdiffsum!,
 		adiffmax, adiffmax!, adiffmin, adiffmin!,  
