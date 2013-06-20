@@ -3,54 +3,156 @@
 using NumericFunctors
 using Base.Test
 
+### safe (but slow) reduction functions for result verification
+
+function safe_sum(x)
+	r = zero(eltype(x))
+	for i in 1 : length(x)
+		r = r + x[i]
+	end
+	r
+end
+
+function safe_max(x)
+	r = typemin(eltype(x))
+	for i in 1 : length(x)
+		r = max(r, x[i])
+	end
+	r
+end
+
+function safe_min(x)
+	r = typemax(eltype(x))
+	for i in 1 : length(x)
+		r = min(r, x[i])
+	end
+	r
+end
+
+function rsize(x::Array, dim::Int)
+	if 1 <= dim <= ndims(x)
+		siz = size(x)
+		rsiz_v = [siz...]
+		rsiz_v[dim] = 1
+		tuple(rsiz_v...)
+	else
+		size(x)
+	end
+end
+
+function rsize{T}(x::Array{T, 3}, dims::(Int, Int))
+	d1 = dims[1]
+	d2 = dims[2]
+	rsiz_v = [size(x)...]
+	rsiz_v[d1] = 1
+	rsiz_v[d2] = 1
+	tuple(rsiz_v...)
+end
+
+function safe_xreduce(op::BinaryFunctor, x::Array, s0, dim::Int)
+	# compute size
+	nd = ndims(x)
+	rsiz = rsize(x, dim)
+	rd = size(x, dim)
+	r = zeros(rsiz)
+
+	# perform slice-wise computation
+	ns = prod(rsiz)  # number of slices
+	for i in 1 : ns
+		coord = [ind2sub(rsiz, i)...]
+		s = s0
+		for j in 1 : rd
+			if 1 <= dim <= nd 
+				coord[dim] = j
+			end
+			s = evaluate(op, s, x[coord...])
+		end
+		r[i] = s
+	end
+	r
+end
+
+function safe_xreduce(op::BinaryFunctor, x::Array, s0, dims::(Int, Int))
+	# compute size
+	rsiz = rsize(x, dims)
+
+	d1::Int = dims[1]
+	d2::Int = dims[2]
+	rd1 = size(x, d1)
+	rd2 = size(x, d2)
+	r = zeros(rsiz)
+
+	# perform slice-wise computation
+	ns = prod(rsiz)
+	for i in 1 : ns
+		coord = [ind2sub(rsiz, i)...]
+		s = s0
+		for j2 in 1 : rd2
+			for j1 in 1 : rd1
+				coord[d1] = j1
+				coord[d2] = j2
+				s = evaluate(op, s, x[coord...])
+			end
+		end
+		r[i] = s
+	end
+	r
+end
+
+safe_sum(x, dim::Union(Int, (Int, Int))) = safe_xreduce(Add(), x, zero(eltype(x)), dim)
+safe_max(x, dim::Union(Int, (Int, Int))) = safe_xreduce(Max(), x, typemin(eltype(x)), dim)
+safe_min(x, dim::Union(Int, (Int, Int))) = safe_xreduce(Min(), x, typemax(eltype(x)), dim)
+
+
+
 ### full reduction ###
 
 x = randn(3, 4)
 y = randn(3, 4)
 z = randn(3, 4)
 
-@test_approx_eq vsum(x) sum(x)
+@test_approx_eq vsum(x) safe_sum(x)
 @test vsum(x) == reduce(Add(), x) 
 
-@test max(x) == vmax(x) == reduce(Max(), x) 
-@test min(x) == vmin(x) == reduce(Min(), x)
-@test nonneg_vmax(x) == max(max(x), 0.)
+@test vmax(x) == reduce(Max(), x) == safe_max(x)
+@test vmin(x) == reduce(Min(), x) == safe_min(x)
+@test nonneg_vmax(x) == max(safe_max(x), 0.)
 
-@test_approx_eq vasum(x) sum(abs(x))
-@test_approx_eq vamax(x) max(abs(x))
-@test_approx_eq vamin(x) min(abs(x))
-@test_approx_eq vsqsum(x) sum(abs2(x))
+@test_approx_eq vasum(x) safe_sum(abs(x))
+@test_approx_eq vamax(x) safe_max(abs(x))
+@test_approx_eq vamin(x) safe_min(abs(x))
+@test_approx_eq vsqsum(x) safe_sum(abs2(x))
 
-@test_approx_eq vdot(x, y) sum(x .* y)
-@test_approx_eq vadiffsum(x, y) sum(abs(x - y))
-@test_approx_eq vadiffmax(x, y) max(abs(x - y))
-@test_approx_eq vadiffmin(x, y) min(abs(x - y))
-@test_approx_eq vsqdiffsum(x, y) sum(abs2(x - y))
+@test_approx_eq vdot(x, y) safe_sum(x .* y)
+@test_approx_eq vadiffsum(x, y) safe_sum(abs(x - y))
+@test_approx_eq vadiffmax(x, y) safe_max(abs(x - y))
+@test_approx_eq vadiffmin(x, y) safe_min(abs(x - y))
+@test_approx_eq vsqdiffsum(x, y) safe_sum(abs2(x - y))
 
-@test_approx_eq vadiffsum(x, 1.5) sum(abs(x - 1.5))
-@test_approx_eq vadiffmax(x, 1.5) max(abs(x - 1.5))
-@test_approx_eq vadiffmin(x, 1.5) min(abs(x - 1.5))
-@test_approx_eq vsqdiffsum(x, 1.5) sum(abs2(x - 1.5))
+@test_approx_eq vadiffsum(x, 1.5) safe_sum(abs(x - 1.5))
+@test_approx_eq vadiffmax(x, 1.5) safe_max(abs(x - 1.5))
+@test_approx_eq vadiffmin(x, 1.5) safe_min(abs(x - 1.5))
+@test_approx_eq vsqdiffsum(x, 1.5) safe_sum(abs2(x - 1.5))
 
-@test_approx_eq reduce_fdiff(Add(), Abs2(), 2.3, x) sum(abs2(2.3 - x))
+@test_approx_eq reduce_fdiff(Add(), Abs2(), 2.3, x) safe_sum(abs2(2.3 - x))
 
-@test_approx_eq vnorm(x, 1) sum(abs(x))
-@test_approx_eq vnorm(x, 2) sqrt(sum(abs2(x)))
-@test_approx_eq vnorm(x, 3) sum(abs(x) .^ 3) .^ (1/3)
-@test_approx_eq vnorm(x, Inf) max(abs(x))
+@test_approx_eq vnorm(x, 1) safe_sum(abs(x))
+@test_approx_eq vnorm(x, 2) sqrt(safe_sum(abs2(x)))
+@test_approx_eq vnorm(x, 3) safe_sum(abs(x) .^ 3) .^ (1/3)
+@test_approx_eq vnorm(x, Inf) safe_max(abs(x))
 
-@test_approx_eq vdiffnorm(x, y, 1) sum(abs(x - y))
-@test_approx_eq vdiffnorm(x, y, 2) sqrt(sum(abs2(x - y)))
-@test_approx_eq vdiffnorm(x, y, 3) sum(abs(x - y) .^ 3) .^ (1/3)
-@test_approx_eq vdiffnorm(x, y, Inf) max(abs(x - y))
+@test_approx_eq vdiffnorm(x, y, 1) safe_sum(abs(x - y))
+@test_approx_eq vdiffnorm(x, y, 2) sqrt(safe_sum(abs2(x - y)))
+@test_approx_eq vdiffnorm(x, y, 3) safe_sum(abs(x - y) .^ 3) .^ (1/3)
+@test_approx_eq vdiffnorm(x, y, Inf) safe_max(abs(x - y))
 
-@test_approx_eq vsum(FMA(), x, y, z) sum(x + y .* z)
-@test_approx_eq vsum(FMA(), x, y, 2.) sum(x + y .* 2)
-@test_approx_eq vsum(FMA(), x, 2., y) sum(x + 2 .* y)
-@test_approx_eq vsum(FMA(), 2., x, y) sum(2. + x .* y)
-@test_approx_eq vsum(FMA(), x, 2., 3.) sum(x + 6.)
-@test_approx_eq vsum(FMA(), 2., x, 3.) sum(2. + x * 3.)
-@test_approx_eq vsum(FMA(), 2., 3., x) sum(2. + 3. * x)
+@test_approx_eq vsum(FMA(), x, y, z) safe_sum(x + y .* z)
+@test_approx_eq vsum(FMA(), x, y, 2.) safe_sum(x + y .* 2)
+@test_approx_eq vsum(FMA(), x, 2., y) safe_sum(x + 2 .* y)
+@test_approx_eq vsum(FMA(), 2., x, y) safe_sum(2. + x .* y)
+@test_approx_eq vsum(FMA(), x, 2., 3.) safe_sum(x + 6.)
+@test_approx_eq vsum(FMA(), 2., x, 3.) safe_sum(2. + x * 3.)
+@test_approx_eq vsum(FMA(), 2., 3., x) safe_sum(2. + 3. * x)
 
 ### partial reduction ###
 
@@ -72,109 +174,109 @@ z4 = randn(3, 4, 5, 2)
 
 # vsum
 
-@test size(vsum(x1, 1)) == size(sum(x1, 1))
-@test size(vsum(x1, 2)) == size(sum(x1, 2))
-@test size(vsum(x2, 1)) == size(sum(x2, 1))
-@test size(vsum(x2, 2)) == size(sum(x2, 2))
-@test size(vsum(x2, 3)) == size(sum(x2, 3))
-@test size(vsum(x3, 1)) == size(sum(x3, 1))
-@test size(vsum(x3, 2)) == size(sum(x3, 2))
-@test size(vsum(x3, 3)) == size(sum(x3, 3))
-@test size(vsum(x3, 4)) == size(sum(x3, 4))
-@test size(vsum(x4, 1)) == size(sum(x4, 1))
-@test size(vsum(x4, 2)) == size(sum(x4, 2))
-@test size(vsum(x4, 3)) == size(sum(x4, 3))
-@test size(vsum(x4, 4)) == size(sum(x4, 4))
-@test size(vsum(x4, 5)) == size(sum(x4, 5))
+@test size(vsum(x1, 1)) == rsize(x1, 1)
+@test size(vsum(x1, 2)) == rsize(x1, 2)
+@test size(vsum(x2, 1)) == rsize(x2, 1)
+@test size(vsum(x2, 2)) == rsize(x2, 2)
+@test size(vsum(x2, 3)) == rsize(x2, 3)
+@test size(vsum(x3, 1)) == rsize(x3, 1)
+@test size(vsum(x3, 2)) == rsize(x3, 2)
+@test size(vsum(x3, 3)) == rsize(x3, 3)
+@test size(vsum(x3, 4)) == rsize(x3, 4)
+@test size(vsum(x4, 1)) == rsize(x4, 1)
+@test size(vsum(x4, 2)) == rsize(x4, 2)
+@test size(vsum(x4, 3)) == rsize(x4, 3)
+@test size(vsum(x4, 4)) == rsize(x4, 4)
+@test size(vsum(x4, 5)) == rsize(x4, 5)
 
-@test_approx_eq vsum(x1, 1) sum(x1, 1)
-@test_approx_eq vsum(x1, 2) sum(x1, 2)
-@test_approx_eq vsum(x2, 1) sum(x2, 1)
-@test_approx_eq vsum(x2, 2) sum(x2, 2)
-@test_approx_eq vsum(x2, 3) sum(x2, 3)
-@test_approx_eq vsum(x3, 1) sum(x3, 1)
-@test_approx_eq vsum(x3, 2) sum(x3, 2)
-@test_approx_eq vsum(x3, 3) sum(x3, 3)
-@test_approx_eq vsum(x3, 4) sum(x3, 4)
-@test_approx_eq vsum(x4, 1) sum(x4, 1)
-@test_approx_eq vsum(x4, 2) sum(x4, 2)
-@test_approx_eq vsum(x4, 3) sum(x4, 3)
-@test_approx_eq vsum(x4, 4) sum(x4, 4)
-@test_approx_eq vsum(x4, 5) sum(x4, 5)
+@test_approx_eq vsum(x1, 1) safe_sum(x1, 1)
+@test_approx_eq vsum(x1, 2) safe_sum(x1, 2)
+@test_approx_eq vsum(x2, 1) safe_sum(x2, 1)
+@test_approx_eq vsum(x2, 2) safe_sum(x2, 2)
+@test_approx_eq vsum(x2, 3) safe_sum(x2, 3)
+@test_approx_eq vsum(x3, 1) safe_sum(x3, 1)
+@test_approx_eq vsum(x3, 2) safe_sum(x3, 2)
+@test_approx_eq vsum(x3, 3) safe_sum(x3, 3)
+@test_approx_eq vsum(x3, 4) safe_sum(x3, 4)
+@test_approx_eq vsum(x4, 1) safe_sum(x4, 1)
+@test_approx_eq vsum(x4, 2) safe_sum(x4, 2)
+@test_approx_eq vsum(x4, 3) safe_sum(x4, 3)
+@test_approx_eq vsum(x4, 4) safe_sum(x4, 4)
+@test_approx_eq vsum(x4, 5) safe_sum(x4, 5)
 
 r = zeros(6); vsum!(r, x2, 1)
-@test_approx_eq r vec(sum(x2, 1))
+@test_approx_eq r vec(safe_sum(x2, 1))
 
 r = zeros(5); vsum!(r, x2, 2)
-@test_approx_eq r vec(sum(x2, 2))
+@test_approx_eq r vec(safe_sum(x2, 2))
 
 r = zeros(4, 5); vsum!(r, x3, 1)
-@test_approx_eq r reshape(sum(x3, 1), 4, 5)
+@test_approx_eq r reshape(safe_sum(x3, 1), 4, 5)
 
 r = zeros(3, 5); vsum!(r, x3, 2)
-@test_approx_eq r reshape(sum(x3, 2), 3, 5)
+@test_approx_eq r reshape(safe_sum(x3, 2), 3, 5)
 
 r = zeros(3, 4); vsum!(r, x3, 3)
-@test_approx_eq r reshape(sum(x3, 3), 3, 4)
+@test_approx_eq r reshape(safe_sum(x3, 3), 3, 4)
 
-@test size(vsum(x3, (1, 2))) == size(sum(x3, (1, 2)))
-@test size(vsum(x3, (1, 3))) == size(sum(x3, (1, 3)))
-@test size(vsum(x3, (2, 3))) == size(sum(x3, (2, 3)))
+@test size(vsum(x3, (1, 2))) == rsize(x3, (1, 2))
+@test size(vsum(x3, (1, 3))) == rsize(x3, (1, 3))
+@test size(vsum(x3, (2, 3))) == rsize(x3, (2, 3))
 
-@test_approx_eq vsum(x3, (1, 2)) sum(x3, (1, 2))
-@test_approx_eq vsum(x3, (1, 3)) sum(x3, (1, 3))
-@test_approx_eq vsum(x3, (2, 3)) sum(x3, (2, 3))
+@test_approx_eq vsum(x3, (1, 2)) safe_sum(x3, (1, 2))
+@test_approx_eq vsum(x3, (1, 3)) safe_sum(x3, (1, 3))
+@test_approx_eq vsum(x3, (2, 3)) safe_sum(x3, (2, 3))
 
 r = zeros(5); vsum!(r, x3, (1, 2))
-@test_approx_eq r vec(sum(x3, (1, 2)))
+@test_approx_eq r vec(safe_sum(x3, (1, 2)))
 
 r = zeros(4); vsum!(r, x3, (1, 3))
-@test_approx_eq r vec(sum(x3, (1, 3)))
+@test_approx_eq r vec(safe_sum(x3, (1, 3)))
 
 r = zeros(3); vsum!(r, x3, (2, 3))
-@test_approx_eq r vec(sum(x3, (2, 3)))
+@test_approx_eq r vec(safe_sum(x3, (2, 3)))
 
 # vmax
 
-@test_approx_eq vmax(x1, 1) max(x1, (), 1)
-@test_approx_eq vmax(x1, 2) max(x1, (), 2)
-@test_approx_eq vmax(x2, 1) max(x2, (), 1)
-@test_approx_eq vmax(x2, 2) max(x2, (), 2)
-@test_approx_eq vmax(x2, 3) max(x2, (), 3)
-@test_approx_eq vmax(x3, 1) max(x3, (), 1)
-@test_approx_eq vmax(x3, 2) max(x3, (), 2)
-@test_approx_eq vmax(x3, 3) max(x3, (), 3)
-@test_approx_eq vmax(x3, 4) max(x3, (), 4)
-@test_approx_eq vmax(x4, 1) max(x4, (), 1)
-@test_approx_eq vmax(x4, 2) max(x4, (), 2)
-@test_approx_eq vmax(x4, 3) max(x4, (), 3)
-@test_approx_eq vmax(x4, 4) max(x4, (), 4)
-@test_approx_eq vmax(x4, 5) max(x4, (), 5)
+@test_approx_eq vmax(x1, 1) safe_max(x1, 1)
+@test_approx_eq vmax(x1, 2) safe_max(x1, 2)
+@test_approx_eq vmax(x2, 1) safe_max(x2, 1)
+@test_approx_eq vmax(x2, 2) safe_max(x2, 2)
+@test_approx_eq vmax(x2, 3) safe_max(x2, 3)
+@test_approx_eq vmax(x3, 1) safe_max(x3, 1)
+@test_approx_eq vmax(x3, 2) safe_max(x3, 2)
+@test_approx_eq vmax(x3, 3) safe_max(x3, 3)
+@test_approx_eq vmax(x3, 4) safe_max(x3, 4)
+@test_approx_eq vmax(x4, 1) safe_max(x4, 1)
+@test_approx_eq vmax(x4, 2) safe_max(x4, 2)
+@test_approx_eq vmax(x4, 3) safe_max(x4, 3)
+@test_approx_eq vmax(x4, 4) safe_max(x4, 4)
+@test_approx_eq vmax(x4, 5) safe_max(x4, 5)
 
-@test_approx_eq vmax(x3, (1, 2)) max(x3, (), (1, 2))
-@test_approx_eq vmax(x3, (1, 3)) max(x3, (), (1, 3))
-@test_approx_eq vmax(x3, (2, 3)) max(x3, (), (2, 3))
+@test_approx_eq vmax(x3, (1, 2)) safe_max(x3, (1, 2))
+@test_approx_eq vmax(x3, (1, 3)) safe_max(x3, (1, 3))
+@test_approx_eq vmax(x3, (2, 3)) safe_max(x3, (2, 3))
 
 # vmin
 
-@test_approx_eq vmin(x1, 1) min(x1, (), 1)
-@test_approx_eq vmin(x1, 2) min(x1, (), 2)
-@test_approx_eq vmin(x2, 1) min(x2, (), 1)
-@test_approx_eq vmin(x2, 2) min(x2, (), 2)
-@test_approx_eq vmin(x2, 3) min(x2, (), 3)
-@test_approx_eq vmin(x3, 1) min(x3, (), 1)
-@test_approx_eq vmin(x3, 2) min(x3, (), 2)
-@test_approx_eq vmin(x3, 3) min(x3, (), 3)
-@test_approx_eq vmin(x3, 4) min(x3, (), 4)
-@test_approx_eq vmin(x4, 1) min(x4, (), 1)
-@test_approx_eq vmin(x4, 2) min(x4, (), 2)
-@test_approx_eq vmin(x4, 3) min(x4, (), 3)
-@test_approx_eq vmin(x4, 4) min(x4, (), 4)
-@test_approx_eq vmin(x4, 5) min(x4, (), 5)
+@test_approx_eq vmin(x1, 1) safe_min(x1, 1)
+@test_approx_eq vmin(x1, 2) safe_min(x1, 2)
+@test_approx_eq vmin(x2, 1) safe_min(x2, 1)
+@test_approx_eq vmin(x2, 2) safe_min(x2, 2)
+@test_approx_eq vmin(x2, 3) safe_min(x2, 3)
+@test_approx_eq vmin(x3, 1) safe_min(x3, 1)
+@test_approx_eq vmin(x3, 2) safe_min(x3, 2)
+@test_approx_eq vmin(x3, 3) safe_min(x3, 3)
+@test_approx_eq vmin(x3, 4) safe_min(x3, 4)
+@test_approx_eq vmin(x4, 1) safe_min(x4, 1)
+@test_approx_eq vmin(x4, 2) safe_min(x4, 2)
+@test_approx_eq vmin(x4, 3) safe_min(x4, 3)
+@test_approx_eq vmin(x4, 4) safe_min(x4, 4)
+@test_approx_eq vmin(x4, 5) safe_min(x4, 5)
 
-@test_approx_eq vmin(x3, (1, 2)) min(x3, (), (1, 2))
-@test_approx_eq vmin(x3, (1, 3)) min(x3, (), (1, 3))
-@test_approx_eq vmin(x3, (2, 3)) min(x3, (), (2, 3))
+@test_approx_eq vmin(x3, (1, 2)) safe_min(x3, (1, 2))
+@test_approx_eq vmin(x3, (1, 3)) safe_min(x3, (1, 3))
+@test_approx_eq vmin(x3, (2, 3)) safe_min(x3, (2, 3))
 
 # vasum
 
