@@ -2,6 +2,7 @@ module NumericFunctors
 
 	import Base.map, Base.map!, Base.reduce
 	import Base.add!
+	import Base.sum, Base.max, Base.min, Base.mean, Base.dot, Base.LinAlg.BLAS.asum, Base.norm
 
 	export 
 		# functors
@@ -33,7 +34,7 @@ module NumericFunctors
 
 		# vreduce
 		reduce, reduce!, reduce_fdiff, reduce_fdiff!,
-		vsum, vsum!, vmax, vmax!, vmin, vmin!, nonneg_vmax, nonneg_vmax!,
+		sum!, max!, min!, nonneg_max, nonneg_max!,
 		vasum, vasum!, vamax, vamax!, vamin, vamin!, vsqsum, vsqsum!,  
 		vdot, vdot!, vadiffsum, vadiffsum!, vsqdiffsum, vsqdiffsum!,
 		vadiffmax, vadiffmax!, vadiffmin, vadiffmin!,  

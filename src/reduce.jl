@@ -290,29 +290,44 @@ function code_basic_reduction(fname::Symbol, op::Expr, coder::EwiseCoder, gfun::
 	quote
 		($fname)($(paramlist...)) = ($emptytest) ? ($emptyfun)($vtype) : ($gfun)($op, $(arglist...))
 		($fname)($(paramlist...), dims::DimSpec) = ($gfun)($op, $(arglist...), dims) 
-		($fname!)(dst::AbstractArray, $(paramlist...), dims::DimSpec) = ($gfun!)(dst, $op, $(arglist...), dims)
+		($fname!)(dst::StridedArray, $(paramlist...), dims::DimSpec) = ($gfun!)(dst, $op, $(arglist...), dims)
 	end
 end
 
-function code_basic_reduction(fname::Symbol, op::Expr, emptyfun::Symbol)
-	c0 = code_basic_reduction(fname, op, TrivialCoder(), :reduce, emptyfun)
+function code_basic_mapreduction(fname::Symbol, op::Expr, emptyfun::Symbol)
+	#c0 = code_basic_reduction(fname, op, TrivialCoder(), :reduce, emptyfun)
 	c1 = code_basic_reduction(fname, op, UnaryCoder(), :reduce, emptyfun)
 	c2 = code_basic_reduction(fname, op, BinaryCoder(), :reduce, emptyfun)
 	c3 = code_basic_reduction(fname, op, TernaryCoder(), :reduce, emptyfun)
 	c2d = code_basic_reduction(symbol(string(fname, "_fdiff")), op, FDiffCoder(), :reduce_fdiff, emptyfun)
 
-	combined = Expr(:block, c0.args..., c1.args..., c2.args..., c3.args..., c2d.args...)
+	combined = Expr(:block, c1.args..., c2.args..., c3.args..., c2d.args...)
 end
 
-
-macro basic_reduction(fname, op, emptyfun)
-	esc(code_basic_reduction(fname, op, emptyfun))
+macro basic_mapreduction(fname, op, emptyfun)
+	esc(code_basic_mapreduction(fname, op, emptyfun))
 end
 
-@basic_reduction vsum Add() zero 
-@basic_reduction nonneg_vmax Max() zero
-@basic_reduction vmax Max() empty_notallowed
-@basic_reduction vmin Min() empty_notallowed
+sum{T}(x::StridedArray{T}) = isempty(x) ? zero(T) : reduce(Add(), x)
+sum{T}(x::StridedArray, dims::DimSpec) = isempty(x) ? zeros(T, reduced_size(x, dims)) : reduce(Add(), x, dims)
+sum!(dst::StridedArray, x::StridedArray, dims::DimSpec) = reduce!(dst, Add(), x, dims) 
+
+nonneg_max{T}(x::StridedArray{T}) = isempty(x) ? zero(T) : reduce(Max(), x)
+nonneg_max{T}(x::StridedArray, dims::DimSpec) = isempty(x) ? zeros(T, reduced_size(x, dims)) : reduce(Max(), x, dims)
+nonneg_max!(dst::StridedArray, x::StridedArray, dims::DimSpec) = reduce!(dst, Max(), x, dims) 
+
+max{T}(x::StridedArray{T}) = isempty(x) ? empty_notallowed(T) : reduce(Max(), x)
+max{T}(x::StridedArray, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(Max(), x, dims)
+max!(dst::StridedArray, x::StridedArray, dims::DimSpec) = reduce!(dst, Max(), x, dims) 
+
+min{T}(x::StridedArray{T}) = isempty(x) ? empty_notallowed(T) : reduce(Min(), x)
+min{T}(x::StridedArray, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(Min(), x, dims)
+min!(dst::StridedArray, x::StridedArray, dims::DimSpec) = reduce!(dst, Min(), x, dims) 
+
+@basic_mapreduction sum Add() zero 
+@basic_mapreduction nonneg_max Max() zero
+@basic_mapreduction max Max() empty_notallowed
+@basic_mapreduction min Min() empty_notallowed
 
 #################################################
 #
@@ -355,23 +370,22 @@ end
 
 # specific function definitions
 
-@derived_reduction1 vasum vsum Abs()
-@derived_reduction1 vamax vmax Abs()
-@derived_reduction1 vamin vmin Abs()
-@derived_reduction1 vsqsum vsum Abs2()
+@derived_reduction1 vasum sum Abs()
+@derived_reduction1 vamax max Abs()
+@derived_reduction1 vamin min Abs()
+@derived_reduction1 vsqsum sum Abs2()
 
-@derived_reduction2 vdot vsum Multiply()
+@derived_reduction2 vdot sum Multiply()
 
-@derived_reduction2 vadiffsum vsum_fdiff Abs()
-@derived_reduction2 vadiffmax vmax_fdiff Abs()
-@derived_reduction2 vadiffmin vmin_fdiff Abs()
-@derived_reduction2 vsqdiffsum vsum_fdiff Abs2()
+@derived_reduction2 vadiffsum sum_fdiff Abs()
+@derived_reduction2 vadiffmax max_fdiff Abs()
+@derived_reduction2 vadiffmin min_fdiff Abs()
+@derived_reduction2 vsqdiffsum sum_fdiff Abs2()
 
 # BLAS-based specialization
 
 typealias BlasFP Union(Float32, Float64)
 
-const asum = Base.LinAlg.BLAS.asum
 vasum{T<:BlasFP}(x::Array{T}) = asum(x)
 
 vsqsum{T<:BlasFP}(x::Vector{T}) = dot(x, x)
@@ -394,7 +408,7 @@ function vnorm(x::AbstractArray, p::Real)
 	p == 1 ? vasum(x) :
 	p == 2 ? sqrt(vsqsum(x)) :	
 	isinf(p) ? vamax(x) :
-	vsum(FixAbsPow(p), x) .^ inv(p)
+	sum(FixAbsPow(p), x) .^ inv(p)
 end
 
 vnorm(x::AbstractArray) = vnorm(x, 2)
@@ -406,7 +420,7 @@ function vnorm!(dst::AbstractArray, x::AbstractArray, p::Real, dims::DimSpec)
 	p == 1 ? vasum!(dst, x, dims) :
 	p == 2 ? map1!(Sqrt(), vsqsum!(dst, x, dims)) :	
 	isinf(p) ? vamax!(dst, x, dims) :
-	map1!(FixAbsPow(inv(p)), vsum!(dst, FixAbsPow(p), x, dims))
+	map1!(FixAbsPow(inv(p)), sum!(dst, FixAbsPow(p), x, dims))
 end
 
 function vnorm{Tx<:Number,Tp<:Real}(x::AbstractArray{Tx}, p::Tp, dims::DimSpec) 
@@ -425,7 +439,7 @@ function vdiffnorm(x::AbstractArray, y::ArrayOrNumber, p::Real)
 	p == 1 ? vadiffsum(x, y) :
 	p == 2 ? sqrt(vsqdiffsum(x, y)) :	
 	isinf(p) ? vadiffmax(x, y) :
-	vsum_fdiff(FixAbsPow(p), x, y) .^ inv(p)
+	sum_fdiff(FixAbsPow(p), x, y) .^ inv(p)
 end
 
 vdiffnorm(x::AbstractArray, y::ArrayOrNumber) = vdiffnorm(x, y, 2)
@@ -437,7 +451,7 @@ function vdiffnorm!(dst::AbstractArray, x::AbstractArray, y::ArrayOrNumber, p::R
 	p == 1 ? vadiffsum!(dst, x, y, dims) :
 	p == 2 ? map1!(Sqrt(), vsqdiffsum!(dst, x, y, dims)) :	
 	isinf(p) ? vadiffmax!(dst, x, y, dims) :
-	map1!(FixAbsPow(inv(p)), vsum_fdiff!(dst, FixAbsPow(p), x, y, dims))
+	map1!(FixAbsPow(inv(p)), sum_fdiff!(dst, FixAbsPow(p), x, y, dims))
 end
 
 function vdiffnorm{Tx<:Number,Ty<:Number,Tp<:Real}(x::AbstractArray{Tx}, y::AbstractArray{Ty}, p::Tp, dims::DimSpec) 
