@@ -318,45 +318,76 @@ vasum(x)  # == sum(abs(x))
 vasum(x, dims)
 vasum!(dst, x, dims)
 
+vamax(x)   # == max(abs(x))
+vamax(x, dims)
+vamax!(dst, x, dims)
+
+vamin(x)   # == min(abs(x))
+vamin(x, dims)
+vamin!(dst, x, dims)
+
+vsqsum(x)  # == sum(abs2(x))
+vsqsum(x, dims)
+vsqsum!(dst, x, dims)
+
 vdot(x, y)  # == sum(x .* y)
 vdot(x, y, dims)
 vdot!(dst, x, y, dims)
-```
-
-In addition, we have 
-
-```julia
-vamax(x)   # == max(abs(x))
-vamin(x)   # == min(abs(x))
-vsqsum(x)  # == sum(abs2(x))
 
 vadiffsum(x, y)   # == sum(abs(x - y))
+vadiffsum(x, y, dims)
+vadiffsum!(dst, x, y, dims)
+
 vadiffmax(x, y)   # == max(abs(x - y))
+vadiffmax(x, y, dims)
+vadiffmax!(dst, x, y, dims)
+
 vadiffmin(x, y)   # == min(abs(x - y))
+vadiffmin(x, y, dims)
+vadiffmin!(dst, x, y, dims)
+
 vsqdiffsum(x, y)  # == sum(abs2(x - y))
+vsqdiffsum(x, y, dims)
+vsqdiffsum!(dst, x, y, dims)
 
 vnorm(x, p)   # == norm(x, p)
+vnorm(x, p, dims)
+vnorm!(dst, x, p, dims)
+
+vdiffnorm(x, y, p)  # == norm(x - y, p)
+vdiffnorm(x, y, p, dims)
+vdiffnorm!(dst, x, y, p, dims)
 ```
 
-All these functions provide variant for reduction along dimensions (both creating new array or writing to pre-allocated destination).
+Although this is quite a large set of functions, the actual code is quite concise, as most of such functions are generated through macros (see ``src/vreduce.jl``)
+
 
 ##### Performance
 
+The reduction and map-reduction functions are carefully optimized. In particular, several tricks lead to performance improvement:
 
+* computation is performed in a cache-friendly manner;
+* computation completes in a single pass without creating intermediate arrays;
+* kernels are inlined via the use of typed functors;
+* inner loops use linear indexing (with pre-computed offset);
+* opportunities of using BLAS are exploited.
 
+Below is a table that compares the performance with vectorized Julia expressions (when gain > 1, it means the function in this package is faster than the ordinary Julia expression):
 
+| function     | full reduction  | colwise reduction | rowwise reduction |   
+|--------------|-----------------|-------------------|-------------------|
+|  vsum        |   1.105         |    1.278          |    6.300          |
+|  vmax        |   1.870         |    1.802          |    2.874          |
+|  vmin        |   1.900         |    1.813          |    3.098          |
+|  vasum       |  *16.057*       |    6.869          |    9.891          |
+|  vamax       |   3.497         |    3.645          |    4.455          |
+|  vamin       |   3.431         |    3.649          |    4.434          |
+|  vsqsum      |  *36.440*       |    7.014          |    9.420          |
+|  vdot        |  *11.941*       |    6.380          |    7.912          |
+|  vadiffsum   |   6.216         |    7.471          |    9.359          |
+|  vadiffmax   |   4.911         |    4.554          |    5.222          |
+|  vadiffmin   |   4.894         |    4.527          |    5.310          |
+|  vsqdiffsum  |   8.146         |    8.234          |   10.859          |
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+Here, full reduction with ``vasum``, ``vsqsum``, and ``vdot`` utilize BLAS level 1 routines, and they achieve *10x* to *40x* speed up. Even though BLAS is not used in other cases, we still observe remarkable improvement there, especially for rowwise reduction and when the kernel is a compound of more than one steps (*e.g.*, we notice over *10x* speed up for rowwise squared sum).
 

@@ -97,6 +97,14 @@ colwise_sum(a) = sum(a, 1)
 colwise_vsum(a) = vsum(a, 1)
 @bench_vreduce1("colwise-sum", 10, a, colwise_sum, colwise_vsum)
 
+colwise_max(a) = max(a, (), 1)
+colwise_vmax(a) = vmax(a, 1)
+@bench_vreduce1("colwise-max", 10, a, colwise_max, colwise_vmax)
+
+colwise_min(a) = min(a, (), 1)
+colwise_vmin(a) = vmin(a, 1)
+@bench_vreduce1("colwise-min", 10, a, colwise_min, colwise_vmin)
+
 colwise_asum(a) = sum(abs(a), 1)
 colwise_vasum(a) = vasum(a, 1)
 @bench_vreduce1("colwise-asum", 10, a, colwise_asum, colwise_vasum)
@@ -140,6 +148,14 @@ println("=======================================")
 rowwise_sum(a) = sum(a, 2)
 rowwise_vsum(a) = vsum(a, 2)
 @bench_vreduce1("rowwise-sum", 10, a, rowwise_sum, rowwise_vsum)
+
+rowwise_max(a) = max(a, (), 2)
+rowwise_vmax(a) = vmax(a, 2)
+@bench_vreduce1("rowwise-max", 10, a, rowwise_max, rowwise_vmax)
+
+rowwise_min(a) = min(a, (), 2)
+rowwise_vmin(a) = vmin(a, 2)
+@bench_vreduce1("rowwise-min", 10, a, rowwise_min, rowwise_vmin)
 
 rowwise_asum(a) = sum(abs(a), 2)
 rowwise_vasum(a) = vasum(a, 2)
