@@ -77,6 +77,29 @@ Following is a list of pre-defined functors provided by this package:
 
 Except for several functors that corresponding to operators, most functors are named using the capitalized version of the corresponding math function. Therefore, you don't have to look up this list to find the names. The collection of pre-defined functors will be extended in future. Please refer to ``src/functors.jl`` for the most updated list.
 
+##### Customized functors
+
+User can define new functors by sub-typing ``Functor``. For example, to define a functor that calculates squared difference, we can do the following:
+
+```julia
+type SqrDiff <: BinaryFunctor
+
+NumericFunctors.evaluate(::SqrDiff, x, y) = abs2(x - y)
+NumericFunctors.result_type(::SqrDiff, t1::Type, t2::Type) = promote_type(t1, t2)
+```
+
+To define multiple functors, it would be more concise to first import ``evaluate`` and ``result_type`` before extending them, as follows:
+
+```julia
+import NumericFunctors.evaluate, NumericFunctors.result_type
+
+type SqrDiff <: BinaryFunctor
+
+evaluate(::SqrDiff, x, y) = abs2(x - y)
+result_type(::SqrDiff, t1::Type, t2::Type) = promote_type(t1, t2)
+```
+
+**Note:** Higher order functions such as ``vmap`` and ``vreduce`` rely on the ``result_type`` method to determine the element type of the result. This is necessary, as Julia does not provide a generic mechanism to acquire the return type of a method.
 
 
 
