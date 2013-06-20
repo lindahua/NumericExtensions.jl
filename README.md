@@ -102,14 +102,85 @@ result_type(::SqrDiff, t1::Type, t2::Type) = promote_type(t1, t2)
 **Note:** Higher order functions such as ``vmap`` and ``vreduce`` rely on the ``result_type`` method to determine the element type of the result. This is necessary, as Julia does not provide a generic mechanism to acquire the return type of a method.
 
 
+### Mapping
+
+This package provides ``vmap`` and ``vmap!`` that allows efficient element-wise mapping using functors:
+
+```julia
+typealias ArrayOrNumber Union(AbstractArray, Number)
+
+vmap(f::Functor, xs::ArrayOrNumber...)   # perform element-wise computation using functor f
+                                         # each argument in xs can be either an array or a number
+
+vmap(Sqrt(), x)    # == sqrt(x)
+vmap(Add(), x, 1)  # == x + 1
+vmap(FMA(), x, y, z)  # == x + y .* z
+```
+
+The function ``vmap!`` allows inplace computation, with the results written to the first argument or a pre-allocated array.
+
+```julia
+vmap!(dst::AbstractArray, f::Functor, xs::ArrayOrNumber...)  # write results to dst
+vmap!(f::Functor, x1::AbstractArray, xr::ArrayOrNumber...)   # update x1
+
+vmap!(dst, Add(), x, y)   # dst <- x + y
+vmap!(Add(), x, y)        # x <- x + y
+```
+
+Practical applications usually requires computing expressions in the form of ``f(x - y)``. We provide ``vmapdiff`` and ``vmapdiff!`` for this purpose, as follows:
+
+```julia
+vmapdiff(f, x, y)          # return an array as f(x - y)
+vmapdiff!(dst, f, x, y)    # dst <- f(x - y)
+```
+
+Note that this function uses an efficient implementation, which completes the computation in one-pass and never creates the intermediate array ``x - y``. 
 
 
+##### Pre-defined mapping functions
 
+Julia already provides vectorized function for most math computations. In this package, we additionally define several functions for vectorized inplace computation (based on ``vmap!``), as follows
 
+```julia
+add!(x, y)        # x <- x + y
+subtract!(x, y)   # x <- x - y
+multiply!(x, y)   # x <- x .* y
+divide!(x, y)     # x <- x ./ y
+negate!(x)        # x <- -x
+pow!(x, y)        # x <- x .^ y
 
+abs!(x)           # x <- abs(x)
+abs2!(x)          # x <- abs2(x)
+rcp!(x)           # x <- 1 ./ x
+sqrt!(x)          # x <- sqrt(x)
+exp!(x)           # x <- exp(x)
+log!(x)           # x <- log(x)
 
+floor!(x)         # x <- floor(x)
+ceil!(x)          # x <- ceil(x)
+round!(x)         # x <- round(x)
+trunc!(x)         # x <- trunc(x)
+```
+In the codes above, ``x`` must be an array (*i.e.* an instance of ``AbstractArray``), while ``y`` can be either an array or a scalar.
 
+In addition, we also provide some useful functions using compound functors:
 
+```julia
+absdiff(x, y)     # abs(x - y)
+sqrdiff(x, y)     # abs2(x - y)
+fma(x, y, c)      # x + y .* c, where c can be array or scalar
+fma!(x, y, c)     # x <- x + y .* c
+```
+
+##### Performance
+
+For simple functions, such as ``x + y`` or ``exp(x)``, the performance of the vmap version such as ``vmap(Add(), x, y)`` and ``vmap(Exp(), x)`` is comparable to the Julia counter part. However, ``vmap`` can accelerate computation considerably in a variety of cases:
+
+* When the result storage has been allocated (e.g. in iterative updating algorithms) or you want inplace update, then ``vmap!`` or the pre-defined inplace computation function can be used to avoid unnecessary memory allocation/garbage collection, which can sometimes be the performance killer.
+
+* When the inner copy contains two or multiple steps, ``vmap`` and ``vmap!`` can complete the computation in one-pass without creating intermediate arrays, usually resulting in about ``2x`` or even more speed up. Benchmark shows that ``absdiff(x, y)`` and ``sqrdiff(x, y)`` are about ``2.2x`` faster than ``abs(x - y)`` and ``abs2(x - y)``. 
+
+* The script ``test/benchmark_vmap.jl`` runs a series of benchmarks to compare the performance ``vmap`` and the Julia vectorized expressions for a variety of computation.
 
 
 
