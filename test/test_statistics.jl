@@ -47,6 +47,31 @@ safe_mean(x, d::(Int, Int)) = sum(x, d) / (size(x, d[1]) * size(x, d[2]))
 r = zeros(size(x2, 2)); mean!(r, x2, 1) 
 @test_approx_eq r vec(mean(x2, 1))
 
+# var
+
+safe_var(x) = sum(abs2(x - mean(x))) / (length(x) - 1)
+safe_var(x, d::Int) = sum(abs2(x .- mean(x, d)), d) / (size(x, d) - 1)
+
+@test_approx_eq var(x) safe_var(x)
+@test_approx_eq var(x, 1) safe_var(x, 1)
+@test_approx_eq var(x, 2) safe_var(x, 2)
+
+r = zeros(size(x2, 2)); var!(r, x2, 1) 
+@test_approx_eq r vec(var(x2, 1))
+
+# std
+
+safe_std(x) = sqrt(var(x))
+safe_std(x, d) = sqrt(var(x, d))
+
+@test_approx_eq std(x) safe_std(x)
+@test_approx_eq std(x, 1) safe_std(x, 1)
+@test_approx_eq std(x, 2) safe_std(x, 2)
+
+r = zeros(size(x2, 2)); std!(r, x2, 1) 
+@test_approx_eq r vec(std(x2, 1))
+
+
 # entropy
 
 @test_approx_eq entropy(p) -sum(p .* log(p))

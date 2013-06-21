@@ -49,7 +49,7 @@ module NumericFunctors
 		vnorm, vnorm!, vdiffnorm, vdiffnorm!,
 
 		# statistics
-		mean!, entropy, entropy!,
+		mean!, var!, std!, entropy, entropy!,
 
 		# benchmark
 		BenchmarkTable, nrows, ncolumns, add_row!

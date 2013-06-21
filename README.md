@@ -377,6 +377,14 @@ mean(x)
 mean(x, dims)
 mean!(dst, x, dims)
 
+var(x)
+var(x, dim)
+var!(dst, x, dim)
+
+std(x)
+std(x, dim)
+std!(dst, x, dim)
+
 asum(x)  # == sum(abs(x))
 asum(x, dims)
 asum!(dst, x, dims)
@@ -455,6 +463,8 @@ Below is a table that compares the performance with vectorized Julia expressions
 | max        |            2.8189 |            2.8360 |            4.9710 | 
 | min        |            2.7882 |            2.8397 |            4.9209 | 
 | mean       |            1.0320 |            1.0495 |            5.9525 | 
+| var        |            6.2552 |           48.3184 |           26.3526 | 
+| std        |            6.2543 |           52.4680 |           24.9397 |
 | asum       |           15.1029 |            6.8452 |           10.8808 | 
 | amax       |            3.4944 |            3.1673 |            4.4154 | 
 | amin       |            3.5981 |            3.2054 |            4.0856 | 
@@ -467,4 +477,11 @@ Below is a table that compares the performance with vectorized Julia expressions
 
 
 Here, full reduction with ``asum``, ``sqsum``, and ``dot`` utilize BLAS level 1 routines, and they achieve *10x* to *40x* speed up. Even though BLAS is not used in other cases, we still observe remarkable improvement there, especially for rowwise reduction and when the kernel is a compound of more than one steps (*e.g.*, we notice over *10x* speed up for rowwise squared sum).
+
+For ``var`` and ``std``, we devise dedicated procedures, where computational steps are very carefully scheduled such that most computation is conducted in a single pass. This results in very remarkable speed up, as you can see from the table above.
+
+
+
+
+
 

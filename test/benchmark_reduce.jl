@@ -125,7 +125,8 @@ println("Benchmark results on Base methods:")
 
 @bench_reduc1 oldperf "entropy" 10 _entropy b2
 @bench_reduc2 oldperf "sum_xlogy" 10 _sum_xlogy b2 b2
-
+@bench_reduc1 oldperf "var" 10 var a2
+@bench_reduc1 oldperf "std" 10 std a2
 
 #################################################
 #
@@ -161,6 +162,8 @@ println("Benchmark results in New methods:")
 
 @bench_reduc1 newperf "entropy" 10 entropy b2
 @bench_reduc2 newperf "sum_xlogy" 10 sum_xlogy b2 b2
+@bench_reduc1 newperf "var" 10 var a2
+@bench_reduc1 newperf "std" 10 std a2
 
 
 #################################################
