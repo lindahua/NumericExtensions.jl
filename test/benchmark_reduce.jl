@@ -109,6 +109,7 @@ const oldperf = Array((ASCIIString, Vector{Float64}), 0)
 println("Benchmark results on Base methods:")
 
 @bench_reduc1 oldperf "sum" 10 sum a2
+@bench_reduc1 oldperf "mean" 10 mean a2
 @bench_reduc1 oldperf "max" 10 _max a2
 @bench_reduc1 oldperf "min" 10 _min a2
 @bench_reduc1 oldperf "asum" 10 _asum a2
@@ -144,6 +145,7 @@ new_min(x::Array, d::DIMS) = min(x, (), d)
 println("Benchmark results in New methods:")
 
 @bench_reduc1 newperf "sum" 10 sum a2
+@bench_reduc1 newperf "mean" 10 mean a2
 @bench_reduc1 newperf "max" 10 new_max a2
 @bench_reduc1 newperf "min" 10 new_min a2
 @bench_reduc1 newperf "asum" 10 asum a2

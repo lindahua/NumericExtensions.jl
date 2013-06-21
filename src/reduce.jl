@@ -255,9 +255,7 @@ end
 #
 ########################################################
 
-function reduced_size(siz::(Int,), dim::Integer)
-	dim == 1 ? (1,) : siz
-end
+reduced_size(siz::(Int,), dim::Integer) = dim == 1 ? (1,) : siz
 
 function reduced_size(siz::(Int,Int), dim::Integer)
 	dim == 1 ? (1,siz[2]) :
@@ -285,6 +283,33 @@ function reduced_size(siz::NTuple{Int}, rgn::NTuple{Int})
 	end
 	tuple(rsiz...)
 end
+
+
+_reduc_dim_length(x::AbstractArray, dim::Int) = 1 <= dim <= ndims(x) ? size(x, dim) : 1
+
+function _reduc_dim_length(x::AbstractArray, dims::(Int, Int))
+	nd = ndims(x)
+	d1 = dims[1]
+	s::Int = (1 <= d1 <= nd ? size(x, d1) : 1)
+	d2 = dims[2]
+	if 1 <= d2 <= nd 
+		s *= size(x, d2)
+	end
+	s
+end
+
+function _reduc_dim_length(x::AbstractArray, dims::NTuple{Int})
+	s::Int = 1
+	nd = ndims(x)
+	for i in dims
+		d = dims[i]
+		if 1 <= d <= nd
+			s *= size(x, d)
+		end
+	end
+	s
+end
+
 
 function code_reduce_function(fname::Symbol, coder_expr::Expr)
 	coder = eval(coder_expr)
