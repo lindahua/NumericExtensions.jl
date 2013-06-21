@@ -143,6 +143,7 @@ entropy(x::Array) = - sum_xlogx(x)
 entropy(x::Array, dims::DimSpec) = negate!(sum_xlogx(x, dims))
 entropy!(dst::Array, x::Array, dims::DimSpec) = negate!(sum_xlogx!(dst, x, dims))
 
+
 # logsumexp
 
 function logsumexp{T<:Real}(x::Array{T})
@@ -185,7 +186,6 @@ function _logsumexp_firstdim!{R<:FloatingPoint,T<:Real}(dst::Array{R}, x::Array{
 end
 
 function _logsumexp_lastdim!{R<:FloatingPoint,T<:Real}(dst::Array{R}, u::Array{T}, x::Array{T}, m::Int, n::Int)
-
 	# compute max
 	max!(u, view(x, :, 1:n), (), 2)
 
@@ -239,10 +239,98 @@ function logsumexp{T<:Real}(x::Array{T}, dim::Int)
 end
 
 
+# softmax
 
+function softmax!{T<:FloatingPoint}(dst::Array{T}, x::Array{T})
+	@check_nonempty("softmax")
+	u = max(x)
+	s = dst[1] = exp(x[1] - u)
+	n = length(x)
+	for i in 2 : n
+		s += (dst[i] = exp(x[i] - u))
+	end
+	c = inv(s)
+	for i in 1 : n
+		dst[i] *= c
+	end
+	dst
+end
 
+function softmax{T<:FloatingPoint}(x::Array{T})
+	softmax!(Array(T, size(x)), x)
+end
 
+function softmax!{T<:FloatingPoint}(dst::Array{T}, x::Vector{T}, dim::Int)
+	if dim == 1
+		softmax!(dst, x)
+	else
+		error("softmax: dim must be 1 for vector.")
+	end
+	dst	
+end
 
+function _softmax_firstdim!{T<:FloatingPoint}(dst::Array{T}, x::Array{T}, m::Int, n::Int)
+	for j in 1 : n
+		softmax!(view(dst, :, j), view(x, :, j))
+	end
+end
 
+function _softmax_lastdim!{T<:FloatingPoint}(dst::Array{T}, u::Array{T}, x::Array{T}, m::Int, n::Int)
+	# compute max
+	max!(u, view(x, :, 1:n), (), 2)
 
+	# compute sum
+	s = offset_view(u, m+1, m)
+
+	for i in 1 : m
+		s[i] = dst[i] = exp(x[i] - u[i])
+	end
+	o = m
+
+	for j in 2 : n
+		for i in 1 : m
+			s[i] += (dst[o + i] = exp(x[o + i] - u[i]))
+		end
+		o += m
+	end
+
+	rcp!(s)
+	o = 0
+	for j in 1 : n
+		for i in 1 : m
+			dst[o + i] .*= s[i]
+		end
+		o += m
+	end
+end
+
+function _softmax_middim!{T<:FloatingPoint}(dst::Array{T}, u::Array{T}, x::Array{T}, m::Int, n::Int, k::Int)
+	for l in 1 : k
+		_softmax_lastdim!(view(dst, :, :, l), u, view(x, :, :, l), m, n)
+	end
+end
+
+function softmax!{T<:FloatingPoint}(dst::Array{T}, x::Array{T}, dim::Int)
+	@check_nonempty("softmax!")
+	nd = ndims(x)
+	if !(1 <= dim <= nd)
+		error("softmax: invalid value for the dim argument.")
+	end
+	siz = size(x)
+
+	if dim == 1
+		_softmax_firstdim!(dst, x, siz[1], trail_length(siz, dim))
+	elseif dim == nd
+		prelen = precede_length(siz, dim)
+		_softmax_lastdim!(dst, Array(T, prelen * 2), x, prelen, siz[dim])
+	else
+		prelen = precede_length(siz, dim)
+		_softmax_middim!(dst, Array(T, prelen * 2), x, prelen, siz[dim], trail_length(siz, dim))
+	end
+	dst	
+end
+
+function softmax{T<:FloatingPoint}(x::Array{T}, dim::Int)
+	softmax!(Array(T, size(x)), x, dim)
+end
 

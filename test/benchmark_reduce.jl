@@ -105,6 +105,18 @@ _sum_xlogy(x::Array, y::Array, d::DIMS) = sum(x .* log(y), d)
 _logsumexp(x::Array) = (u = max(x); log(sum(exp(x - u))) + u)
 _logsumexp(x::Array, d::DIMS) = (u = max(x, (), d); log(sum(exp(x .- u))) .+ u)
 
+function _softmax(x::Array)
+	u = max(x)
+	r = exp(x - u)
+	r / sum(r)
+end
+
+function _softmax(x::Array, d::Int)
+	u = max(x, (), d)
+	r = exp(x .- u)
+	r ./ sum(r, d)
+end
+
 # benchmark
 
 const oldperf = Array((ASCIIString, Vector{Float64}), 0)
@@ -131,6 +143,8 @@ println("Benchmark results on Base methods:")
 @bench_reduc1 oldperf "var" 10 var a2
 @bench_reduc1 oldperf "std" 10 std a2
 @bench_reduc1 oldperf "logsumexp" 10 _logsumexp a2
+@bench_reduc1 oldperf "softmax" 10 _softmax a2
+
 
 #################################################
 #
@@ -169,6 +183,8 @@ println("Benchmark results in New methods:")
 @bench_reduc1 newperf "var" 10 var a2
 @bench_reduc1 newperf "std" 10 std a2
 @bench_reduc1 newperf "logsumexp" 10 logsumexp a2
+@bench_reduc1 newperf "softmax" 10 softmax a2
+
 
 #################################################
 #
