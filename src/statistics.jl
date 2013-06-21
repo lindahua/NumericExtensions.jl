@@ -47,7 +47,7 @@ function _var{R<:FloatingPoint, T<:Real}(::Type{R}, x::Array{T}, ifirst::Int, il
 	nm1 = ilast - ifirst
 	n = nm1 + 1
 	mu = s / n
-	(s2 - n * (mu * mu)) / nm1
+	max((s2 - n * (mu * mu)) / nm1, zero(R))
 end
 
 
@@ -89,7 +89,7 @@ function var!{R<:FloatingPoint,T<:Real}(dst::Array{R}, x::Matrix{T}, dim::Int)
 		inv_nm1 = one(R) / convert(R, n - 1)
 		for i in 1 : m
 			mu = s[i] * inv_n
-			dst[i] = (dst[i] - n * (mu * mu)) * inv_nm1
+			dst[i] = max(dst[i] - n * (mu * mu), zero(R)) * inv_nm1
 		end
 	else
 		error("var: dim must be either 1 or 2 for matrix.")		
