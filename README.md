@@ -458,7 +458,7 @@ The reduction and map-reduction functions are carefully optimized. In particular
 Below is a table that compares the performance with vectorized Julia expressions (the numbers in the table are speed-up ratio of the functions in this package as opposed to the Julia expressions):
 
 |            | full reduction    | colwise reduction | rowwise reduction | 
-|------------|-------------------|-------------------|-------------------|
+|------------|------------------:|------------------:|------------------:|
 | sum        |            1.0226 |            1.4240 |            6.0690 | 
 | max        |            2.8189 |            2.8360 |            4.9710 | 
 | min        |            2.7882 |            2.8397 |            4.9209 | 
