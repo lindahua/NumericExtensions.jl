@@ -56,48 +56,81 @@ function var{T<:Real}(x::Array{T})
 	_var(to_fptype(T), x, 1, length(x))
 end
 
-function var!{R<:FloatingPoint,T<:Real}(dst::Array{R}, x::Matrix{T}, dim::Int)
-	@check_nonempty("var")
-	m = size(x, 1)
-	n = size(x, 2)
+
+function var!{R<:FloatingPoint,T<:Real}(dst::Array{R}, x::Vector{T}, dim::Int)
 	if dim == 1
-		o = 0
-		for j in 1 : n
-			dst[j] = _var(R, x, o+1, o+m)
-			o += m
-		end
-
-	elseif dim == 2
-		s = Array(R, m)
-		for i in 1 : m
-			xi = x[i]
-			s[i] = xi
-			dst[i] = xi * xi
-		end
-		o = m
-
-		for j in 2 : n
-			for i in 1 : m
-				xi = x[o + i]
-				s[i] += xi
-				dst[i] += xi * xi
-			end
-			o += m
-		end
-
-		inv_n = one(R) / convert(R, n)
-		inv_nm1 = one(R) / convert(R, n - 1)
-		for i in 1 : m
-			mu = s[i] * inv_n
-			dst[i] = max(dst[i] - n * (mu * mu), zero(R)) * inv_nm1
-		end
+		dst[1] = var(x)
 	else
-		error("var: dim must be either 1 or 2 for matrix.")		
+		error("var: dim must be 1 for vector.")
 	end
 	dst
 end
 
-function var{T<:Real}(x::Matrix{T}, dim::Int)
+function _varimpl_firstdim!{R<:FloatingPoint,T<:Real}(dst::Array{R}, x::Array{T}, m::Int, n::Int)
+	o = 0
+	for j in 1 : n
+		dst[j] = _var(R, x, o+1, o+m)
+		o += m
+	end
+end
+
+function _varimpl_lastdim!{R<:FloatingPoint,T<:Real}(dst::Array{R}, s::Array{R}, x::Array{T}, m::Int, n::Int)
+	for i in 1 : m
+		xi = x[i]
+		s[i] = xi
+		dst[i] = xi * xi
+	end
+
+	o = m
+	for j in 2 : n
+		for i in 1 : m
+			xi = x[o + i]
+			s[i] += xi
+			dst[i] += xi * xi
+		end
+		o += m
+	end
+
+	inv_n = one(R) / convert(R, n)
+	inv_nm1 = one(R) / convert(R, n - 1)
+	for i in 1 : m
+		mu = s[i] * inv_n
+		dst[i] = max(dst[i] - n * (mu * mu), zero(R)) * inv_nm1
+	end
+end
+
+function _varimpl_middim!{R<:FloatingPoint,T<:Real}(dst::Array{R}, s::Array{R}, x::Array{T}, m::Int, n::Int, k::Int)
+	s = Array(R, n)
+
+	_varimpl_lastdim!(dst, s, x, m, n)
+
+	for l in 2 : k
+		_varimpl_lastdim!(view(dst, :, l), s, view(x, :, :, l), m, n)
+	end
+end
+
+
+function var!{R<:FloatingPoint,T<:Real}(dst::Array{R}, x::Array{T}, dim::Int)
+	@check_nonempty("var")
+	nd = ndims(x)
+	if !(1 <= dim <= nd)
+		error("var: invalid value for the dim argument.")
+	end
+	siz = size(x)
+
+	if dim == 1
+		_varimpl_firstdim!(dst, x, siz[1], trail_length(siz, dim))
+	elseif dim == nd
+		prelen = precede_length(siz, dim)
+		_varimpl_lastdim!(dst, Array(R, prelen), x, prelen, siz[dim])
+	else
+		prelen = precede_length(siz, dim)
+		_varimpl_middim!(dst, Array(R, prelen), x, prelen, siz[dim], trail_length(siz, dim))
+	end
+	dst
+end
+
+function var{T<:Real}(x::Array{T}, dim::Int)
 	var!(Array(to_fptype(T), reduced_size(size(x), dim)), x, dim)
 end
 
