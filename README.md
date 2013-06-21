@@ -30,21 +30,33 @@ This package addresses this issue through *type functors* (*i.e.* function-like 
 using NumericFunctors
 
  # benchmark
-@time for i in 1 : 10 vmap(Add(), a, b) end     # -- statement(1)
-@time for i in 1 : 10 a + b end                 # -- statement(2)
+@time for i in 1 : 10 map(Add(), a, b) end     # -- statement(1)
+@time for i in 1 : 10 a + b end                # -- statement(2)
 ```  
 
-Here, using a typed functor ``Add`` and the ``vmap`` function provided in this package, statement (1) is *20%* faster than statement (2) in my benchmark (run ``test/benchmark_vmap.jl``). The reason is that typed functors triggered the compilation of specialized methods, where the codes associated with the functor will probably be *inlined*.
+Here, using a typed functor ``Add`` and an extended ``map`` function provided in this package, statement (1) is *20%* faster than statement (2) in my benchmark (run ``test/benchmark_map.jl``). The reason is that typed functors triggered the compilation of specialized methods, where the codes associated with the functor will probably be *inlined*.
 
 ### Main Features
 
-The package aims to provide generic and high performance functions for numerical computation, especially *mapping* and *reduction*.
+The package aims to provide generic and high performance functions for numerical computation, especially *mapping*, *reduction*, and *map-reduction*. Main features of this package are highlighted below:
 
-* A large collection of pre-defined functors cover most typical mathematical computation.
-* User can easily define customized functors.
-* Higher order functions ``vmap`` and ``vreduce`` are provided for mapping and reduction (both full reduction and reduction along specific dimensions). They are carefully optimized and tuned, often resulting in *2x - 10x* speed up compared to the counterpart in Julia Base.
-* Map-reduce can be done in one call of ``vreduce``, which performs the computation in a cache-friendly manner and without creating any intermediate arrays.
-* Broadcasting computation (supporting both inplace updating and writing results to new arrays).
+* Pre-defined functors that cover most typical mathematical computation;
+* A easy way for user to define customized functors;
+* Extended/specialized methods for ``map``, ``map!``, ``reduce``, and ``mapreduce``. These methods are carefully optimized, which often result in *2x - 10x* speed up;
+* Additional functions such as ``map1!``, ``reduce!``, and ``mapreduce!`` that allow inplace updating or writing results to preallocated arrays;
+* Vector broadcasting computation (supporting both inplace updating and writing results to new arrays).
+
+Since many of the methods are extensions of base functions. Simply adding a statement ``using NumericFunctors`` is often enough for substantial performance improvement. Consider the following code snippet:
+
+```julia
+using NumericFunctors
+
+x = rand(1000, 1000)
+r = sum(x, 2)
+```
+
+Here, when adding the statement ``using NumericFunctors`` *transparently replace* the method provided in the Base module by the specialized method in *NumericFunctors*. As a consequence, the statement ``r = sum(x, 2)`` becomes *6x* faster. Using additional functions provided by this package can further improve the performance. For example, modifying ``sum(abs2(x - y))`` to ``sqdiffsum(x, y)`` leads to nearly *11x* speed up.
+
 
 ### Functors
 
@@ -99,39 +111,39 @@ evaluate(::SqrDiff, x, y) = abs2(x - y)
 result_type(::SqrDiff, t1::Type, t2::Type) = promote_type(t1, t2)
 ```
 
-**Note:** Higher order functions such as ``vmap`` and ``vreduce`` rely on the ``result_type`` method to determine the element type of the result. This is necessary, as Julia does not provide a generic mechanism to acquire the return type of a method.
+**Note:** Higher order functions such as ``map`` and ``reduce`` rely on the ``result_type`` method to determine the element type of the result. This is necessary, as Julia does not provide a generic mechanism to acquire the return type of a method.
 
 
 ### Mapping
 
-This package provides ``vmap`` and ``vmap!`` that allows efficient element-wise mapping using functors:
+This package provides extended methods of ``map`` and ``map!`` that allows efficient element-wise mapping using functors:
 
 ```julia
 typealias ArrayOrNumber Union(AbstractArray, Number)
 
-vmap(f::Functor, xs::ArrayOrNumber...)   # perform element-wise computation using functor f
+map(f::Functor, xs::ArrayOrNumber...)   # perform element-wise computation using functor f
                                          # each argument in xs can be either an array or a number
 
-vmap(Sqrt(), x)    # == sqrt(x)
-vmap(Add(), x, 1)  # == x + 1
-vmap(FMA(), x, y, z)  # == x + y .* z
+map(Sqrt(), x)    # == sqrt(x)
+map(Add(), x, 1)  # == x + 1
+map(FMA(), x, y, z)  # == x + y .* z
 ```
 
-The function ``vmap!`` allows inplace computation, with the results written to the first argument or a pre-allocated array.
+The function ``map!`` allows writing results to a pre-allocated array, while ``map1!`` allows inplace updating of the first argument, which is often handy and efficient:
 
 ```julia
-vmap!(dst::AbstractArray, f::Functor, xs::ArrayOrNumber...)  # write results to dst
-vmap!(f::Functor, x1::AbstractArray, xr::ArrayOrNumber...)   # update x1
+map!(dst::AbstractArray, f::Functor, xs::ArrayOrNumber...)  # write results to dst
+map1!(f::Functor, x1::AbstractArray, xr::ArrayOrNumber...)   # update x1
 
-vmap!(dst, Add(), x, y)   # dst <- x + y
-vmap!(Add(), x, y)        # x <- x + y
+map!(dst, Add(), x, y)   # dst <- x + y
+map1!(Add(), x, y)        # x <- x + y
 ```
 
-Practical applications usually requires computing expressions in the form of ``f(x - y)``. We provide ``vmapdiff`` and ``vmapdiff!`` for this purpose, as follows:
+Practical applications usually requires computing expressions in the form of ``f(x - y)``. We provide ``mapdiff`` and ``mapdiff!`` for this purpose, as follows:
 
 ```julia
-vmapdiff(f, x, y)          # return an array as f(x - y)
-vmapdiff!(dst, f, x, y)    # dst <- f(x - y)
+mapdiff(f, x, y)          # return an array as f(x - y)
+mapdiff!(dst, f, x, y)    # dst <- f(x - y)
 ```
 
 Note that this function uses an efficient implementation, which completes the computation in one-pass and never creates the intermediate array ``x - y``. 
@@ -139,7 +151,7 @@ Note that this function uses an efficient implementation, which completes the co
 
 ##### Pre-defined mapping functions
 
-Julia already provides vectorized function for most math computations. In this package, we additionally define several functions for vectorized inplace computation (based on ``vmap!``), as follows
+Julia already provides vectorized function for most math computations. In this package, we additionally define several functions for vectorized inplace computation (based on ``map!``), as follows
 
 ```julia
 add!(x, y)        # x <- x + y
@@ -174,13 +186,13 @@ fma!(x, y, c)     # x <- x + y .* c
 
 ##### Performance
 
-For simple functions, such as ``x + y`` or ``exp(x)``, the performance of the vmap version such as ``vmap(Add(), x, y)`` and ``vmap(Exp(), x)`` is comparable to the Julia counter part. However, ``vmap`` can accelerate computation considerably in a variety of cases:
+For simple functions, such as ``x + y`` or ``exp(x)``, the performance of the map version such as ``map(Add(), x, y)`` and ``map(Exp(), x)`` is comparable to the Julia counter part. However, ``map`` can accelerate computation considerably in a variety of cases:
 
-* When the result storage has been allocated (e.g. in iterative updating algorithms) or you want inplace update, then ``vmap!`` or the pre-defined inplace computation function can be used to avoid unnecessary memory allocation/garbage collection, which can sometimes be the performance killer.
+* When the result storage has been allocated (e.g. in iterative updating algorithms) or you want inplace update, then ``map!`` or the pre-defined inplace computation function can be used to avoid unnecessary memory allocation/garbage collection, which can sometimes be the performance killer.
 
-* When the inner copy contains two or multiple steps, ``vmap`` and ``vmap!`` can complete the computation in one-pass without creating intermediate arrays, usually resulting in about ``2x`` or even more speed up. Benchmark shows that ``absdiff(x, y)`` and ``sqrdiff(x, y)`` are about ``2.2x`` faster than ``abs(x - y)`` and ``abs2(x - y)``. 
+* When the inner copy contains two or multiple steps, ``map`` and ``map!`` can complete the computation in one-pass without creating intermediate arrays, usually resulting in about ``2x`` or even more speed up. Benchmark shows that ``absdiff(x, y)`` and ``sqrdiff(x, y)`` are about ``2.2x`` faster than ``abs(x - y)`` and ``abs2(x - y)``. 
 
-* The script ``test/benchmark_vmap.jl`` runs a series of benchmarks to compare the performance ``vmap`` and the Julia vectorized expressions for a variety of computation.
+* The script ``test/benchmark_map.jl`` runs a series of benchmarks to compare the performance ``map`` and the Julia vectorized expressions for a variety of computation.
 
 
 ### Broadcasting
@@ -235,131 +247,177 @@ vbroadcast!(f, x, y)        # x will be overrided by results
 
 A key advantage of this package are highly optimized reduction and map-reduction functions, which sometimes lead to over ``10x`` speed up. 
 
-This package provides ``vreduce`` and ``vreduce_fdiff`` for generic reduction and map-reduction, as follows
+This package extends ``reduce`` and ``mapreduce``, and additionally provides ``mapdiff_reduce`` for generic reduction and map-reduction, as follows
 
 ```julia
-vreduce(op::BinaryFunctor, x)  # reduction using op to combine values
-                               # e.g. vreduce(Add(), x) is equivalent to sum(x)
+reduce(op, x)   # reduction using op to combine values
+                # e.g. vreduce(Add(), x) is equivalent to sum(x)
 
-vreduce(op::BinaryFunctor, f, xs...)  # use functor f to compute terms and then use op to combine them
-                                      # each argument in xs can be either an array or a scalar
-
- # examples:
-vreduce(Add(), Abs2(), x)           # compute the sum of squared of x (i.e. sum(abs2(x)))
-vreduce(Add(), Multiply(), x, y)    # compute the dot product between x, y
-
-vreduce_fdiff(op::BinaryFunctor, f::UnaryFunctor, x, y)   # use f to compute terms based on x - y, and then reduce
+mapreduce(f, op, fxs...)   # use functor f to compute terms and then use op to combine them
+                           # each argument in xs can be either an array or a scalar
 
  # examples:
-vreduce_fdiff(Max(), Abs2(), x, y)   # compute the maximum squared difference between x and y
+mapreduce(Abs2(), Add(), x)           # compute the sum of squared of x (i.e. sum(abs2(x)))
+mapreduce(Multiply(), Add(), x, y)    # compute the dot product between x, y
+
+mapdiff_reduce(f, op, x, y)   # use f to compute terms based on x - y, and then reduce
+
+ # examples:
+mapdiff_reduce(Abs2(), Max(), x, y)   # compute the maximum squared difference between x and y
 ```
 
 The function ``vreduce`` also allows reduction along specific dimension(s):
 
 ```julia
-vreduce(Add(), x, 1)      # sum x along columns
-vreduce(Add(), x, 2)      # sum x along rows
-vreduce(Add(), x, dim)    # sum x along a specific dimension
+reduce(Add(), x, 1)      # sum x along columns
+reduce(Add(), x, 2)      # sum x along rows
+reduce(Add(), x, dim)    # sum x along a specific dimension
 
-vreduce(Add(), x, (1, 2))   # sum each page of x
-vreduce(Add(), x, (1, 3))   # sum along both the first and the third dimension
+reduce(Add(), x, (1, 2))   # sum each page of x
+reduce(Add(), x, (1, 3))   # sum along both the first and the third dimension
 
- # map reduction along specific dimension(s)
-vreduce(op, f::UnaryFunctor, x, dims)
-vreduce(op, f::BinaryFunctor, x1, x2, dims)
-vreduce(op, f::TernaryFunctor, x1, x2, x3, dims)
+ # map reduction along specific dimension(s), here both f and op are functors
+mapreduce(f, op, x, dims)
+mapreduce(f, op, x1, x2, dims)
+mapreduce(f, op, x1, x2, x3, dims)
 ```
 
 **Note:** When ``dims`` is an integer, arguments can be arrays/scalars of arbitrary number of dimensions, and ``dims`` can take any integer value. When ``dims`` is a pair of integers such as ``(1, 2)`` or ``(2, 3)``, each argument must be either a cube or a scalar. We believe this has covered most usage in practice. That being said, we will try to support cases where ``dims`` can be an arbitrary tuple in the future.
 
-``vreduce_fdiff`` also supports reduction along specific dimension(s) in a similar way.
+``mapdiff_reduce`` also supports reduction along specific dimension(s) in a similar way.
 
-The functions ``vreduce!`` and ``vreduce_fdiff`` allow to write reduction results to pre-allocated arrays:
+The package additionally provides ``reduce!``, ``mapreduce!``, and ``mapdiff_reduce!``, which allow to write the results of reduction/map-reduction along dimensions to pre-allocated arrays:
 
 ```julia
-vreduce!(dst, op, x, dims)
-vreduce!(dst, op, f::UnaryFunctor, x1)
-vreduce!(dst, op, f::BinaryFunctor, x1, x2, dims)
-vreduce!(dst, op, f::TernaryFunctor, x1, x2, x3, dims)
-vreduce_fdiff!(dst, op, f::BinaryFunctor, x, y, dims)
+reduce!(dst, op, x, dims)
+mapreduce!(dst, f, op, x1)
+mapreduce!(dst, f, op, x1, x2, dims)
+mapreduce!(dst, f, op, x1, x2, x3, dims)
+mapdiff_reduce!(dst, f, op, x, y, dims)
 ```
 
 ###### Pre-defined reduction functions
 
-The package provides commonly used reduction functions: ``vsum``, ``vmax``, and ``vmin``, as follows
+The package extends/specializes ``sum``, ``max``, and ``min``, and additionally provides ``sum!``, ``max!``, and ``min!``, as follows
+
+The funtion ``sum`` and its variant forms:
 
 ```julia
-vsum(x)
-vsum(f, x)
-vsum(f, x1, x2)
-vsum(f, x1, x2, x3)
+sum(x)
+sum(f, x)            # compute sum of f(x)
+sum(f, x1, x2)       # compute sum of f(x1, x2)
+sum(f, x1, x2, x3)   # compute sum of f(x1, x2, x3)
 
-vsum(x, dims)
-vsum(f, x, dims)
-vsum(f, x1, x2, dims)
-vsum(f, x1, x2, x3, dims)
+sum(x, dims)
+sum(f, x, dims)
+sum(f, x1, x2, dims)
+sum(f, x1, x2, x3, dims)
 
-vsum!(dst, x, dims)
-vsum!(dst, f, x1, dims)
-vsum!(dst, f, x1, x2, dims)
-vsum!(dst, f, x1, x2, x3, dims)
+sum!(dst, x, dims)
+sum!(dst, f, x1, dims)
+sum!(dst, f, x1, x2, dims)
+sum!(dst, f, x1, x2, x3, dims)
 
-vsum_fdiff(x, y)
-vsum_fdiff(x, y, dims)
-vsum_fdiff!(dst, f, x, y, dims)
+sum_fdiff(f, x, y)     # compute sum of f(x - y)
+sum_fdiff(f, x, y, dims)
+sum_fdiff!(dst, f, x, y, dims)
 ```
 
-Functions ``vmax`` and ``vmin`` provide methods of all such varieties.
+The function ``max`` and its variants:
+
+```julia
+max(x)
+max(f, x)            # compute max of f(x)
+max(f, x1, x2)       # compute max of f(x1, x2)
+max(f, x1, x2, x3)   # compute max of f(x1, x2, x3)
+
+max(x, (), dims)
+max(f, x, dims)
+max(f, x1, x2, dims)
+max(f, x1, x2, x3, dims)
+
+max!(dst, x, (), dims)
+max!(dst, f, x1, dims)
+max!(dst, f, x1, x2, dims)
+max!(dst, f, x1, x2, x3, dims)
+
+max_fdiff(f, x, y)     # compute max of f(x - y)
+max_fdiff(f, x, y, dims)
+max_fdiff!(dst, f, x, y, dims)
+```
+
+The function ``min`` and its variants
+
+```julia
+min(x)
+min(f, x)            # compute min of f(x)
+min(f, x1, x2)       # compute min of f(x1, x2)
+min(f, x1, x2, x3)   # compute min of f(x1, x2, x3)
+
+min(x, (), dims)
+min(f, x, dims)
+min(f, x1, x2, dims)
+min(f, x1, x2, x3, dims)
+
+min!(dst, x, (), dims)
+min!(dst, f, x1, dims)
+min!(dst, f, x1, x2, dims)
+min!(dst, f, x1, x2, x3, dims)
+
+min_fdiff(f, x, y)     # compute min of f(x - y)
+min_fdiff(f, x, y, dims)
+min_fdiff!(dst, f, x, y, dims)
+```
 
 In addition to these basic reduction functions, we also define a set of derived reduction functions, as follows:
 
 ```julia
-vasum(x)  # == sum(abs(x))
-vasum(x, dims)
-vasum!(dst, x, dims)
+asum(x)  # == sum(abs(x))
+asum(x, dims)
+asum!(dst, x, dims)
 
-vamax(x)   # == max(abs(x))
-vamax(x, dims)
-vamax!(dst, x, dims)
+amax(x)   # == max(abs(x))
+amax(x, dims)
+amax!(dst, x, dims)
 
-vamin(x)   # == min(abs(x))
-vamin(x, dims)
-vamin!(dst, x, dims)
+amin(x)   # == min(abs(x))
+amin(x, dims)
+amin!(dst, x, dims)
 
-vsqsum(x)  # == sum(abs2(x))
-vsqsum(x, dims)
-vsqsum!(dst, x, dims)
+sqsum(x)  # == sum(abs2(x))
+sqsum(x, dims)
+sqsum!(dst, x, dims)
 
-vdot(x, y)  # == sum(x .* y)
-vdot(x, y, dims)
-vdot!(dst, x, y, dims)
+dot(x, y)  # == sum(x .* y)
+dot(x, y, dims)
+dot!(dst, x, y, dims)
 
-vadiffsum(x, y)   # == sum(abs(x - y))
-vadiffsum(x, y, dims)
-vadiffsum!(dst, x, y, dims)
+adiffsum(x, y)   # == sum(abs(x - y))
+adiffsum(x, y, dims)
+adiffsum!(dst, x, y, dims)
 
-vadiffmax(x, y)   # == max(abs(x - y))
-vadiffmax(x, y, dims)
-vadiffmax!(dst, x, y, dims)
+adiffmax(x, y)   # == max(abs(x - y))
+adiffmax(x, y, dims)
+adiffmax!(dst, x, y, dims)
 
-vadiffmin(x, y)   # == min(abs(x - y))
-vadiffmin(x, y, dims)
-vadiffmin!(dst, x, y, dims)
+adiffmin(x, y)   # == min(abs(x - y))
+adiffmin(x, y, dims)
+adiffmin!(dst, x, y, dims)
 
-vsqdiffsum(x, y)  # == sum(abs2(x - y))
-vsqdiffsum(x, y, dims)
-vsqdiffsum!(dst, x, y, dims)
+sqdiffsum(x, y)  # == sum(abs2(x - y))
+sqdiffsum(x, y, dims)
+sqdiffsum!(dst, x, y, dims)
 
-vnorm(x, p)   # == norm(x, p)
+vnorm(x, p)   # == norm(vec(x), p)
 vnorm(x, p, dims)
 vnorm!(dst, x, p, dims)
 
-vdiffnorm(x, y, p)  # == norm(x - y, p)
+vdiffnorm(x, y, p)  # == norm(vec(x - y), p)
 vdiffnorm(x, y, p, dims)
 vdiffnorm!(dst, x, y, p, dims)
 ```
 
-Although this is quite a large set of functions, the actual code is quite concise, as most of such functions are generated through macros (see ``src/vreduce.jl``)
+Although this is quite a large set of functions, the actual code is quite concise, as most of such functions are generated through macros (see ``src/reduce.jl``)
 
 
 ##### Performance
@@ -374,20 +432,21 @@ The reduction and map-reduction functions are carefully optimized. In particular
 
 Below is a table that compares the performance with vectorized Julia expressions (the numbers in the table are speed-up ratio of the functions in this package as opposed to the Julia expressions):
 
-| function     | full reduction  | colwise reduction | rowwise reduction |   
-|--------------|-----------------|-------------------|-------------------|
-|  vsum        |   1.105         |    1.278          |    6.300          |
-|  vmax        |   1.870         |    1.802          |    2.874          |
-|  vmin        |   1.900         |    1.813          |    3.098          |
-|  vasum       |  *16.057*       |    6.869          |    9.891          |
-|  vamax       |   3.497         |    3.645          |    4.455          |
-|  vamin       |   3.431         |    3.649          |    4.434          |
-|  vsqsum      |  *36.440*       |    7.014          |    9.420          |
-|  vdot        |  *11.941*       |    6.380          |    7.912          |
-|  vadiffsum   |   6.216         |    7.471          |    9.359          |
-|  vadiffmax   |   4.911         |    4.554          |    5.222          |
-|  vadiffmin   |   4.894         |    4.527          |    5.310          |
-|  vsqdiffsum  |   8.146         |    8.234          |   10.859          |
+|            | full reduction    | colwise reduction | rowwise reduction | 
+|------------|-------------------|-------------------|-------------------|
+| sum        |            1.0226 |            1.4240 |            6.0690 | 
+| max        |            2.8189 |            2.8360 |            4.9710 | 
+| min        |            2.7882 |            2.8397 |            4.9209 | 
+| asum       |           15.1029 |            6.8452 |           10.8808 | 
+| amax       |            3.4944 |            3.1673 |            4.4154 | 
+| amin       |            3.5981 |            3.2054 |            4.0856 | 
+| sqsum      |           28.7898 |            6.5466 |            9.5175 | 
+| dot        |           10.0092 |            4.4618 |            6.1406 | 
+| adiffsum   |            7.9627 |            7.4145 |            8.9031 | 
+| adiffmax   |            4.1893 |            4.5171 |            5.2755 | 
+| adiffmin   |            4.5097 |            4.4343 |            5.2083 | 
+| sqdiffsum  |            8.1937 |            8.3540 |           10.7342 | 
 
-Here, full reduction with ``vasum``, ``vsqsum``, and ``vdot`` utilize BLAS level 1 routines, and they achieve *10x* to *40x* speed up. Even though BLAS is not used in other cases, we still observe remarkable improvement there, especially for rowwise reduction and when the kernel is a compound of more than one steps (*e.g.*, we notice over *10x* speed up for rowwise squared sum).
+
+Here, full reduction with ``asum``, ``sqsum``, and ``dot`` utilize BLAS level 1 routines, and they achieve *10x* to *40x* speed up. Even though BLAS is not used in other cases, we still observe remarkable improvement there, especially for rowwise reduction and when the kernel is a compound of more than one steps (*e.g.*, we notice over *10x* speed up for rowwise squared sum).
 
