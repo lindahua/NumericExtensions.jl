@@ -421,6 +421,20 @@ sqdiffsum(x, y)  # == sum(abs2(x - y))
 sqdiffsum(x, y, dims)
 sqdiffsum!(dst, x, y, dims)
 
+vnorm(x, p)   # == norm(vec(x), p)
+vnorm(x, p, dims)
+vnorm!(dst, x, p, dims)
+
+vdiffnorm(x, y, p)  # == norm(vec(x - y), p)
+vdiffnorm(x, y, p, dims)
+vdiffnorm!(dst, x, y, p, dims)
+```
+
+Although this is quite a large set of functions, the actual code is quite concise, as most of such functions are generated through macros (see ``src/reduce.jl``)
+
+In addition to the common reduction functions, this package also provides a set of statistics functions that are particularly useful in probabilistic or information theoretical computation, as follows
+
+```julia
 sum_xlogx(x)  # == sum(xlogx(x)) with xlog(x) = x > 0 ? x * log(x) : 0
 sum_xlogx(x, dims)
 sum_xlogx!(dst, x, dims)
@@ -433,16 +447,17 @@ entropy(x)   # == - sum_xlogx(x)
 entropy(x, dims)
 entropy!(dst, x, dims)
 
-vnorm(x, p)   # == norm(vec(x), p)
-vnorm(x, p, dims)
-vnorm!(dst, x, p, dims)
+logsumexp(x)   # == log(sum(exp(x)))
+logsumexp(x, dim)
+logsumexp!(dst, x, dim)
 
-vdiffnorm(x, y, p)  # == norm(vec(x - y), p)
-vdiffnorm(x, y, p, dims)
-vdiffnorm!(dst, x, y, p, dims)
+softmax!(dst, x)    # dst[i] = exp(x[i]) / sum(exp(x))
+softmax(x)
+softmax!(dst, x, dim)
+softmax(x, dim)
 ```
 
-Although this is quite a large set of functions, the actual code is quite concise, as most of such functions are generated through macros (see ``src/reduce.jl``)
+For ``logsumexp`` and ``softmax``, special care is taken to ensure numerical stability for large x values, that is, their values will be properly shifted during computation.
 
 
 ##### Performance
