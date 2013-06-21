@@ -362,11 +362,11 @@ sum!(dst::Array, x::Array, dims::DimSpec) = reduce!(dst, Add(), x, dims)
 
 max{T}(x::Array{T}) = isempty(x) ? empty_notallowed(T) : reduce(Max(), x)
 max{T}(x::Array{T}, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(Max(), x, dims)
-max!(dst::Array, x::Array, dims::DimSpec) = reduce!(dst, Max(), x, dims) 
+max!(dst::Array, x::Array, ::(), dims::DimSpec) = reduce!(dst, Max(), x, dims) 
 
 min{T}(x::Array{T}) = isempty(x) ? empty_notallowed(T) : reduce(Min(), x)
 min{T}(x::Array{T}, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(Min(), x, dims)
-min!(dst::Array, x::Array, dims::DimSpec) = reduce!(dst, Min(), x, dims) 
+min!(dst::Array, x::Array, ::(), dims::DimSpec) = reduce!(dst, Min(), x, dims) 
 
 @basic_mapreduction sum Add() zero 
 @basic_mapreduction max Max() empty_notallowed

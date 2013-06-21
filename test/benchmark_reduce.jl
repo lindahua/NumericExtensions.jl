@@ -197,8 +197,3 @@ println(gaintable)
 println()
 
 
-
-
-
-
-
