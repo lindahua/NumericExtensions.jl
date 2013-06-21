@@ -45,6 +45,7 @@ The package aims to provide generic and high performance functions for numerical
 * Extended/specialized methods for ``map``, ``map!``, ``reduce``, and ``mapreduce``. These methods are carefully optimized, which often result in *2x - 10x* speed up;
 * Additional functions such as ``map1!``, ``reduce!``, and ``mapreduce!`` that allow inplace updating or writing results to preallocated arrays;
 * Vector broadcasting computation (supporting both inplace updating and writing results to new arrays).
+* Shared-memory views of arrays.
 
 Since many of the methods are extensions of base functions. Simply adding a statement ``using NumericFunctors`` is often enough for substantial performance improvement. Consider the following code snippet:
 
@@ -194,6 +195,28 @@ For simple functions, such as ``x + y`` or ``exp(x)``, the performance of the ma
 * When the inner copy contains two or multiple steps, ``map`` and ``map!`` can complete the computation in one-pass without creating intermediate arrays, usually resulting in about ``2x`` or even more speed up. Benchmark shows that ``absdiff(x, y)`` and ``sqrdiff(x, y)`` are about ``2.2x`` faster than ``abs(x - y)`` and ``abs2(x - y)``. 
 
 * The script ``test/benchmark_map.jl`` runs a series of benchmarks to compare the performance ``map`` and the Julia vectorized expressions for a variety of computation.
+
+
+### Shared-memory Views
+
+Getting a slice/part of an array is common in numerical computation. Julia itself provides two ways to do this: reference (e.g. ``x[:, J]``) and the ``sub`` function (e.g. ``sub(x, :, J)``). Both have performance issues: the former makes a copy each time you call it, while the latter results in an ``SubArray`` instance. Despite that ``sub`` does not create a copy, accessing elements of a ``SubArray`` instance is usually very slow (with current implementation).
+
+This package addresses this problem by providing a ``view`` function, which returns a shared-memory array (i.e. view) of specific part of an array. **Note** that ``view`` only applies to the case when the part being referenced is contiguous. Below is a list of valid usage:
+
+```julia
+view(a, :)
+view(a, i0:i1)
+
+view(a, :, :)
+view(a, :, j)
+view(a, i0:i1, j)
+view(a, :, j0:j1)
+
+view(a, :, j, k)
+view(a, i0:i1, j, k)
+view(a, :, :, k)
+view(a, :, j0:j1, k)
+```
 
 
 ### Broadcasting
@@ -494,8 +517,6 @@ Below is a table that compares the performance with vectorized Julia expressions
 Here, full reduction with ``asum``, ``sqsum``, and ``dot`` utilize BLAS level 1 routines, and they achieve *10x* to *40x* speed up. Even though BLAS is not used in other cases, we still observe remarkable improvement there, especially for rowwise reduction and when the kernel is a compound of more than one steps (*e.g.*, we notice over *10x* speed up for rowwise squared sum).
 
 For ``var`` and ``std``, we devise dedicated procedures, where computational steps are very carefully scheduled such that most computation is conducted in a single pass. This results in very remarkable speed up, as you can see from the table above.
-
-
 
 
 
