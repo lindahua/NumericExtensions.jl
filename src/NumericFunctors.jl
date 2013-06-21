@@ -19,6 +19,8 @@ module NumericFunctors
 		Greater, GreaterEqual, Less, LessEqual, Equal, NotEqual,
 		Isfinite, Isnan, Isinf,
 
+		xlogx, xlogy, Xlogx, Xlogy,
+
 		# vmap
 		map, map!, map1!, mapdiff, mapdiff!,
 
@@ -40,6 +42,7 @@ module NumericFunctors
 		asum, asum!, amax, amax!, amin, amin!, sqsum, sqsum!,  
 		dot!, adiffsum, adiffsum!, sqdiffsum, sqdiffsum!,
 		adiffmax, adiffmax!, adiffmin, adiffmin!,  
+		sum_xlogx, sum_xlogx!, sum_xlogy, sum_xlogy!, entropy, entropy!,
 		vnorm, vnorm!, vdiffnorm, vdiffnorm!,
 
 		# benchmark

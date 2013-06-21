@@ -417,11 +417,17 @@ end
 @derived_reduction1 amax max Abs()
 @derived_reduction1 amin min Abs()
 @derived_reduction1 sqsum sum Abs2()
+@derived_reduction1 sum_xlogx sum Xlogx()
 
 @derived_reduction2 adiffsum sum_fdiff Abs()
 @derived_reduction2 adiffmax max_fdiff Abs()
 @derived_reduction2 adiffmin min_fdiff Abs()
 @derived_reduction2 sqdiffsum sum_fdiff Abs2()
+@derived_reduction2 sum_xlogy sum Xlogy()
+
+entropy(x::EwiseArray) = - sum_xlogx(x)
+entropy(x::EwiseArray, dims::DimSpec) = negate!(sum_xlogx(x, dims))
+entropy!(dst::EwiseArray, x::EwiseArray, dims::DimSpec) = negate!(sum_xlogx!(dst, x, dims))
 
 # special treatment for dot for sqsum
 

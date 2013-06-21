@@ -96,6 +96,12 @@ _adiffmin(x::Array, y::Array, d::DIMS) = min(abs(x - y), (), d)
 _sqdiffsum(x::Array, y::Array) = sum(abs2(x - y))
 _sqdiffsum(x::Array, y::Array, d::DIMS) = sum(abs2(x - y), d)
 
+_entropy(x::Array) = -sum(x .* log(x))
+_entropy(x::Array, d::DIMS) = -sum(x .* log(x), d)
+
+_sum_xlogy(x::Array, y::Array) = sum(x .* log(y)) 
+_sum_xlogy(x::Array, y::Array, d::DIMS) = sum(x .* log(y), d)
+
 # benchmark
 
 const oldperf = Array((ASCIIString, Vector{Float64}), 0)
@@ -115,6 +121,10 @@ println("Benchmark results on Base methods:")
 @bench_reduc2 oldperf "adiffmax" 10 _adiffmax a2 b2
 @bench_reduc2 oldperf "adiffmin" 10 _adiffmin a2 b2
 @bench_reduc2 oldperf "sqdiffsum" 10 _sqdiffsum a2 b2
+
+@bench_reduc1 oldperf "entropy" 10 _entropy b2
+@bench_reduc2 oldperf "sum_xlogy" 10 _sum_xlogy b2 b2
+
 
 #################################################
 #
@@ -146,6 +156,9 @@ println("Benchmark results in New methods:")
 @bench_reduc2 newperf "adiffmax" 10 adiffmax a2 b2
 @bench_reduc2 newperf "adiffmin" 10 adiffmin a2 b2
 @bench_reduc2 newperf "sqdiffsum" 10 sqdiffsum a2 b2
+
+@bench_reduc1 newperf "entropy" 10 entropy b2
+@bench_reduc2 newperf "sum_xlogy" 10 sum_xlogy b2 b2
 
 
 #################################################

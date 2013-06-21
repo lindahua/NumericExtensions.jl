@@ -6,6 +6,11 @@ typealias UnaryFunctor Functor{1}
 typealias BinaryFunctor Functor{2}
 typealias TernaryFunctor Functor{3}
 
+# additional functions
+
+xlogx{T<:FloatingPoint}(x::T) = x > 0 ? x * log(x) : zero(T)
+xlogy{T<:FloatingPoint}(x::T, y::T) = x > 0 ? x * log(y) : zero(T)
+
 # unary functors 
 
 for e in [
@@ -44,6 +49,12 @@ immutable FixAbsPow{T<:Real} <: UnaryFunctor
     p::T
 end
 evaluate(op::FixAbsPow, x::Number) = abs(x) ^ op.p
+
+type Xlogx <: UnaryFunctor end
+type Xlogy <: BinaryFunctor end
+
+evaluate{T<:FloatingPoint}(::Xlogx, x::T) = x > 0 ? x * log(x) : zero(T)
+evaluate{T<:FloatingPoint}(::Xlogy, x::T, y::T) = x > 0 ? x * log(y) : zero(T)
 
 # ternary functors
 
@@ -101,4 +112,9 @@ result_type{Tp<:Real, T<:Number}(::FixAbsPow, ::Type{T}) = promote_type(Tp, T)
 
 result_type{T1<:Number,T2<:Number,T3<:Number}(::FMA, ::Type{T1}, ::Type{T2}, ::Type{T3}) = promote_type(T1, promote_type(T2, T3))
 result_type{T<:Number}(::FMA, ::Type{T}, ::Type{T}, ::Type{T}) = T
+
+result_type{T<:FloatingPoint}(::Xlogx, ::Type{T}) = T
+result_type{T<:FloatingPoint}(::Xlogy, ::Type{T}, ::Type{T}) = T
+
+
 
