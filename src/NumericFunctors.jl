@@ -24,6 +24,9 @@ module NumericFunctors
 
 		xlogx, xlogy, Xlogx, Xlogy,
 
+		# views
+		offset_view, view,
+
 		# map
 		map, map!, map1!, mapdiff, mapdiff!,
 
@@ -56,6 +59,7 @@ module NumericFunctors
 
 
 	include("functors.jl")
+	include("views.jl")
 	include("codegen.jl")
 	include("map.jl")
 	include("vbroadcast.jl")
