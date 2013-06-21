@@ -21,7 +21,7 @@ module NumericFunctors
 
 		xlogx, xlogy, Xlogx, Xlogy,
 
-		# vmap
+		# map
 		map, map!, map1!, mapdiff, mapdiff!,
 
 		add!, subtract!, multiply!, divide!, negate!, rcp!, 
@@ -34,7 +34,7 @@ module NumericFunctors
 		vbroadcast, vbroadcast!,
 		badd, badd!, bsubtract, bsubtract!, bmultiply, bmultiply!, bdivide, bdivide!,
 
-		# vreduce
+		# reduce
 		reduce!, mapreduce!, mapdiff_reduce, mapdiff_reduce!,
 		sum!, sum_fdiff, sum_fdiff!,
 		max!, max_fdiff, max_fdiff!,
@@ -42,8 +42,11 @@ module NumericFunctors
 		asum, asum!, amax, amax!, amin, amin!, sqsum, sqsum!,  
 		dot!, adiffsum, adiffsum!, sqdiffsum, sqdiffsum!,
 		adiffmax, adiffmax!, adiffmin, adiffmin!,  
-		sum_xlogx, sum_xlogx!, sum_xlogy, sum_xlogy!, entropy, entropy!,
+		sum_xlogx, sum_xlogx!, sum_xlogy, sum_xlogy!, 
 		vnorm, vnorm!, vdiffnorm, vdiffnorm!,
+
+		# statistics
+		entropy, entropy!,
 
 		# benchmark
 		BenchmarkTable, nrows, ncolumns, add_row!
@@ -54,6 +57,7 @@ module NumericFunctors
 	include("map.jl")
 	include("vbroadcast.jl")
 	include("reduce.jl")
+	include("statistics.jl")
 
 	include("benchmark.jl")
 

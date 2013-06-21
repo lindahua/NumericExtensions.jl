@@ -140,7 +140,6 @@ q = rand(3, 4)
 
 @test_approx_eq sum_xlogx(p) sum(p .* log(p))
 @test_approx_eq sum_xlogy(p, q) sum(p .* log(q))
-@test_approx_eq entropy(p) -sum(p .* log(p))
 
 @test_approx_eq vnorm(x, 1) safe_sum(abs(x))
 @test_approx_eq vnorm(x, 2) sqrt(safe_sum(abs2(x)))
@@ -451,11 +450,6 @@ r = zeros(6); adiffsum!(r, x2, y2, 1)
 @test_approx_eq sum_xlogy(p1, q1, 1) sum(p1 .* log(q1), 1)
 @test_approx_eq sum_xlogy(p2, q2, 1) sum(p2 .* log(q2), 1)
 @test_approx_eq sum_xlogy(p2, q2, 2) sum(p2 .* log(q2), 2)
-
-@test_approx_eq entropy(p1, 1) -sum(p1 .* log(p1), 1)
-@test_approx_eq entropy(p2, 1) -sum(p2 .* log(p2), 1)
-@test_approx_eq entropy(p2, 2) -sum(p2 .* log(p2), 2)
-
 
 # vnorm
 

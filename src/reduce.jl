@@ -425,10 +425,6 @@ end
 @derived_reduction2 sqdiffsum sum_fdiff Abs2()
 @derived_reduction2 sum_xlogy sum Xlogy()
 
-entropy(x::EwiseArray) = - sum_xlogx(x)
-entropy(x::EwiseArray, dims::DimSpec) = negate!(sum_xlogx(x, dims))
-entropy!(dst::EwiseArray, x::EwiseArray, dims::DimSpec) = negate!(sum_xlogx!(dst, x, dims))
-
 # special treatment for dot for sqsum
 
 typealias BlasFP Union(Float32, Float64, Complex{Float32}, Complex{Float64})
