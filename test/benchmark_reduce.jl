@@ -102,6 +102,9 @@ _entropy(x::Array, d::DIMS) = -sum(x .* log(x), d)
 _sum_xlogy(x::Array, y::Array) = sum(x .* log(y)) 
 _sum_xlogy(x::Array, y::Array, d::DIMS) = sum(x .* log(y), d)
 
+_logsumexp(x::Array) = (u = max(x); log(sum(exp(x - u))) + u)
+_logsumexp(x::Array, d::DIMS) = (u = max(x, (), d); log(sum(exp(x .- u))) .+ u)
+
 # benchmark
 
 const oldperf = Array((ASCIIString, Vector{Float64}), 0)
@@ -127,6 +130,7 @@ println("Benchmark results on Base methods:")
 @bench_reduc2 oldperf "sum_xlogy" 10 _sum_xlogy b2 b2
 @bench_reduc1 oldperf "var" 10 var a2
 @bench_reduc1 oldperf "std" 10 std a2
+@bench_reduc1 oldperf "logsumexp" 10 _logsumexp a2
 
 #################################################
 #
@@ -164,7 +168,7 @@ println("Benchmark results in New methods:")
 @bench_reduc2 newperf "sum_xlogy" 10 sum_xlogy b2 b2
 @bench_reduc1 newperf "var" 10 var a2
 @bench_reduc1 newperf "std" 10 std a2
-
+@bench_reduc1 newperf "logsumexp" 10 logsumexp a2
 
 #################################################
 #

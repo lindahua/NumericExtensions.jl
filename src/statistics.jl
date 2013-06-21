@@ -100,10 +100,7 @@ function _varimpl_lastdim!{R<:FloatingPoint,T<:Real}(dst::Array{R}, s::Array{R},
 end
 
 function _varimpl_middim!{R<:FloatingPoint,T<:Real}(dst::Array{R}, s::Array{R}, x::Array{T}, m::Int, n::Int, k::Int)
-	s = Array(R, n)
-
 	_varimpl_lastdim!(dst, s, x, m, n)
-
 	for l in 2 : k
 		_varimpl_lastdim!(view(dst, :, l), s, view(x, :, :, l), m, n)
 	end
@@ -145,5 +142,107 @@ std!{R<:FloatingPoint, T<:Real}(dst::Array{R}, x::Matrix{T}, dim::Int) = sqrt!(v
 entropy(x::Array) = - sum_xlogx(x)
 entropy(x::Array, dims::DimSpec) = negate!(sum_xlogx(x, dims))
 entropy!(dst::Array, x::Array, dims::DimSpec) = negate!(sum_xlogx!(dst, x, dims))
+
+# logsumexp
+
+function logsumexp{T<:Real}(x::Array{T})
+	@check_nonempty("logsumexp")
+	u = max(x)
+	log(sum_fdiff(Exp(), x, u)) + u
+end
+
+function logsumexp!{R<:FloatingPoint, T<:Real}(dst::Array{R}, x::Vector{T}, dim::Int)
+	if dim == 1
+		dst[1] = logsumexp(x)
+	else
+		error("logsumexp: dim must be 1 for vector.")
+	end
+	dst
+end
+
+function _logsumexp_firstdim!{R<:FloatingPoint,T<:Real}(dst::Array{R}, x::Array{T}, m::Int, n::Int)
+	o = 0
+	for j in 1 : n
+		# compute max
+		u = x[o + 1]
+		for i in 2 : m
+			xi = x[o + i]
+			if xi > u
+				u = xi
+			end
+		end
+
+		# sum exp
+		s = exp(x[o + 1] - u)
+		for i in 2 : m
+			s += exp(x[o + i] - u)
+		end
+
+		# compute log
+		dst[j] = log(s) + u
+		o += m
+	end
+end
+
+function _logsumexp_lastdim!{R<:FloatingPoint,T<:Real}(dst::Array{R}, u::Array{T}, x::Array{T}, m::Int, n::Int)
+
+	# compute max
+	max!(u, view(x, :, 1:n), (), 2)
+
+	# sum exp
+	for i in 1 : m
+		dst[i] = exp(x[i] - u[i])
+	end
+	o = m
+	for j in 2 : n
+		for i in 1 : m
+			dst[i] += exp(x[o + i] - u[i])
+		end
+		o += m
+	end
+
+	# compute log
+	for i in 1 : m
+		dst[i] = log(dst[i]) + u[i]
+	end
+end
+
+function _logsumexp_middim!{R<:FloatingPoint,T<:Real}(dst::Array{R}, u::Array{T}, x::Array{T}, m::Int, n::Int, k::Int)
+	for l in 1 : k
+		_logsumexp_lastdim!(view(dst, :, l), u, view(x, :, :, l), m, n)
+	end
+end
+
+
+function logsumexp!{R<:FloatingPoint,T<:Real}(dst::Array{R}, x::Array{T}, dim::Int)
+	@check_nonempty("logsumexp")
+	nd = ndims(x)
+	if !(1 <= dim <= nd)
+		error("logsumexp: invalid value for the dim argument.")
+	end
+	siz = size(x)
+
+	if dim == 1
+		_logsumexp_firstdim!(dst, x, siz[1], trail_length(siz, dim))
+	elseif dim == nd
+		prelen = precede_length(siz, dim)
+		_logsumexp_lastdim!(dst, Array(T, prelen), x, prelen, siz[dim])
+	else
+		prelen = precede_length(siz, dim)
+		_logsumexp_middim!(dst, Array(T, prelen), x, prelen, siz[dim], trail_length(siz, dim))
+	end
+	dst
+end
+
+function logsumexp{T<:Real}(x::Array{T}, dim::Int)
+	logsumexp!(Array(to_fptype(T), reduced_size(size(x), dim)), x, dim)
+end
+
+
+
+
+
+
+
 
 

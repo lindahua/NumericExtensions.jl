@@ -92,3 +92,31 @@ r = zeros(size(x2, 2)); std!(r, x2, 1)
 @test_approx_eq entropy(p3, (1, 2)) -sum(p3 .* log(p3), (1, 2))
 @test_approx_eq entropy(p3, (1, 3)) -sum(p3 .* log(p3), (1, 3))
 @test_approx_eq entropy(p3, (2, 3)) -sum(p3 .* log(p3), (2, 3))
+
+r = zeros(size(x2, 2)); entropy!(r, x2, 1) 
+@test_approx_eq r vec(entropy(x2, 1))
+
+# logsumexp
+
+safe_logsumexp(x) = log(sum(exp(x)))
+safe_logsumexp(x, d::Int) = log(sum(exp(x), d))
+
+@test_approx_eq logsumexp(x) safe_logsumexp(x)
+@test_approx_eq logsumexp(x1, 1) safe_logsumexp(x1, 1) 
+@test_approx_eq logsumexp(x2, 1) safe_logsumexp(x2, 1)
+@test_approx_eq logsumexp(x2, 2) safe_logsumexp(x2, 2)
+@test_approx_eq logsumexp(x3, 1) safe_logsumexp(x3, 1)
+@test_approx_eq logsumexp(x3, 2) safe_logsumexp(x3, 2)
+@test_approx_eq logsumexp(x3, 3) safe_logsumexp(x3, 3)
+
+r = zeros(size(x2, 2)); logsumexp!(r, x2, 1) 
+@test_approx_eq r vec(logsumexp(x2, 1))
+
+@test_approx_eq logsumexp(x + 1000.) logsumexp(x) + 1000.
+@test_approx_eq logsumexp(x2 + 1000., 1) logsumexp(x2, 1) + 1000.
+@test_approx_eq logsumexp(x2 + 1000., 2) logsumexp(x2, 2) + 1000.
+@test_approx_eq logsumexp(x3 + 1000., 2) logsumexp(x3, 2) + 1000.
+
+
+
+

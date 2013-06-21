@@ -53,6 +53,7 @@ module NumericFunctors
 
 		# statistics
 		mean!, var!, std!, entropy, entropy!,
+		logsumexp, logsumexp!,
 
 		# benchmark
 		BenchmarkTable, nrows, ncolumns, add_row!
