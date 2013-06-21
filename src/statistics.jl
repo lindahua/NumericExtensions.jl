@@ -5,34 +5,36 @@ using Base.Test
 
 # mean
 
-macro check_mean_nonempty()
+macro check_nonempty(funname)
 	quote
 		if isempty(x)
-			error("mean of empty collection undefined")
+			error("$($funname) of empty collection undefined")
 		end
 	end
 end
 
-function mean(x::EwiseArray)
-	@check_mean_nonempty
+function mean(x::Array)
+	@check_nonempty("mean")
 	sum(x) / length(x)
 end
 
-function mean(x::EwiseArray, dims::DimSpec)
-	@check_mean_nonempty
-	multiply!(sum(x, dims), inv(_reduc_dim_length(x, dims)))
+function mean{T<:Real}(x::Array{T}, dims::DimSpec)
+	@check_nonempty("mean")
+	r = to_fparray(sum(x, dims))
+	c = convert(eltype(r), inv(_reduc_dim_length(x, dims)))
+	multiply!(r, c)
 end
 
-function mean!(dst::EwiseArray, x::EwiseArray, dims::DimSpec)
-	@check_mean_nonempty
-	multiply!(sum!(dst, x, dims), inv(_reduc_dim_length(x, dims)))
+function mean!{R<:Real,T<:Real}(dst::Array{R}, x::Array{T}, dims::DimSpec)
+	@check_nonempty("mean")
+	c = convert(R, inv(_reduc_dim_length(x, dims)))
+	multiply!(sum!(dst, x, dims), c)
 end
-
 
 # entropy
 
-entropy(x::EwiseArray) = - sum_xlogx(x)
-entropy(x::EwiseArray, dims::DimSpec) = negate!(sum_xlogx(x, dims))
-entropy!(dst::EwiseArray, x::EwiseArray, dims::DimSpec) = negate!(sum_xlogx!(dst, x, dims))
+entropy(x::Array) = - sum_xlogx(x)
+entropy(x::Array, dims::DimSpec) = negate!(sum_xlogx(x, dims))
+entropy!(dst::Array, x::Array, dims::DimSpec) = negate!(sum_xlogx!(dst, x, dims))
 
 

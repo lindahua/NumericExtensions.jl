@@ -2,10 +2,13 @@ module NumericFunctors
 
 	import Base.map, Base.map!, Base.reduce, Base.mapreduce
 	import Base.add!, Base.show, Base.getindex
-	import Base.sum, Base.max, Base.min, Base.mean, Base.dot, Base.LinAlg.BLAS.asum, Base.norm
+	import Base.sum, Base.max, Base.min, Base.dot, Base.LinAlg.BLAS.asum, Base.norm
+	import Base.mean, Base.var, Base.std
 
 	export 
 		# functors
+		to_fparray,
+
 		Functor, UnaryFunctor, BinaryFunctor, TernaryFunctor,
 		result_type, evaluate,
 		Add, Subtract, Multiply, Divide, Negate, Max, Min,
@@ -46,7 +49,7 @@ module NumericFunctors
 		vnorm, vnorm!, vdiffnorm, vdiffnorm!,
 
 		# statistics
-		entropy, entropy!,
+		mean!, entropy, entropy!,
 
 		# benchmark
 		BenchmarkTable, nrows, ncolumns, add_row!

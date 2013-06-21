@@ -75,6 +75,8 @@ result_eltype(op::UnaryFunctor, x::EwiseArray) = result_type(op, eltype(x))
 result_eltype(op::BinaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber) = result_type(op, eltype(x1), eltype(x2))
 result_eltype(op::TernaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber, x3::ArrayOrNumber) = result_type(op, eltype(x1), eltype(x2), eltype(x3))
 
+to_fparray{T<:FloatingPoint}(x::AbstractArray{T}) = x
+to_fparray{T<:Integer,N}(x::AbstractArray{T,N}) = convert(Array{to_fptype(T), N}, x)
 
 # building block generators
 

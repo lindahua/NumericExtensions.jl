@@ -3,6 +3,12 @@
 using NumericFunctors
 using Base.Test
 
+# basics
+
+x = rand(3)
+@test is(to_fparray(x), x)
+@test to_fparray([1,2,3]) == [1., 2., 3.]
+
 # Test unary functors
 
 for e in [

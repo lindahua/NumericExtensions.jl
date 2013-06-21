@@ -29,16 +29,23 @@ q3 = rand(3, 4, 5)
 
 # mean
 
-@test_approx_eq mean(p) sum(p) / length(p)
-@test_approx_eq mean(p1, 1) sum(p1, 1) / size(p1, 1)
-@test_approx_eq mean(p2, 1) sum(p2, 1) / size(p2, 1)
-@test_approx_eq mean(p2, 2) sum(p2, 2) / size(p2, 2)
-@test_approx_eq mean(p3, 1) sum(p3, 1) / size(p3, 1)
-@test_approx_eq mean(p3, 2) sum(p3, 2) / size(p3, 2)
-@test_approx_eq mean(p3, 3) sum(p3, 3) / size(p3, 3)
-@test_approx_eq mean(p3, (1, 2)) sum(p3, (1, 2)) / (size(p3, 1) * size(p3, 2))
-@test_approx_eq mean(p3, (1, 3)) sum(p3, (1, 3)) / (size(p3, 1) * size(p3, 3))
-@test_approx_eq mean(p3, (2, 3)) sum(p3, (2, 3)) / (size(p3, 2) * size(p3, 3))
+safe_mean(x) = sum(x) / length(x)
+safe_mean(x, d::Int) = sum(x, d) / size(x, d)
+safe_mean(x, d::(Int, Int)) = sum(x, d) / (size(x, d[1]) * size(x, d[2]))
+
+@test_approx_eq mean(x) safe_mean(x)
+@test_approx_eq mean(x1, 1) safe_mean(x1, 1) 
+@test_approx_eq mean(x2, 1) safe_mean(x2, 1)
+@test_approx_eq mean(x2, 2) safe_mean(x2, 2)
+@test_approx_eq mean(x3, 1) safe_mean(x3, 1)
+@test_approx_eq mean(x3, 2) safe_mean(x3, 2)
+@test_approx_eq mean(x3, 3) safe_mean(x3, 3)
+@test_approx_eq mean(x3, (1, 2)) safe_mean(x3, (1, 2))
+@test_approx_eq mean(x3, (1, 3)) safe_mean(x3, (1, 3))
+@test_approx_eq mean(x3, (2, 3)) safe_mean(x3, (2, 3))
+
+r = zeros(size(x2, 2)); mean!(r, x2, 1) 
+@test_approx_eq r vec(mean(x2, 1))
 
 # entropy
 
