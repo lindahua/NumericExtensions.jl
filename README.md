@@ -86,6 +86,7 @@ Following is a list of pre-defined functors provided by this package:
 * Comparison functors: ``Greater``, ``GreaterEqual``, ``Less``, ``LessEqual``, ``Equal``, ``NotEqual``
 * Number class functors: ``Isfinite``, ``Isinf``, ``Isnan``
 * Fused multiply and add: ``FMA`` (i.e. ``(a, b, c) -> a + b * c``)
+* Others: ``Xlogx``, ``Xlogy``
 
 Except for several functors that corresponding to operators, most functors are named using the capitalized version of the corresponding math function. Therefore, you don't have to look up this list to find the names. The collection of pre-defined functors will be extended in future. Please refer to ``src/functors.jl`` for the most updated list.
 
@@ -372,6 +373,10 @@ min_fdiff!(dst, f, x, y, dims)
 In addition to these basic reduction functions, we also define a set of derived reduction functions, as follows:
 
 ```julia
+mean(x)
+mean(x, dims)
+mean!(dst, x, dims)
+
 asum(x)  # == sum(abs(x))
 asum(x, dims)
 asum!(dst, x, dims)
@@ -408,6 +413,18 @@ sqdiffsum(x, y)  # == sum(abs2(x - y))
 sqdiffsum(x, y, dims)
 sqdiffsum!(dst, x, y, dims)
 
+sum_xlogx(x)  # == sum(xlogx(x)) with xlog(x) = x > 0 ? x * log(x) : 0
+sum_xlogx(x, dims)
+sum_xlogx!(dst, x, dims)
+
+sum_xlogy(x, y)  # == sum(xlog(x,y)) with xlogy(x,y) = x > 0 ? x * log(y) : 0
+sum_xlogy(x, y, dims)
+sum_xlogy!(dst, x, y, dims)
+
+entropy(x)   # == - sum_xlogx(x)
+entropy(x, dims)
+entropy!(dst, x, dims)
+
 vnorm(x, p)   # == norm(vec(x), p)
 vnorm(x, p, dims)
 vnorm!(dst, x, p, dims)
@@ -437,6 +454,7 @@ Below is a table that compares the performance with vectorized Julia expressions
 | sum        |            1.0226 |            1.4240 |            6.0690 | 
 | max        |            2.8189 |            2.8360 |            4.9710 | 
 | min        |            2.7882 |            2.8397 |            4.9209 | 
+| mean       |            1.0320 |            1.0495 |            5.9525 | 
 | asum       |           15.1029 |            6.8452 |           10.8808 | 
 | amax       |            3.4944 |            3.1673 |            4.4154 | 
 | amin       |            3.5981 |            3.2054 |            4.0856 | 
