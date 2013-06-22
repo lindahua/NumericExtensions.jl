@@ -6,7 +6,7 @@ end
 
 # broadcast along specific dimension(s)
 
-function vbroadcast!(dst::EwiseMatrix, f::BinaryFunctor, a::Matrix, b::EwiseArray, dim::Int)
+function vbroadcast!(f::BinaryFunctor, dst::Matrix, a::Matrix, b::EwiseArray, dim::Int)
 	_check_dimlen(a, b, dim)
 	m = size(a, 1)
 	n = size(a, 2)
@@ -35,14 +35,14 @@ function vbroadcast!(dst::EwiseMatrix, f::BinaryFunctor, a::Matrix, b::EwiseArra
 	dst
 end
 
-function vbroadcast!{R,T}(dst::Array{R,3}, f::BinaryFunctor, a::Array{T,3}, b::EwiseArray, dim::Int)
+function vbroadcast!{R,T}(f::BinaryFunctor, dst::Array{R,3}, a::Array{T,3}, b::EwiseArray, dim::Int)
 	_check_dimlen(a, b, dim)
 	m = size(a, 1)
 	n = size(a, 2)
 	k = size(a, 3)
 	if dim == 1
 		nk = n * k
-		vbroadcast!(reshape(dst, m, nk), f, reshape(a, m, nk), b, 1)
+		vbroadcast!(f, reshape(dst, m, nk), reshape(a, m, nk), b, 1)
 	elseif dim == 2
 		o = 0
 		for l in 1 : k
@@ -57,14 +57,14 @@ function vbroadcast!{R,T}(dst::Array{R,3}, f::BinaryFunctor, a::Array{T,3}, b::E
 		end
 	elseif dim == 3
 		mn = m * n
-		vbroadcast!(reshape(dst, mn, k), f, reshape(a, mn, k), b, 2)
+		vbroadcast!(f, reshape(dst, mn, k), reshape(a, mn, k), b, 2)
 	else
 		throw(ArgumentError("dim must be either 1 or 2."))
 	end
 	dst
 end
 
-function vbroadcast!{R,T}(dst::Array{R,3}, f::BinaryFunctor, a::Array{T,3}, b::EwiseMatrix, dims::(Int, Int))
+function vbroadcast!{R,T}(f::BinaryFunctor, dst::Array{R,3}, a::Array{T,3}, b::EwiseMatrix, dims::(Int, Int))
 	if !(size(b, 1) == size(a, dims[1]) && size(b, 2) == size(a, dims[2]))
 		throw(ArgumentError("Argument dimensions must match."))
 	end
@@ -75,7 +75,7 @@ function vbroadcast!{R,T}(dst::Array{R,3}, f::BinaryFunctor, a::Array{T,3}, b::E
 
 	if dims == (1, 2)
 		mn = m * n
-		vbroadcast!(reshape(dst, mn, k), f, reshape(a, mn, k), b, 1)
+		vbroadcast!(f, reshape(dst, mn, k), reshape(a, mn, k), b, 1)
 	elseif dims == (1, 3)
 		o = 0
 		o2 = 0
@@ -91,26 +91,26 @@ function vbroadcast!{R,T}(dst::Array{R,3}, f::BinaryFunctor, a::Array{T,3}, b::E
 		end
 	elseif dims == (2, 3)
 		nk = n * k
-		vbroadcast!(reshape(dst, m, nk), f, reshape(a, m, nk), b, 2)
+		vbroadcast!(f, reshape(dst, m, nk), reshape(a, m, nk), b, 2)
 	else
 		throw(ArgumentError("dim must be either 1 or 2."))
 	end
 	dst
 end
 
-vbroadcast!(f::BinaryFunctor, a::Array, b::EwiseArray, dims::DimSpec) = vbroadcast!(a, f, a, b, dims)
+vbroadcast1!(f::BinaryFunctor, a::Array, b::EwiseArray, dims::DimSpec) = vbroadcast!(f, a, a, b, dims)
 
 function vbroadcast(f::BinaryFunctor, a::Array, b::EwiseArray, dims::DimSpec)
 	R = result_type(f, eltype(a), eltype(b))
-	vbroadcast!(Array(R, size(a)), f, a, b, dims)
+	vbroadcast!(f, Array(R, size(a)), a, b, dims)
 end
 
 # Specific broadcasting function
 
-badd!(a::EwiseArray, b::EwiseArray, dims::DimSpec) = vbroadcast!(Add(), a, b, dims)
-bsubtract!(a::EwiseArray, b::EwiseArray, dims::DimSpec) = vbroadcast!(Subtract(), a, b, dims)
-bmultiply!(a::EwiseArray, b::EwiseArray, dims::DimSpec) = vbroadcast!(Multiply(), a, b, dims)
-bdivide!(a::EwiseArray, b::EwiseArray, dims::DimSpec) = vbroadcast!(Divide(), a, b, dims)
+badd!(a::EwiseArray, b::EwiseArray, dims::DimSpec) = vbroadcast1!(Add(), a, b, dims)
+bsubtract!(a::EwiseArray, b::EwiseArray, dims::DimSpec) = vbroadcast1!(Subtract(), a, b, dims)
+bmultiply!(a::EwiseArray, b::EwiseArray, dims::DimSpec) = vbroadcast1!(Multiply(), a, b, dims)
+bdivide!(a::EwiseArray, b::EwiseArray, dims::DimSpec) = vbroadcast1!(Divide(), a, b, dims)
 
 badd(a::EwiseArray, b::EwiseArray, dims::DimSpec) = vbroadcast(Add(), a, b, dims)
 bsubtract(a::EwiseArray, b::EwiseArray, dims::DimSpec) = vbroadcast(Subtract(), a, b, dims)

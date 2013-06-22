@@ -126,26 +126,26 @@ typealias ArrayOrNumber Union(AbstractArray, Number)
 map(f::Functor, xs::ArrayOrNumber...)   # perform element-wise computation using functor f
                                          # each argument in xs can be either an array or a number
 
-map(Sqrt(), x)    # == sqrt(x)
-map(Add(), x, 1)  # == x + 1
+map(Sqrt(), x)       # == sqrt(x)
+map(Add(), x, 1)     # == x + 1
 map(FMA(), x, y, z)  # == x + y .* z
 ```
 
 The function ``map!`` allows writing results to a pre-allocated array, while ``map1!`` allows inplace updating of the first argument, which is often handy and efficient:
 
 ```julia
-map!(dst::AbstractArray, f::Functor, xs::ArrayOrNumber...)  # write results to dst
-map1!(f::Functor, x1::AbstractArray, xr::ArrayOrNumber...)   # update x1
+map!(f, dst, xs...)   # write results to dst
+map1!(f, x1, xr...)   # update x1
 
-map!(dst, Add(), x, y)   # dst <- x + y
-map1!(Add(), x, y)        # x <- x + y
+map!(Add(), dst, x, y)   # dst <- x + y
+map1!(Add(), x, y)       # x <- x + y
 ```
 
 Practical applications usually requires computing expressions in the form of ``f(x - y)``. We provide ``mapdiff`` and ``mapdiff!`` for this purpose, as follows:
 
 ```julia
 mapdiff(f, x, y)          # return an array as f(x - y)
-mapdiff!(dst, f, x, y)    # dst <- f(x - y)
+mapdiff!(f, dst, x, y)    # dst <- f(x - y)
 ```
 
 Note that this function uses an efficient implementation, which completes the computation in one-pass and never creates the intermediate array ``x - y``. 
@@ -250,10 +250,10 @@ y = rand(2, 3)
 vbroadcast(x, y, (1, 2))    # this adds y to each page of x
 ```
 
-The function ``vbroadcast!`` supports inplace computation:
+The function ``vbroadcast!`` writes results to a pre-allocated array, and ``vbroadcast1!`` updates the first argument inplace:
 ```julia
-vbroadcast!(dst, f, x, y)   # results written to a pre-allocated array dst
-vbroadcast!(f, x, y)        # x will be overrided by results
+vbroadcast!(f, fst, x, y)   # results written to a pre-allocated array dst
+vbroadcast1!(f, x, y)        # x will be updated by results
 ```
 
 ##### Performance

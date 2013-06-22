@@ -37,7 +37,7 @@ module NumericFunctors
 		absdiff, sqrdiff, fma, fma!,
 
 		# vbroadcast
-		vbroadcast, vbroadcast!,
+		vbroadcast, vbroadcast!, vbroadcast1!,
 		badd, badd!, bsubtract, bsubtract!, bmultiply, bmultiply!, bdivide, bdivide!,
 
 		# reduce
