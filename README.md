@@ -1,4 +1,4 @@
-## NumericFunctors.jl
+## NumericExtensions.jl
 
 Fast vectorized computation for Julia, based on typed functors.
 
