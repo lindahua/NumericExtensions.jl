@@ -1,8 +1,5 @@
 # Reduction functions related to statistics
 
-using NumericFunctors
-using Base.Test
-
 # mean
 
 macro check_nonempty(funname)

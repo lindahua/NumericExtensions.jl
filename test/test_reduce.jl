@@ -1,6 +1,6 @@
 # Test reduction
 
-using NumericFunctors
+using NumericExtensions
 using Base.Test
 
 ### safe (but slow) reduction functions for result verification

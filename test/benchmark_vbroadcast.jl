@@ -1,6 +1,6 @@
 # benchmark broadcasting
 
-using NumericFunctors
+using NumericExtensions
 
 macro bench_bsx(name, rp, a, b1, b2, f1, f2, dims)
 	quote

@@ -1,6 +1,6 @@
 # Test functors
 
-using NumericFunctors
+using NumericExtensions
 using Base.Test
 
 # basics

@@ -1,6 +1,6 @@
 # Test of vbroadcast
 
-using NumericFunctors
+using NumericExtensions
 using Base.Test
 
 #### 2D ####

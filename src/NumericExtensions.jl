@@ -1,7 +1,8 @@
-module NumericFunctors
+module NumericExtensions
 
+	import Base.add!, Base.show, Base.getindex, Base.setindex!
+	import Base.pointer, Base.size, Base.length, Base.copy, Base.similar
 	import Base.map, Base.map!, Base.reduce, Base.mapreduce
-	import Base.add!, Base.show, Base.getindex
 	import Base.sum, Base.max, Base.min, Base.dot, Base.LinAlg.BLAS.asum, Base.norm
 	import Base.mean, Base.var, Base.std
 
@@ -25,7 +26,9 @@ module NumericFunctors
 		xlogx, xlogy, Xlogx, Xlogy,
 
 		# views
-		offset_view, view,
+		AbstractUnsafeView, UnsafeVectorView, UnsafeMatrixView, UnsafeCubeView,
+		ContiguousArray, ContiguousVector, ContiguousMatrix, ContiguousCube,
+		unsafe_view,
 
 		# map
 		map, map!, map1!, mapdiff, mapdiff!,
@@ -59,8 +62,10 @@ module NumericFunctors
 		BenchmarkTable, nrows, ncolumns, add_row!
 
 
+	include("common.jl")
 	include("functors.jl")
-	include("views.jl")
+	include("unsafe_view.jl")
+	
 	include("codegen.jl")
 	include("map.jl")
 	include("vbroadcast.jl")

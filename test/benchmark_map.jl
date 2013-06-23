@@ -1,6 +1,6 @@
 # Benchmark on map
 
-using NumericFunctors
+using NumericExtensions
 
 macro bench_map1(name, rp, f1, f2)
 	quote

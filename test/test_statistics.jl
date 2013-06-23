@@ -1,6 +1,6 @@
 # Test statistics related functions
 
-using NumericFunctors
+using NumericExtensions
 using Base.Test
 
 # data

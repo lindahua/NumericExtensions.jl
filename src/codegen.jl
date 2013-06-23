@@ -26,49 +26,6 @@ get_scalar(x::Number, i::Int) = x
 get_scalar(x::Number, i::Int, j::Int) = x
 get_scalar(x::Number, i::Int, j::Int, k::Int) = x
 
-# shape inference 
-
-map_shape(x1::EwiseArray) = size(x1)
-
-map_shape(x1::EwiseArray, x2::EwiseArray) = promote_shape(size(x1), size(x2))
-map_shape(x1::EwiseArray, x2::Number) = size(x1)
-map_shape(x1::Number, x2::EwiseArray) = size(x2)
-
-map_shape(x1::EwiseArray, x2::EwiseArray, x3::EwiseArray) = promote_shape(size(x1), promote_shape(size(x2), size(x3)))
-map_shape(x1::EwiseArray, x2::EwiseArray, x3::Number) = promote_shape(size(x1), size(x2))
-map_shape(x1::EwiseArray, x2::Number, x3::EwiseArray) = promote_shape(size(x1), size(x3))
-map_shape(x1::Number, x2::EwiseArray, x3::EwiseArray) = promote_shape(size(x2), size(x3))
-map_shape(x1::EwiseArray, x2::Number, x3::Number) = size(x1)
-map_shape(x1::Number, x2::EwiseArray, x3::Number) = size(x2)
-map_shape(x1::Number, x2::Number, x3::EwiseArray) = size(x3)
-
-function map_length(x1::EwiseArray, x2::EwiseArray)
-	if length(x1) != length(x2)
-		throw(ArgumentError("Argment lengths must match."))
-	end
-	length(x1)
-end
-
-map_length(x1::EwiseArray, x2::Number) = length(x1)
-map_length(x1::Number, x2::EwiseArray) = length(x2)
-
-function map_length(x1::EwiseArray, x2::EwiseArray, x3::EwiseArray)
-	if !(length(x1) == length(x2) == length(x3))
-		throw(ArgumentError("Argment lengths must match."))
-	end
-	length(x1)
-end
-
-map_length(x1::EwiseArray, x2::EwiseArray, x3::Number) = map_length(x1, x2)
-map_length(x1::EwiseArray, x2::Number, x3::EwiseArray) = map_length(x1, x3)
-map_length(x1::Number, x2::EwiseArray, x3::EwiseArray) = map_length(x2, x3)
-map_length(x1::EwiseArray, x2::Number, x3::Number) = length(x1)
-map_length(x1::Number, x2::EwiseArray, x3::Number) = length(x2)
-map_length(x1::Number, x2::Number, x3::EwiseArray) = length(x3)
-
-precede_length(siz::NTuple{Int}, d::Int) = d == 2 ? siz[1] : d == 3 ? siz[1] * siz[2] : prod(siz[1:d-1])
-trail_length(siz::NTuple{Int}, d::Int) = (nd = length(siz); d == nd - 1 ? siz[nd] : prod(siz[d+1:nd]))
-
 # value type inference
 
 result_eltype(op::UnaryFunctor, x::EwiseArray) = result_type(op, eltype(x))

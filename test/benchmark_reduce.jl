@@ -152,7 +152,7 @@ println("Benchmark results on Base methods:")
 #
 #################################################
 
-using NumericFunctors
+using NumericExtensions
 const newperf = Array((ASCIIString, Vector{Float64}), 0)
 
 new_max(x::Array) = max(x)   # cannot use _max or _min, as they will not be recompiled
