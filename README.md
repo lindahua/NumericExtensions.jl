@@ -201,21 +201,26 @@ For simple functions, such as ``x + y`` or ``exp(x)``, the performance of the ma
 
 Getting a slice/part of an array is common in numerical computation. Julia itself provides two ways to do this: reference (e.g. ``x[:, J]``) and the ``sub`` function (e.g. ``sub(x, :, J)``). Both have performance issues: the former makes a copy each time you call it, while the latter results in an ``SubArray`` instance. Despite that ``sub`` does not create a copy, accessing elements of a ``SubArray`` instance is usually very slow (with current implementation).
 
-This package addresses this problem by providing a ``view`` function, which returns a shared-memory array (i.e. view) of specific part of an array. **Note** that ``view`` only applies to the case when the part being referenced is contiguous. Below is a list of valid usage:
+This package addresses this problem by providing a ``unsafe_view`` function, which returns a view of specific part of an array. **Note** that ``unsafe_view`` only applies to the case when the part being referenced is contiguous. Below is a list of valid usage:
 
 ```julia
-view(a, :)
-view(a, i0:i1)
+unsafe_view(a)
 
-view(a, :, :)
-view(a, :, j)
-view(a, i0:i1, j)
-view(a, :, j0:j1)
+unsafe_view(a, :)
+unsafe_view(a, i0:i1)
 
-view(a, :, j, k)
-view(a, i0:i1, j, k)
-view(a, :, :, k)
-view(a, :, j0:j1, k)
+unsafe_view(a, :, :)
+unsafe_view(a, :, j)
+unsafe_view(a, i0:i1, j)
+unsafe_view(a, :, j0:j1)
+
+unsafe_view(a, :, j, k)
+unsafe_view(a, i0:i1, j, k)
+unsafe_view(a, :, :, k)
+unsafe_view(a, :, j0:j1, k)
+
+unsafe_view(a, :, :, :)
+unsafe_view(a, :, :, k0:k1)
 ```
 
 

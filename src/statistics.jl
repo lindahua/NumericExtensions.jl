@@ -63,7 +63,7 @@ function var!{R<:FloatingPoint,T<:Real}(dst::Array{R}, x::Vector{T}, dim::Int)
 	dst
 end
 
-function _varimpl_firstdim!{R<:FloatingPoint,T<:Real}(dst::Array{R}, x::Array{T}, m::Int, n::Int)
+function _varimpl_firstdim!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, m::Int, n::Int)
 	o = 0
 	for j in 1 : n
 		dst[j] = _var(R, x, o+1, o+m)
@@ -71,7 +71,7 @@ function _varimpl_firstdim!{R<:FloatingPoint,T<:Real}(dst::Array{R}, x::Array{T}
 	end
 end
 
-function _varimpl_lastdim!{R<:FloatingPoint,T<:Real}(dst::Array{R}, s::Array{R}, x::Array{T}, m::Int, n::Int)
+function _varimpl_lastdim!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, s::Array{R}, x::ContiguousArray{T}, m::Int, n::Int)
 	for i in 1 : m
 		xi = x[i]
 		s[i] = xi
@@ -96,10 +96,10 @@ function _varimpl_lastdim!{R<:FloatingPoint,T<:Real}(dst::Array{R}, s::Array{R},
 	end
 end
 
-function _varimpl_middim!{R<:FloatingPoint,T<:Real}(dst::Array{R}, s::Array{R}, x::Array{T}, m::Int, n::Int, k::Int)
+function _varimpl_middim!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, s::Array{R}, x::ContiguousArray{T}, m::Int, n::Int, k::Int)
 	_varimpl_lastdim!(dst, s, x, m, n)
 	for l in 2 : k
-		_varimpl_lastdim!(view(dst, :, l), s, view(x, :, :, l), m, n)
+		_varimpl_lastdim!(unsafe_view(dst, :, l), s, unsafe_view(x, :, :, l), m, n)
 	end
 end
 
@@ -113,13 +113,13 @@ function var!{R<:FloatingPoint,T<:Real}(dst::Array{R}, x::Array{T}, dim::Int)
 	siz = size(x)
 
 	if dim == 1
-		_varimpl_firstdim!(dst, x, siz[1], trail_length(siz, dim))
+		_varimpl_firstdim!(dst, x, siz[1], _trail_length(siz, dim))
 	elseif dim == nd
-		prelen = precede_length(siz, dim)
+		prelen = _precede_length(siz, dim)
 		_varimpl_lastdim!(dst, Array(R, prelen), x, prelen, siz[dim])
 	else
-		prelen = precede_length(siz, dim)
-		_varimpl_middim!(dst, Array(R, prelen), x, prelen, siz[dim], trail_length(siz, dim))
+		prelen = _precede_length(siz, dim)
+		_varimpl_middim!(dst, Array(R, prelen), x, prelen, siz[dim], _trail_length(siz, dim))
 	end
 	dst
 end
@@ -158,7 +158,7 @@ function logsumexp!{R<:FloatingPoint, T<:Real}(dst::Array{R}, x::Vector{T}, dim:
 	dst
 end
 
-function _logsumexp_firstdim!{R<:FloatingPoint,T<:Real}(dst::Array{R}, x::Array{T}, m::Int, n::Int)
+function _logsumexp_firstdim!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, m::Int, n::Int)
 	o = 0
 	for j in 1 : n
 		# compute max
@@ -182,9 +182,9 @@ function _logsumexp_firstdim!{R<:FloatingPoint,T<:Real}(dst::Array{R}, x::Array{
 	end
 end
 
-function _logsumexp_lastdim!{R<:FloatingPoint,T<:Real}(dst::Array{R}, u::Array{T}, x::Array{T}, m::Int, n::Int)
+function _logsumexp_lastdim!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, u::Array{T}, x::ContiguousArray{T}, m::Int, n::Int)
 	# compute max
-	max!(u, view(x, :, 1:n), (), 2)
+	max!(u, unsafe_view(x, :, 1:n), (), 2)
 
 	# sum exp
 	for i in 1 : m
@@ -204,9 +204,9 @@ function _logsumexp_lastdim!{R<:FloatingPoint,T<:Real}(dst::Array{R}, u::Array{T
 	end
 end
 
-function _logsumexp_middim!{R<:FloatingPoint,T<:Real}(dst::Array{R}, u::Array{T}, x::Array{T}, m::Int, n::Int, k::Int)
+function _logsumexp_middim!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, u::Array{T}, x::ContiguousArray{T}, m::Int, n::Int, k::Int)
 	for l in 1 : k
-		_logsumexp_lastdim!(view(dst, :, l), u, view(x, :, :, l), m, n)
+		_logsumexp_lastdim!(unsafe_view(dst, :, l), u, unsafe_view(x, :, :, l), m, n)
 	end
 end
 
@@ -220,13 +220,13 @@ function logsumexp!{R<:FloatingPoint,T<:Real}(dst::Array{R}, x::Array{T}, dim::I
 	siz = size(x)
 
 	if dim == 1
-		_logsumexp_firstdim!(dst, x, siz[1], trail_length(siz, dim))
+		_logsumexp_firstdim!(dst, x, siz[1], _trail_length(siz, dim))
 	elseif dim == nd
-		prelen = precede_length(siz, dim)
+		prelen = _precede_length(siz, dim)
 		_logsumexp_lastdim!(dst, Array(T, prelen), x, prelen, siz[dim])
 	else
-		prelen = precede_length(siz, dim)
-		_logsumexp_middim!(dst, Array(T, prelen), x, prelen, siz[dim], trail_length(siz, dim))
+		prelen = _precede_length(siz, dim)
+		_logsumexp_middim!(dst, Array(T, prelen), x, prelen, siz[dim], _trail_length(siz, dim))
 	end
 	dst
 end
@@ -238,7 +238,7 @@ end
 
 # softmax
 
-function softmax!{T<:FloatingPoint}(dst::Array{T}, x::Array{T})
+function softmax!{T<:FloatingPoint}(dst::ContiguousArray{T}, x::ContiguousArray{T})
 	@check_nonempty("softmax")
 	u = max(x)
 	s = dst[1] = exp(x[1] - u)
@@ -253,11 +253,11 @@ function softmax!{T<:FloatingPoint}(dst::Array{T}, x::Array{T})
 	dst
 end
 
-function softmax{T<:FloatingPoint}(x::Array{T})
+function softmax{T<:FloatingPoint}(x::ContiguousArray{T})
 	softmax!(Array(T, size(x)), x)
 end
 
-function softmax!{T<:FloatingPoint}(dst::Array{T}, x::Vector{T}, dim::Int)
+function softmax!{T<:FloatingPoint}(dst::ContiguousArray{T}, x::ContiguousVector{T}, dim::Int)
 	if dim == 1
 		softmax!(dst, x)
 	else
@@ -266,18 +266,18 @@ function softmax!{T<:FloatingPoint}(dst::Array{T}, x::Vector{T}, dim::Int)
 	dst	
 end
 
-function _softmax_firstdim!{T<:FloatingPoint}(dst::Array{T}, x::Array{T}, m::Int, n::Int)
+function _softmax_firstdim!{T<:FloatingPoint}(dst::ContiguousArray{T}, x::ContiguousArray{T}, m::Int, n::Int)
 	for j in 1 : n
-		softmax!(view(dst, :, j), view(x, :, j))
+		softmax!(unsafe_view(dst, :, j), unsafe_view(x, :, j))
 	end
 end
 
-function _softmax_lastdim!{T<:FloatingPoint}(dst::Array{T}, u::Array{T}, x::Array{T}, m::Int, n::Int)
+function _softmax_lastdim!{T<:FloatingPoint}(dst::ContiguousArray{T}, u::Array{T}, x::ContiguousArray{T}, m::Int, n::Int)
 	# compute max
-	max!(u, view(x, :, 1:n), (), 2)
+	max!(u, unsafe_view(x, :, 1:n), (), 2)
 
 	# compute sum
-	s = offset_view(u, m+1, m)
+	s = unsafe_view(u, m+1:2*m)
 
 	for i in 1 : m
 		s[i] = dst[i] = exp(x[i] - u[i])
@@ -301,13 +301,13 @@ function _softmax_lastdim!{T<:FloatingPoint}(dst::Array{T}, u::Array{T}, x::Arra
 	end
 end
 
-function _softmax_middim!{T<:FloatingPoint}(dst::Array{T}, u::Array{T}, x::Array{T}, m::Int, n::Int, k::Int)
+function _softmax_middim!{T<:FloatingPoint}(dst::ContiguousArray{T}, u::Array{T}, x::ContiguousArray{T}, m::Int, n::Int, k::Int)
 	for l in 1 : k
-		_softmax_lastdim!(view(dst, :, :, l), u, view(x, :, :, l), m, n)
+		_softmax_lastdim!(unsafe_view(dst, :, :, l), u, unsafe_view(x, :, :, l), m, n)
 	end
 end
 
-function softmax!{T<:FloatingPoint}(dst::Array{T}, x::Array{T}, dim::Int)
+function softmax!{T<:FloatingPoint}(dst::ContiguousArray{T}, x::ContiguousArray{T}, dim::Int)
 	@check_nonempty("softmax!")
 	nd = ndims(x)
 	if !(1 <= dim <= nd)
@@ -316,18 +316,18 @@ function softmax!{T<:FloatingPoint}(dst::Array{T}, x::Array{T}, dim::Int)
 	siz = size(x)
 
 	if dim == 1
-		_softmax_firstdim!(dst, x, siz[1], trail_length(siz, dim))
+		_softmax_firstdim!(dst, x, siz[1], _trail_length(siz, dim))
 	elseif dim == nd
-		prelen = precede_length(siz, dim)
+		prelen = _precede_length(siz, dim)
 		_softmax_lastdim!(dst, Array(T, prelen * 2), x, prelen, siz[dim])
 	else
-		prelen = precede_length(siz, dim)
-		_softmax_middim!(dst, Array(T, prelen * 2), x, prelen, siz[dim], trail_length(siz, dim))
+		prelen = _precede_length(siz, dim)
+		_softmax_middim!(dst, Array(T, prelen * 2), x, prelen, siz[dim], _trail_length(siz, dim))
 	end
 	dst	
 end
 
-function softmax{T<:FloatingPoint}(x::Array{T}, dim::Int)
+function softmax{T<:FloatingPoint}(x::ContiguousArray{T}, dim::Int)
 	softmax!(Array(T, size(x)), x, dim)
 end
 

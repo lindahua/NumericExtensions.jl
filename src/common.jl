@@ -18,18 +18,26 @@ map_shape(x1::Number, x2::Number, x3::AbstractArray) = size(x3)
 
 # get length value from shape
 
-function _leading_length(s::(Int,Int), d::Int)
+function _precede_length(s::(Int,), d::Int)
+	dim == 1 ? 1 : throw(BoundsError())
+end
+
+function _precede_length(s::(Int,Int), d::Int)
 	d == 2 ? s[1] : throw(BoundsError())
 end
 
-function _leading_length(s::(Int, Int, Int), d::Int)
+function _precede_length(s::(Int, Int, Int), d::Int)
 	d == 2 ? s[1] : 
 	d == 3 ? s[1] * s[2] :
 	throw(BoundsError())
 end
 
-function _leading_length{N}(s::NTuple{N}, d::Int)
+function _precede_length{N}(s::NTuple{N}, d::Int)
 	2 <= d <= N ? prod(s[1:d-1]) : throw(BoundsError())
+end
+
+function _trail_length(s::(Int,), d::Int)
+	d == 1 ? 1 : throw(BoundsError())
 end
 
 function _trail_length(s::(Int,Int), d::Int)

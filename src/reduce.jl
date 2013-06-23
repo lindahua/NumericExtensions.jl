@@ -96,7 +96,7 @@ function code_singledim_reduction(fname::Symbol, coder_expr::Expr, mapfun!::Symb
 	fname_middim! = symbol(string(fname, "_middim!"))
 
 	quote
-		function ($fname_firstdim!)(dst::EwiseArray, op::BinaryFunctor, m::Int, n::Int, $(paramlist...))
+		function ($fname_firstdim!)(dst::ContiguousArray, op::BinaryFunctor, m::Int, n::Int, $(paramlist...))
 			idx = 0
 			for j in 1 : n
 				idx += 1
@@ -109,7 +109,7 @@ function code_singledim_reduction(fname::Symbol, coder_expr::Expr, mapfun!::Symb
 			end
 		end
 
-		function ($fname_lastdim!)(dst::EwiseArray, op::BinaryFunctor, m::Int, n::Int, $(paramlist...))
+		function ($fname_lastdim!)(dst::ContiguousArray, op::BinaryFunctor, m::Int, n::Int, $(paramlist...))
 			for i in 1 : m
 				dst[i] = $ker_i
 			end	
@@ -123,7 +123,7 @@ function code_singledim_reduction(fname::Symbol, coder_expr::Expr, mapfun!::Symb
 			end
 		end
 
-		function ($fname_middim!)(dst::EwiseArray, op::BinaryFunctor, m::Int, n::Int, k::Int, $(paramlist...))
+		function ($fname_middim!)(dst::ContiguousArray, op::BinaryFunctor, m::Int, n::Int, k::Int, $(paramlist...))
 			od = 0
 			idx = 0
 			for l in 1 : k
@@ -144,20 +144,20 @@ function code_singledim_reduction(fname::Symbol, coder_expr::Expr, mapfun!::Symb
 			end
 		end
 
-		function ($fname!)(dst::EwiseArray, $(rparamlist...), dim::Int)
+		function ($fname!)(dst::ContiguousArray, $(rparamlist...), dim::Int)
 			rsiz = $shape
 			nd = length(rsiz)
 			if dim == 1
 				d1 = rsiz[1]
-				d2 = trail_length(rsiz, 1)
+				d2 = _trail_length(rsiz, 1)
 				($fname_firstdim!)(dst, op, d1, d2, $(arglist...))
 			elseif dim < nd
-				d0 = precede_length(rsiz, dim)
+				d0 = _precede_length(rsiz, dim)
 				d1 = rsiz[dim]
-				d2 = trail_length(rsiz, dim)
+				d2 = _trail_length(rsiz, dim)
 				($fname_middim!)(dst, op, d0, d1, d2, $(arglist...))
 			elseif dim == nd
-				d0 = precede_length(rsiz, dim)
+				d0 = _precede_length(rsiz, dim)
 				d1 = rsiz[dim]
 				($fname_lastdim!)(dst, op, d0, d1, $(arglist...))
 			else
@@ -172,8 +172,8 @@ macro singledim_reduction(fname, coder, mapfun)
 	esc(code_singledim_reduction(fname, coder, mapfun))
 end
 
-_map_to_dest!(dst::EwiseArray, f::Functor, xs...) = map!(f, dst, xs...)
-_mapdiff_to_dest!(dst::EwiseArray, f::UnaryFunctor, x1, x2) = mapdiff!(f, dst, x1, x2)
+_map_to_dest!(dst::ContiguousArray, f::Functor, xs...) = map!(f, dst, xs...)
+_mapdiff_to_dest!(dst::ContiguousArray, f::UnaryFunctor, x1, x2) = mapdiff!(f, dst, x1, x2)
 
 @singledim_reduction reduce TrivialCoder() copy!
 @singledim_reduction mapreduce UnaryCoder() _map_to_dest!
@@ -202,7 +202,7 @@ function code_doubledims_reduction(fname::Symbol, coder_expr::Expr)
 	fname_dim13! = symbol(string(fname, "_dim13!"))
 
 	quote
-		function ($fname_dim13!)(dst::EwiseArray, op::BinaryFunctor, m::Int, n::Int, k::Int, $(paramlist...))
+		function ($fname_dim13!)(dst::ContiguousArray, op::BinaryFunctor, m::Int, n::Int, k::Int, $(paramlist...))
 			idx = 0
 			for j in 1 : n
 				idx += 1
@@ -227,7 +227,7 @@ function code_doubledims_reduction(fname::Symbol, coder_expr::Expr)
 			end				
 		end
 
-		function ($fname!)(dst::EwiseArray, $(rparamlist...), dims::(Int, Int))
+		function ($fname!)(dst::ContiguousArray, $(rparamlist...), dims::(Int, Int))
 			siz = $shape
 			dims == (1, 2) ? ($fname_firstdim!)(dst, op, siz[1] * siz[2], siz[3], $(arglist...)) :
 			dims == (1, 3) ? ($fname_dim13!)(dst, op, siz[1], siz[2], siz[3], $(arglist...)) :
@@ -363,7 +363,7 @@ function code_basic_reduction(fname::Symbol, op::Expr, coder::EwiseCoder, gfun::
 	quote
 		($fname)($(paramlist...)) = ($emptytest) ? ($emptyfun)($vtype) : ($gfun)($(arglist[1]), $op, $(arglist[2:]...))
 		($fname)($(paramlist...), dims::DimSpec) = ($gfun)($(arglist[1]), $op, $(arglist[2:]...), dims) 
-		($fname!)(dst::EwiseArray, $(paramlist...), dims::DimSpec) = ($gfun!)(dst, $(arglist[1]), $op, $(arglist[2:]...), dims)
+		($fname!)(dst::ContiguousArray, $(paramlist...), dims::DimSpec) = ($gfun!)(dst, $(arglist[1]), $op, $(arglist[2:]...), dims)
 	end
 end
 
@@ -381,17 +381,17 @@ macro basic_mapreduction(fname, op, emptyfun)
 end
 
 
-sum{T}(x::Array{T}) = isempty(x) ? zero(T) : reduce(Add(), x)
-sum{T}(x::Array{T}, dims::DimSpec) = isempty(x) ? zeros(T, reduced_size(x, dims)) : reduce(Add(), x, dims)
-sum!(dst::Array, x::Array, dims::DimSpec) = reduce!(dst, Add(), x, dims) 
+sum{T}(x::ContiguousArray{T}) = isempty(x) ? zero(T) : reduce(Add(), x)
+sum{T}(x::ContiguousArray{T}, dims::DimSpec) = isempty(x) ? zeros(T, reduced_size(x, dims)) : reduce(Add(), x, dims)
+sum!(dst::ContiguousArray, x::ContiguousArray, dims::DimSpec) = reduce!(dst, Add(), x, dims) 
 
-max{T}(x::Array{T}) = isempty(x) ? empty_notallowed(T) : reduce(Max(), x)
-max{T}(x::Array{T}, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(Max(), x, dims)
-max!(dst::Array, x::Array, ::(), dims::DimSpec) = reduce!(dst, Max(), x, dims) 
+max{T}(x::ContiguousArray{T}) = isempty(x) ? empty_notallowed(T) : reduce(Max(), x)
+max{T}(x::ContiguousArray{T}, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(Max(), x, dims)
+max!(dst::ContiguousArray, x::ContiguousArray, ::(), dims::DimSpec) = reduce!(dst, Max(), x, dims) 
 
-min{T}(x::Array{T}) = isempty(x) ? empty_notallowed(T) : reduce(Min(), x)
-min{T}(x::Array{T}, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(Min(), x, dims)
-min!(dst::Array, x::Array, ::(), dims::DimSpec) = reduce!(dst, Min(), x, dims) 
+min{T}(x::ContiguousArray{T}) = isempty(x) ? empty_notallowed(T) : reduce(Min(), x)
+min{T}(x::ContiguousArray{T}, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(Min(), x, dims)
+min!(dst::ContiguousArray, x::ContiguousArray, ::(), dims::DimSpec) = reduce!(dst, Min(), x, dims) 
 
 @basic_mapreduction sum Add() zero 
 @basic_mapreduction max Max() empty_notallowed
@@ -410,9 +410,9 @@ function code_derived_reduction1(fname::Symbol, rfun::Symbol, tfunctor::Expr)
 	rfun! = symbol(string(rfun, '!'))
 
 	quote
-		($fname)(x::EwiseArray) = ($rfun)($tfunctor, x)
-		($fname)(x::EwiseArray, dims::DimSpec) = ($rfun)($tfunctor, x, dims)
-		($fname!)(dst::EwiseArray, x::EwiseArray, dims::DimSpec) = ($rfun!)(dst, $tfunctor, x, dims)
+		($fname)(x::ContiguousArray) = ($rfun)($tfunctor, x)
+		($fname)(x::ContiguousArray, dims::DimSpec) = ($rfun)($tfunctor, x, dims)
+		($fname!)(dst::ContiguousArray, x::ContiguousArray, dims::DimSpec) = ($rfun!)(dst, $tfunctor, x, dims)
 	end
 end
 
@@ -424,7 +424,7 @@ function code_derived_reduction2(fname::Symbol, rfun::Symbol, tfunctor::Expr)
 		($fname)(x1::Number, x2::Number) = error("At least one of the arguments must be an array.")
 		($fname)(x1::ArrayOrNumber, x2::ArrayOrNumber) = ($rfun)($tfunctor, x1, x2)
 		($fname)(x1::ArrayOrNumber, x2::ArrayOrNumber, dims::DimSpec) = ($rfun)($tfunctor, x1, x2, dims)
-		($fname!)(dst::EwiseArray, x1::ArrayOrNumber, x2::ArrayOrNumber, dims::DimSpec) = ($rfun!)(dst, $tfunctor, x1, x2, dims)
+		($fname!)(dst::ContiguousArray, x1::ArrayOrNumber, x2::ArrayOrNumber, dims::DimSpec) = ($rfun!)(dst, $tfunctor, x1, x2, dims)
 	end
 end
 
@@ -455,11 +455,11 @@ end
 typealias BlasFP Union(Float32, Float64, Complex{Float32}, Complex{Float64})
 const blas_dot = Base.LinAlg.BLAS.dot
 
-dot(x1::Array, x2::Array, dims::DimSpec) = sum(Multiply(), x1, x2, dims)
-dot!(dst::Array, x1::Array, x2::Array, dims::DimSpec) = sum!(dst, Multiply(), x1, x2, dims)
+dot(x1::ContiguousArray, x2::ContiguousArray, dims::DimSpec) = sum(Multiply(), x1, x2, dims)
+dot!(dst::ContiguousArray, x1::ContiguousArray, x2::ContiguousArray, dims::DimSpec) = sum!(dst, Multiply(), x1, x2, dims)
 
-dot{T<:BlasFP}(x1::Array{T}, x2::Array{T}) = blas_dot(x1, x2)
-sqsum{T<:BlasFP}(x::Array{T}) = blas_dot(x, x)
+dot{T<:BlasFP}(x1::ContiguousArray{T}, x2::ContiguousArray{T}) = blas_dot(x1, x2)
+sqsum{T<:BlasFP}(x::ContiguousArray{T}) = blas_dot(x, x)
 
 
 #################################################
@@ -468,7 +468,7 @@ sqsum{T<:BlasFP}(x::Array{T}) = blas_dot(x, x)
 #
 #################################################
 
-function vnorm(x::Array, p::Real)
+function vnorm(x::ContiguousArray, p::Real)
 	if !(p > 0)
 		throw(ArgumentError("p must be positive."))
 	end
@@ -478,9 +478,9 @@ function vnorm(x::Array, p::Real)
 	sum(FixAbsPow(p), x) .^ inv(p)
 end
 
-vnorm(x::Array) = vnorm(x, 2)
+vnorm(x::ContiguousArray) = vnorm(x, 2)
 
-function vnorm!(dst::Array, x::Array, p::Real, dims::DimSpec)
+function vnorm!(dst::ContiguousArray, x::ContiguousArray, p::Real, dims::DimSpec)
 	if !(p > 0)
 		throw(ArgumentError("p must be positive."))
 	end
@@ -490,7 +490,7 @@ function vnorm!(dst::Array, x::Array, p::Real, dims::DimSpec)
 	map1!(FixAbsPow(inv(p)), sum!(dst, FixAbsPow(p), x, dims))
 end
 
-function vnorm{Tx<:Number,Tp<:Real}(x::Array{Tx}, p::Tp, dims::DimSpec) 
+function vnorm{Tx<:Number,Tp<:Real}(x::ContiguousArray{Tx}, p::Tp, dims::DimSpec) 
 	tt = to_fptype(promote_type(Tx, Tp))
 	r = Array(tt, reduced_size(size(x), dims))
 	vnorm!(r, x, p, dims)
@@ -499,7 +499,7 @@ end
 
 # vdiffnorm
 
-function vdiffnorm(x::Array, y::ArrayOrNumber, p::Real)
+function vdiffnorm(x::ContiguousArray, y::ArrayOrNumber, p::Real)
 	if !(p > 0)
 		throw(ArgumentError("p must be positive."))
 	end
@@ -509,9 +509,9 @@ function vdiffnorm(x::Array, y::ArrayOrNumber, p::Real)
 	sum_fdiff(FixAbsPow(p), x, y) .^ inv(p)
 end
 
-vdiffnorm(x::Array, y::ArrayOrNumber) = vdiffnorm(x, y, 2)
+vdiffnorm(x::ContiguousArray, y::ArrayOrNumber) = vdiffnorm(x, y, 2)
 
-function vdiffnorm!(dst::Array, x::Array, y::ArrayOrNumber, p::Real, dims::DimSpec)
+function vdiffnorm!(dst::ContiguousArray, x::ContiguousArray, y::ArrayOrNumber, p::Real, dims::DimSpec)
 	if !(p > 0)
 		throw(ArgumentError("p must be positive."))
 	end
@@ -521,7 +521,7 @@ function vdiffnorm!(dst::Array, x::Array, y::ArrayOrNumber, p::Real, dims::DimSp
 	map1!(FixAbsPow(inv(p)), sum_fdiff!(dst, FixAbsPow(p), x, y, dims))
 end
 
-function vdiffnorm{Tx<:Number,Ty<:Number,Tp<:Real}(x::Array{Tx}, y::Array{Ty}, p::Tp, dims::DimSpec) 
+function vdiffnorm{Tx<:Number,Ty<:Number,Tp<:Real}(x::ContiguousArray{Tx}, y::ContiguousArray{Ty}, p::Tp, dims::DimSpec) 
 	tt = to_fptype(promote_type(promote_type(Tx, Ty), Tp))
 	r = Array(tt, reduced_size(size(x), dims))
 	vdiffnorm!(r, x, y, p, dims)

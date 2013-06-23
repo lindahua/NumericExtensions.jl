@@ -7,7 +7,7 @@ function code_map_function(fname!::Symbol, coder_expr::Expr)
 	paramlist = generate_paramlist(coder)
 	kernel = generate_kernel(coder, :i)
 	quote
-		function ($fname!)($(paramlist[1]), dst::EwiseArray, $(paramlist[2:]...))
+		function ($fname!)($(paramlist[1]), dst::ContiguousArray, $(paramlist[2:]...))
 			for i in 1 : length(dst)
 				dst[i] = $kernel
 			end
@@ -40,31 +40,31 @@ end
 
 # specific inplace functions
 
-add!(x::EwiseArray, y::ArrayOrNumber) = map1!(Add(), x, y)
-subtract!(x::EwiseArray, y::ArrayOrNumber) = map1!(Subtract(), x, y)
-multiply!(x::EwiseArray, y::ArrayOrNumber) = map1!(Multiply(), x, y)
-divide!(x::EwiseArray, y::ArrayOrNumber) = map1!(Divide(), x, y)
+add!(x::ContiguousArray, y::ArrayOrNumber) = map1!(Add(), x, y)
+subtract!(x::ContiguousArray, y::ArrayOrNumber) = map1!(Subtract(), x, y)
+multiply!(x::ContiguousArray, y::ArrayOrNumber) = map1!(Multiply(), x, y)
+divide!(x::ContiguousArray, y::ArrayOrNumber) = map1!(Divide(), x, y)
 
-negate!(x::EwiseArray) = map1!(Negate(), x)
-abs!(x::EwiseArray) = map1!(Abs(), x)
-abs2!(x::EwiseArray) = map1!(Abs2(), x)
-rcp!(x::EwiseArray) = map!(Divide(), x, one(eltype(x)), x)
-sqrt!(x::EwiseArray) = map1!(Sqrt(), x)
-pow!(x::EwiseArray, p::ArrayOrNumber) = map1!(Pow(), x, p)
+negate!(x::ContiguousArray) = map1!(Negate(), x)
+abs!(x::ContiguousArray) = map1!(Abs(), x)
+abs2!(x::ContiguousArray) = map1!(Abs2(), x)
+rcp!(x::ContiguousArray) = map!(Divide(), x, one(eltype(x)), x)
+sqrt!(x::ContiguousArray) = map1!(Sqrt(), x)
+pow!(x::ContiguousArray, p::ArrayOrNumber) = map1!(Pow(), x, p)
 
-floor!(x::EwiseArray) = map1!(Floor(), x)
-ceil!(x::EwiseArray) = map1!(Ceil(), x)
-round!(x::EwiseArray) = map1!(Round(), x)
-trunc!(x::EwiseArray) = map1!(Trunc(), x)
+floor!(x::ContiguousArray) = map1!(Floor(), x)
+ceil!(x::ContiguousArray) = map1!(Ceil(), x)
+round!(x::ContiguousArray) = map1!(Round(), x)
+trunc!(x::ContiguousArray) = map1!(Trunc(), x)
 
-exp!(x::EwiseArray) = map1!(Exp(), x)
-log!(x::EwiseArray) = map1!(Log(), x)
+exp!(x::ContiguousArray) = map1!(Exp(), x)
+log!(x::ContiguousArray) = map1!(Log(), x)
 
 # extensions
 
-absdiff(x::EwiseArray, y::EwiseArray) = mapdiff(Abs(), x, y)
-sqrdiff(x::EwiseArray, y::EwiseArray) = mapdiff(Abs2(), x, y)
+absdiff(x::ContiguousArray, y::ContiguousArray) = mapdiff(Abs(), x, y)
+sqrdiff(x::ContiguousArray, y::ContiguousArray) = mapdiff(Abs2(), x, y)
 
-fma!(a::EwiseArray, b::EwiseArray, c::ArrayOrNumber) = map1!(FMA(), a, b, c)
-fma(a::EwiseArray, b::EwiseArray, c::ArrayOrNumber) = map(FMA(), a, b, c)
+fma!(a::ContiguousArray, b::ContiguousArray, c::ArrayOrNumber) = map1!(FMA(), a, b, c)
+fma(a::ContiguousArray, b::ContiguousArray, c::ArrayOrNumber) = map(FMA(), a, b, c)
 
