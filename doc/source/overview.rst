@@ -62,12 +62,12 @@ Main features of this package are highlighted below:
 
 Since many of the methods are extensions of base functions. Simply adding a statement ``using NumericExtensions`` is often enough for substantial performance improvement. Consider the following code snippet:
 
-```julia
-using NumericExtensions
+.. code-block:: julia
 
-x = rand(1000, 1000)
-r = sum(x, 2)
-```
+    using NumericExtensions
+
+    x = rand(1000, 1000)
+    r = sum(x, 2)
 
 Here, when adding the statement ``using NumericExtensions`` *transparently replace* the method provided in the Base module by the specialized method in *NumericExtensions*. As a consequence, the statement ``r = sum(x, 2)`` becomes *6x* faster. Using additional functions provided by this package can further improve the performance. 
 
