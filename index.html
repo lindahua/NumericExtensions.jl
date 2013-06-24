@@ -1,0 +1,144 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Documentation of NumericExtensions.jl &mdash; NumericExtensions.jl 0.2.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="NumericExtensions.jl 0.2.0 documentation" href="#" />
+    <link rel="next" title="Package Overview" href="overview.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="overview.html" title="Package Overview"
+             accesskey="N">next</a> |</li>
+        <li><a href="#">NumericExtensions.jl 0.2.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Next topic</h4>
+  <p class="topless"><a href="overview.html"
+                        title="next chapter">Package Overview</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="documentation-of-numericextensions-jl">
+<h1>Documentation of NumericExtensions.jl<a class="headerlink" href="#documentation-of-numericextensions-jl" title="Permalink to this headline">¶</a></h1>
+<p><em>NumericExtensions.jl</em> is a Julia package that provides high performance support of numerical computation. This package is an extension of the Julia Base &#8211; part of the material may be migrated into the Base in future.</p>
+<p><em>NumericExtensions.jl</em> provides a wide range of tools, which include:</p>
+<ul class="simple">
+<li>higher order functions for mapping, reduction, and map-reduce operation that takes typed functors to achieve performance comparable to hand-crafted loops.</li>
+<li>Functions that allow inplace updating and writing results to pre-allocated arrays for mapping, reduction, and map-reduce operations.</li>
+<li>Convenient functions for inplace vectorized computation.</li>
+<li>Vector broadcasting.</li>
+<li>Fast views for operating on contiguous blocks/slices.</li>
+</ul>
+<p><strong>Contents:</strong></p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Package Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#motivating-example">Motivating example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#main-features">Main features</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="functors.html">Functors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="functors.html#motivating-example">Motivating example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="functors.html#functor-types">Functor types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="functors.html#pre-defined-functors">Pre-defined functors</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="map.html">Mapping</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="map.html#general-usage">General usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="map.html#additional-functions">Additional functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="map.html#pre-defined-mapping-functions">Pre-defined mapping functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="map.html#performance">Performance</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="vbroadcast.html">Vector Broadcasting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reduction.html">Reduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reduction.html#full-reduction">Full reduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reduction.html#reduction-along-dimensions">Reduction along dimensions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reduction.html#basic-reduction-functions">Basic reduction functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reduction.html#derived-reduction-functions">Derived reduction functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reduction.html#performance">Performance</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="views.html">Fast Shared-memory Views</a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="overview.html" title="Package Overview"
+             >next</a> |</li>
+        <li><a href="#">NumericExtensions.jl 0.2.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Dahua Lin.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>
