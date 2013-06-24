@@ -22,6 +22,7 @@ Documentation of NumericExtensions.jl
 
     overview.rst
     functors.rst
+    map.rst
 
 
 
