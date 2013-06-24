@@ -21,6 +21,7 @@ Documentation of NumericExtensions.jl
     :maxdepth: 2
 
     overview.rst
+    functors.rst
 
 
 
