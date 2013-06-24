@@ -3,7 +3,7 @@ Mapping
 
 *NumericExtensions.jl* extends ``map`` and ``map!`` to accept functors for efficient element-wise mapping:
 
-General Usage
+General usage
 --------------
 
 **Synopsis:**
@@ -30,7 +30,7 @@ Here, ``map`` creates and returns the resultant array, while ``map!`` writes res
 	map(FMA(), x, y, z)      # returns x + y .* z
 	map!(Add(), dst, x, 2)   # writes x + 2 to dst
 
-Additional Functions
+Additional functions
 ----------------------
 
 *NumericExtensions.jl* provides additional functions (``map1!``, ``mapdiff``, and ``mapdiff!``) to simplify common use:

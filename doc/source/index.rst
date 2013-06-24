@@ -23,12 +23,14 @@ Documentation of NumericExtensions.jl
     overview.rst
     functors.rst
     map.rst
+    vbroadcast.rst
+    reduction.rst
+    views.rst
 
 
+.. Indices and tables
+.. ==================
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`search`
+.. * :ref:`genindex`
+.. * :ref:`search`
 

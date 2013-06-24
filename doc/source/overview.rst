@@ -3,7 +3,7 @@ Package Overview
 
 Julia provides a fantastic technical computing environment that allows you to write codes that are both performant and generic. However, as it is still at its early stage, some functions are not as performant as they can be and writing computational algorithms directly based on builtin functions may not give you the best performance. This package provides you with a variety of tools to address such issues.
 
-Motivating Example
+Motivating example
 -------------------
 
 To see how this package may help you, let's first consider a simple example, that is, to compute the sum of squared difference between two vectors. This can be easily done in Julia in one line as follows
@@ -48,7 +48,7 @@ Benchmark shows that writing in this way is over *8x faster* than ``sum(abs2(x -
 This package also provides a collection of specific functions to directly support very common computation. For this particular example, you can write ``sqdiffsum(x, y)``, where ``sqdiffsum`` is one of such functions provided here.
 
 
-Main Features
+Main features
 ---------------
 
 Main features of this package are highlighted below:

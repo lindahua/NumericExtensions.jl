@@ -3,7 +3,7 @@ Functors
 
 Passing functions as arguments are essential in writing generic algorithms. However, function arguments do not get inlined in Julia (at current version), usually resulting in suboptimal performance.
 
-Motivating Example
+Motivating example
 -------------------
 
 Passing functions as arguments are essential in writing generic algorithms. However, function arguments do not get inlined in Julia (at current version), usually resulting in suboptimal performance. Consider the following example:
@@ -24,7 +24,6 @@ Passing functions as arguments are essential in writing generic algorithms. Howe
     @time for i in 1 : 10 map_plus(a, b) end  # -- statement (1)
     @time for i in 1 : 10 a + b end           # -- statement (2)
 
-
 Run this script in you computer, you will find that statement (1) is over *20+ times* slower than statement (2). The reason is that the function argument ``plus`` is resolved and called at each iteration of the inner loop within the ``map`` function.
 
 This package addresses this issue through *type functors* (*i.e.* function-like objects of specific types) and a set of highly optimized higher level functions for mapping and reduction. The codes above can be rewritten as
@@ -41,7 +40,7 @@ This package addresses this issue through *type functors* (*i.e.* function-like 
 Here, using a typed functor ``Add`` statement (1) is *10%* faster than statement (2) in my benchmark.
 
 
-Functor Types
+Functor types
 --------------
 
 ``Functor`` is the abstract base type for all functors, which are formally defined as below
@@ -79,7 +78,7 @@ To define multiple functors, it would be more concise to first import ``evaluate
 **Note:** Higher order functions such as ``map`` and ``reduce`` rely on the ``result_type`` method to determine the element type of the result. This is necessary, as Julia does not provide a generic mechanism to acquire the return type of a method.
 
 
-Pre-defined Functors
+Pre-defined functors
 -----------------------
 
 *NumericExtensions.jl* has defined a series of functors as listed below:
