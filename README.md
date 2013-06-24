@@ -27,7 +27,7 @@ Run this script in you computer, you will find that statement (1) is over *20+ t
 This package addresses this issue through *type functors* (*i.e.* function-like objects with specific types) and a set of highly optimized higher level functions for mapping and reduction. The codes above can be rewritten as
 
 ```julia
-using NumericFunctors
+using NumericExtensions
 
  # benchmark
 @time for i in 1 : 10 map(Add(), a, b) end     # -- statement(1)
@@ -47,16 +47,16 @@ The package aims to provide generic and high performance functions for numerical
 * Vector broadcasting computation (supporting both inplace updating and writing results to new arrays).
 * Shared-memory views of arrays.
 
-Since many of the methods are extensions of base functions. Simply adding a statement ``using NumericFunctors`` is often enough for substantial performance improvement. Consider the following code snippet:
+Since many of the methods are extensions of base functions. Simply adding a statement ``using NumericExtensions`` is often enough for substantial performance improvement. Consider the following code snippet:
 
 ```julia
-using NumericFunctors
+using NumericExtensions
 
 x = rand(1000, 1000)
 r = sum(x, 2)
 ```
 
-Here, when adding the statement ``using NumericFunctors`` *transparently replace* the method provided in the Base module by the specialized method in *NumericFunctors*. As a consequence, the statement ``r = sum(x, 2)`` becomes *6x* faster. Using additional functions provided by this package can further improve the performance. For example, modifying ``sum(abs2(x - y))`` to ``sqdiffsum(x, y)`` leads to nearly *11x* speed up.
+Here, when adding the statement ``using NumericExtensions`` *transparently replace* the method provided in the Base module by the specialized method in *NumericExtensions*. As a consequence, the statement ``r = sum(x, 2)`` becomes *6x* faster. Using additional functions provided by this package can further improve the performance. For example, modifying ``sum(abs2(x - y))`` to ``sqdiffsum(x, y)`` leads to nearly *11x* speed up.
 
 
 ### Functors
@@ -98,14 +98,14 @@ User can define new functors by sub-typing ``Functor``. For example, to define a
 ```julia
 type SqrDiff <: BinaryFunctor end
 
-NumericFunctors.evaluate(::SqrDiff, x, y) = abs2(x - y)
-NumericFunctors.result_type(::SqrDiff, t1::Type, t2::Type) = promote_type(t1, t2)
+NumericExtensions.evaluate(::SqrDiff, x, y) = abs2(x - y)
+NumericExtensions.result_type(::SqrDiff, t1::Type, t2::Type) = promote_type(t1, t2)
 ```
 
 To define multiple functors, it would be more concise to first import ``evaluate`` and ``result_type`` before extending them, as follows:
 
 ```julia
-import NumericFunctors.evaluate, NumericFunctors.result_type
+import NumericExtensions.evaluate, NumericExtensions.result_type
 
 type SqrDiff <: BinaryFunctor end
 
