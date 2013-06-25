@@ -54,6 +54,7 @@
 <li><a class="reference internal" href="#reduction-along-dimensions">Reduction along dimensions</a></li>
 <li><a class="reference internal" href="#basic-reduction-functions">Basic reduction functions</a></li>
 <li><a class="reference internal" href="#derived-reduction-functions">Derived reduction functions</a></li>
+<li><a class="reference internal" href="#weighted-sum">Weighted Sum</a></li>
 <li><a class="reference internal" href="#performance">Performance</a></li>
 </ul>
 </li>
@@ -309,6 +310,59 @@ The general usage of these extended methods is summarized below:</p>
 </pre></div>
 </div>
 <p>For <tt class="docutils literal"><span class="pre">logsumexp</span></tt> and <tt class="docutils literal"><span class="pre">softmax</span></tt>, special care is taken to ensure numerical stability for large x values, that is, their values will be properly shifted during computation.</p>
+</div>
+<div class="section" id="weighted-sum">
+<h2>Weighted Sum<a class="headerlink" href="#weighted-sum" title="Permalink to this headline">¶</a></h2>
+<p>Computation of weighted sum as below is common in practice.</p>
+<div class="math">
+<p><img src="_images/math/d4487a8bec4fe616bcc8c0495b69052d03cd115f.png" alt="\sum_{i=1}^n w_i x_i
+
+\sum_{i=1}^n w_i f(x_i, \ldots)
+
+\sum_{i=1}^n w_i f(x_i - y_i)"/></p>
+</div><p><em>NumericExtensions.jl</em> directly supports such computation via <tt class="docutils literal"><span class="pre">wsum</span></tt> and <tt class="docutils literal"><span class="pre">wsum_fdiff</span></tt>:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="n">wsum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>                 <span class="c"># weighted sum of x with weights w</span>
+<span class="n">wsum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">f1</span><span class="p">,</span> <span class="n">x1</span><span class="p">)</span>            <span class="c"># weighted sum of f1(x1) with weights w</span>
+<span class="n">wsum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>        <span class="c"># weighted sum of f2(x1, x2) with weights w</span>
+<span class="n">wsum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">x3</span><span class="p">)</span>    <span class="c"># weighted sum of f3(x1, x2, x3) with weights w</span>
+<span class="n">wsum_fdiff</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>    <span class="c"># weighted sum of f2(x - y) with weights w</span>
+</pre></div>
+</div>
+<p>These functions also support computing the weighted sums along a specific dimension:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="n">wsum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">wsum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+
+<span class="n">wsum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">f1</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">wsum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">f1</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+
+<span class="n">wsum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">wsum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+
+<span class="n">wsum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">x3</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">wsum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">x3</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+
+<span class="n">wsum_fdiff</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">wsum_fdiff</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Furthermore, <tt class="docutils literal"><span class="pre">wasum</span></tt>, <tt class="docutils literal"><span class="pre">wadiffsum</span></tt>, <tt class="docutils literal"><span class="pre">wsqsum</span></tt>, <tt class="docutils literal"><span class="pre">wsqdiffsum</span></tt> are provided to compute weighted sum of absolute values / squares to simplify common use:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="n">wasum</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>              <span class="c"># weighted sum of abs(x)</span>
+<span class="n">wasum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">wasum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+
+<span class="n">wadiffsum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>       <span class="c"># weighted sum of abs(x - y)</span>
+<span class="n">wadiffsum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">wadiffsum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+
+<span class="n">wsqsum</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>             <span class="c"># weighted sum of abs2(x)</span>
+<span class="n">wsqsum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">wsqsum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+
+<span class="n">wsqdiffsum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>      <span class="c"># weighted sum of abs2(x - y)</span>
+<span class="n">wsqdiffsum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">wsqdiffsum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="performance">
 <h2>Performance<a class="headerlink" href="#performance" title="Permalink to this headline">¶</a></h2>
