@@ -381,17 +381,17 @@ macro basic_mapreduction(fname, op, emptyfun)
 end
 
 
-sum{T}(x::ContiguousArray{T}) = isempty(x) ? zero(T) : reduce(Add(), x)
-sum{T}(x::ContiguousArray{T}, dims::DimSpec) = isempty(x) ? zeros(T, reduced_size(x, dims)) : reduce(Add(), x, dims)
-sum!(dst::ContiguousArray, x::ContiguousArray, dims::DimSpec) = reduce!(dst, Add(), x, dims) 
+sum{T<:Number}(x::ContiguousArray{T}) = isempty(x) ? zero(T) : reduce(Add(), x)
+sum{T<:Number}(x::ContiguousArray{T}, dims::DimSpec) = isempty(x) ? zeros(T, reduced_size(x, dims)) : reduce(Add(), x, dims)
+sum!{R<:Number, T<:Number}(dst::ContiguousArray{R}, x::ContiguousArray{T}, dims::DimSpec) = reduce!(dst, Add(), x, dims) 
 
-max{T}(x::ContiguousArray{T}) = isempty(x) ? empty_notallowed(T) : reduce(Max(), x)
-max{T}(x::ContiguousArray{T}, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(Max(), x, dims)
-max!(dst::ContiguousArray, x::ContiguousArray, ::(), dims::DimSpec) = reduce!(dst, Max(), x, dims) 
+max{T<:Real}(x::ContiguousArray{T}) = isempty(x) ? empty_notallowed(T) : reduce(Max(), x)
+max{T<:Real}(x::ContiguousArray{T}, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(Max(), x, dims)
+max!{R<:Real, T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, ::(), dims::DimSpec) = reduce!(dst, Max(), x, dims) 
 
-min{T}(x::ContiguousArray{T}) = isempty(x) ? empty_notallowed(T) : reduce(Min(), x)
-min{T}(x::ContiguousArray{T}, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(Min(), x, dims)
-min!(dst::ContiguousArray, x::ContiguousArray, ::(), dims::DimSpec) = reduce!(dst, Min(), x, dims) 
+min{T<:Real}(x::ContiguousArray{T}) = isempty(x) ? empty_notallowed(T) : reduce(Min(), x)
+min{T<:Real}(x::ContiguousArray{T}, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(Min(), x, dims)
+min!{R<:Real, T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, ::(), dims::DimSpec) = reduce!(dst, Min(), x, dims) 
 
 @basic_mapreduction sum Add() zero 
 @basic_mapreduction max Max() empty_notallowed
