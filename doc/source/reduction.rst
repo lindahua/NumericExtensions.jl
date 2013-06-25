@@ -296,7 +296,7 @@ These functions also support computing the weighted sums along a specific dimens
     wsum_fdiff(w, f2, x, y, dim)
     wsum_fdiff!(dst, w, f2, x, y, dim)
 
-Furthermore, ``wasum``, ``wadiffsum``, ``wsqsum``, ``wsqdiffsum`` are provided to compute weighted sum of absolute values / squares to simply common use:
+Furthermore, ``wasum``, ``wadiffsum``, ``wsqsum``, ``wsqdiffsum`` are provided to compute weighted sum of absolute values / squares to simplify common use:
 
 .. code-block:: julia
 
