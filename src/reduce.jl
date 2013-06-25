@@ -458,8 +458,8 @@ const blas_dot = Base.LinAlg.BLAS.dot
 dot(x1::ContiguousArray, x2::ContiguousArray, dims::DimSpec) = sum(Multiply(), x1, x2, dims)
 dot!(dst::ContiguousArray, x1::ContiguousArray, x2::ContiguousArray, dims::DimSpec) = sum!(dst, Multiply(), x1, x2, dims)
 
-dot{T<:BlasFP}(x1::ContiguousArray{T}, x2::ContiguousArray{T}) = blas_dot(x1, x2)
-sqsum{T<:BlasFP}(x::ContiguousArray{T}) = blas_dot(x, x)
+dot{T<:BlasFP}(x1::Array{T}, x2::Array{T}) = blas_dot(x1, x2)
+sqsum{T<:BlasFP}(x::Array{T}) = blas_dot(x, x)
 
 
 #################################################

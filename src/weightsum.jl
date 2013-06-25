@@ -44,7 +44,7 @@ function code_weighted_sumfuns(fname::Symbol, coder_expr::Expr)
 			end
 		end
 
-		function ($fname_firstdim!)(dst::ContiguousArray, d1::Int, d2::Int, weights::ContiguousArray, $(paramlist...))
+		function ($fname_firstdim!)(dst::ContiguousArray, m::Int, n::Int, weights::ContiguousArray, $(paramlist...))
 			idx = 0
 			for j in 1 : n
 				idx += 1
@@ -99,20 +99,25 @@ function code_weighted_sumfuns(fname::Symbol, coder_expr::Expr)
 			nd = length(siz)
 			@check_weightsize siz[dim] == length(weights) # this ensures 1 <= dim <= nd
 
-			if dim == 1
-				d1 = rsiz[1]
-				d2 = _trail_length(rsiz, 1)
-				($fname_firstdim!)(dst, d1, d2, weights, $(arglist...))
-			elseif dim < nd
-				d0 = _precede_length(rsiz, dim)
-				d1 = rsiz[dim]
-				d2 = _trail_length(rsiz, dim)
-				($fname_middim!)(dst, d0, d1, d2, weights, $(arglist...))
-			elseif dim == nd
-				d0 = _precede_length(rsiz, dim)
-				d1 = rsiz[dim]
-				($fname_lastdim!)(dst, d0, d1, weights, $(arglist...))
+			if nd == 1
+				dst[1] = ($fname)(weights, $(arglist...))
+			else
+				if dim == 1
+					d1 = siz[1]
+					d2 = _trail_length(siz, 1)
+					($fname_firstdim!)(dst, d1, d2, weights, $(arglist...))
+				elseif dim < nd
+					d0 = _precede_length(siz, dim)
+					d1 = siz[dim]
+					d2 = _trail_length(siz, dim)
+					($fname_middim!)(dst, d0, d1, d2, weights, $(arglist...))
+				elseif dim == nd
+					d0 = _precede_length(siz, dim)
+					d1 = siz[dim]
+					($fname_lastdim!)(dst, d0, d1, weights, $(arglist...))
+				end
 			end
+			dst
 		end
 
 		function ($fname){W<:Number}(weights::ContiguousArray{W}, $(paramlist...), dim::Int)
@@ -132,4 +137,55 @@ end
 @weighted_sumfuns wsum BinaryCoder()
 @weighted_sumfuns wsum TernaryCoder()
 @weighted_sumfuns wsum_fdiff FDiffCoder()
+
+
+# Specialized cases
+
+const gemv! = Base.LinAlg.BLAS.gemv!
+
+wsum{T<:BlasFP}(w::Array{T}, x::Array{T}) = blas_dot(w, x)
+
+function wsum!{T<:BlasFP}(dst::Array{T}, w::Array{T}, x::Vector{T}, dim::Int)
+	dst[1] = wsum(x, w)
+	dst
+end
+
+function wsum!{T<:BlasFP}(dst::Array{T}, w::Array{T}, x::Matrix{T}, dim::Int)
+	if dim == 1
+		gemv!('T', one(T), x, vec(w), zero(T), vec(dst))
+	elseif dim == 2
+		gemv!('N', one(T), x, vec(w), zero(T), vec(dst))
+	else
+		error("dim must be either 1 or 2.")
+	end
+	dst
+end
+
+function wsum!{T<:BlasFP}(dst::Array{T}, w::Array{T}, x::Array{T}, dim::Int)
+	siz = size(x)
+	nd = length(siz)
+	rd = siz[dim]  # this ensures 1 <= dim <= nd
+
+	if dim == 1
+		rx = reshape(x, siz[1], _trail_length(siz, 1))
+		gemv!('T', one(T), rx, vec(w), zero(T), vec(dst))
+	elseif dim == nd
+		rx = reshape(x, _precede_length(siz, nd), siz[nd])
+		gemv!('N', one(T), rx, vec(w), zero(T), vec(dst))
+	else
+		m::Int = _precede_length(siz, dim)
+		n::Int = siz[dim]
+		k::Int = _trail_length(siz, dim)
+		plen = m * n
+
+		vw = vec(w)
+		for l in 1 : k
+			sx = pointer_to_array(pointer(x, plen * (l - 1) + 1), (m, n))
+			sdst = pointer_to_array(pointer(dst, m * (l - 1) + 1), m)
+			gemv!('N', one(T), sx, vw, zero(T), sdst) 
+		end
+	end
+	dst
+end
+
 
