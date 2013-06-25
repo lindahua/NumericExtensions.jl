@@ -60,6 +60,8 @@ module NumericExtensions
 
 		# weightsum
 		wsum, wsum!, wsum_fdiff, wsum_fdiff!,
+		wasum, wasum!, wadiffsum, wadiffsum!,
+		wsqsum, wsqsum!, wsqdiffsum, wsqdiffsum!,
 
 		# benchmark
 		BenchmarkTable, nrows, ncolumns, add_row!
