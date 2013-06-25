@@ -252,6 +252,71 @@ In addition to the common reduction functions, this package also provides a set 
 
 For ``logsumexp`` and ``softmax``, special care is taken to ensure numerical stability for large x values, that is, their values will be properly shifted during computation.
 
+
+Weighted Sum
+--------------
+
+Computation of weighted sum as below is common in practice.
+
+.. math::
+
+    \sum_{i=1}^n w_i x_i
+
+    \sum_{i=1}^n w_i f(x_i, \ldots)
+
+    \sum_{i=1}^n w_i f(x_i - y_i)
+
+
+*NumericExtensions.jl* directly supports such computation via ``wsum`` and ``wsum_fdiff``:
+
+.. code-block:: julia
+
+    wsum(w, x)                 # weighted sum of x with weights w
+    wsum(w, f1, x1)            # weighted sum of f1(x1) with weights w
+    wsum(w, f2, x1, x2)        # weighted sum of f2(x1, x2) with weights w
+    wsum(w, f3, x1, x2, x3)    # weighted sum of f3(x1, x2, x3) with weights w
+    wsum_fdiff(w, f2, x, y)    # weighted sum of f2(x - y) with weights w
+
+These functions also support computing the weighted sums along a specific dimension:
+
+.. code-block:: julia
+    
+    wsum(w, x, dim)
+    wsum!(dst, w, x, dim)
+
+    wsum(w, f1, x1, dim)
+    wsum!(dst, w, f1, x1, dim)
+
+    wsum(w, f2, x1, x2, dim)
+    wsum!(dst, w, f2, x1, x2, dim)
+
+    wsum(w, f3, x1, x2, x3, dim)
+    wsum!(dst, w, f3, x1, x2, x3, dim)
+
+    wsum_fdiff(w, f2, x, y, dim)
+    wsum_fdiff!(dst, w, f2, x, y, dim)
+
+Furthermore, ``wasum``, ``wadiffsum``, ``wsqsum``, ``wsqdiffsum`` are provided to compute weighted sum of absolute values / squares to simply common use:
+
+.. code-block:: julia
+
+    wasum(x)              # weighted sum of abs(x)
+    wasum(x, dim)
+    wasum!(dst, x, dim)
+
+    wadiffsum(x, y)       # weighted sum of abs(x - y)
+    wadiffsum(x, y, dim)
+    wadiffsum!(dst, x, y, dim)
+
+    wsqsum(x)             # weighted sum of abs2(x)
+    wsqsum(x, dim)
+    wsqsum!(dst, x, dim) 
+
+    wsqdiffsum(x, y)      # weighted sum of abs2(x - y)
+    wsqdiffsum(x, y, dim)
+    wsqdiffsum!(dst, x, y, dim)
+
+
 Performance
 -------------
 
