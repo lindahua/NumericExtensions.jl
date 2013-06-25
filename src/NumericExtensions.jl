@@ -58,6 +58,9 @@ module NumericExtensions
 		mean!, var!, std!, entropy, entropy!,
 		logsumexp, logsumexp!, softmax, softmax!,
 
+		# weightsum
+		wsum, wsum!, wsum_fdiff, wsum_fdiff!,
+
 		# benchmark
 		BenchmarkTable, nrows, ncolumns, add_row!
 
@@ -71,6 +74,7 @@ module NumericExtensions
 	include("vbroadcast.jl")
 	include("reduce.jl")
 	include("statistics.jl")
+	include("weightsum.jl")
 
 	include("benchmark.jl")
 
