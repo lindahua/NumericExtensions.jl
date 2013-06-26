@@ -26,6 +26,7 @@ Documentation of NumericExtensions.jl
     vbroadcast.rst
     reduction.rst
     views.rst
+    pdmat.rst
 
 
 .. Indices and tables
