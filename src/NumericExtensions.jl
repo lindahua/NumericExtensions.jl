@@ -3,6 +3,7 @@ module NumericExtensions
 	import Base.add!, Base.show, Base.getindex, Base.setindex!
 	import Base.pointer, Base.size, Base.length, Base.copy, Base.similar
 	import Base.map, Base.map!, Base.reduce, Base.mapreduce
+	import Base.diagm
 	import Base.sum, Base.max, Base.min, Base.dot, Base.LinAlg.BLAS.asum, Base.norm
 	import Base.mean, Base.var, Base.std
 
@@ -43,6 +44,9 @@ module NumericExtensions
 		vbroadcast, vbroadcast!, vbroadcast1!,
 		badd, badd!, bsubtract, bsubtract!, bmultiply, bmultiply!, bdivide, bdivide!,
 
+		# diagop
+		add_diag!, add_diag, set_diag!, set_diag,
+
 		# reduce
 		reduce!, mapreduce!, mapdiff_reduce, mapdiff_reduce!,
 		sum!, sum_fdiff, sum_fdiff!,
@@ -74,6 +78,7 @@ module NumericExtensions
 	include("codegen.jl")
 	include("map.jl")
 	include("vbroadcast.jl")
+	include("diagop.jl")
 	include("reduce.jl")
 	include("statistics.jl")
 	include("weightsum.jl")
