@@ -1,5 +1,11 @@
 # common functions
 
+macro check_argdims(cond)
+	:( if !($(esc(cond)))
+	    throw(ArgumentError("Invalid argument dimensions.")) 
+	end)  
+end
+
 # shape inference for mapping
 
 map_shape(x1::AbstractArray) = size(x1)

@@ -141,8 +141,6 @@ end
 
 # Specialized cases
 
-const gemv! = Base.LinAlg.BLAS.gemv!
-
 wsum{T<:BlasFP}(w::Array{T}, x::Array{T}) = blas_dot(w, x)
 
 function wsum!{T<:BlasFP}(dst::Array{T}, w::Array{T}, x::Vector{T}, dim::Int)

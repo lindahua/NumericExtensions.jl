@@ -1,11 +1,24 @@
 module NumericExtensions
 
+	# import functions to be extended
+
 	import Base.add!, Base.show, Base.getindex, Base.setindex!
 	import Base.pointer, Base.size, Base.length, Base.copy, Base.similar
 	import Base.map, Base.map!, Base.reduce, Base.mapreduce
 	import Base.diagm
+	import Base.+, Base.*, Base.\, Base./
 	import Base.sum, Base.max, Base.min, Base.dot, Base.LinAlg.BLAS.asum, Base.norm
 	import Base.mean, Base.var, Base.std
+	import Base.logdet, Base.full, Base.inv
+
+	# import of useful BLAS & LAPACK routines
+	
+    import Base.LinAlg.BLAS.axpy!, Base.LinAlg.BLAS.nrm2
+    import Base.LinAlg.BLAS.gemv!, Base.LinAlg.BLAS.gemv
+    import Base.LinAlg.BLAS.gemm!, Base.LinAlg.BLAS.gemm    
+    import Base.LinAlg.BLAS.trmv!, Base.LinAlg.BLAS.trmv
+    import Base.LinAlg.BLAS.trmm!, Base.LinAlg.BLAS.trmm
+    import Base.LinAlg.LAPACK.trtrs! 
 
 	export 
 		# functors
@@ -67,9 +80,16 @@ module NumericExtensions
 		wasum, wasum!, wadiffsum, wadiffsum!,
 		wsqsum, wsqsum!, wsqdiffsum, wsqdiffsum!,
 
+		# pdmat
+        AbstractPDMat, PDMat, PDiagMat, ScalMat, 
+        dim, full, whiten, whiten!, unwhiten, unwhiten!, add_scal!, add_scal,
+        quad, quad!, invquad, invquad!, X_A_Xt, Xt_A_X, X_invA_Xt, Xt_invA_X,
+
 		# benchmark
 		BenchmarkTable, nrows, ncolumns, add_row!
 
+
+	# codes
 
 	include("common.jl")
 	include("functors.jl")
@@ -82,6 +102,8 @@ module NumericExtensions
 	include("reduce.jl")
 	include("statistics.jl")
 	include("weightsum.jl")
+
+	include("pdmat.jl")
 
 	include("benchmark.jl")
 
