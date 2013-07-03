@@ -37,7 +37,7 @@ module NumericExtensions
 		Greater, GreaterEqual, Less, LessEqual, Equal, NotEqual,
 		Isfinite, Isnan, Isinf,
 
-		xlogx, xlogy, Xlogx, Xlogy,
+		logit, logistic, xlogx, xlogy, Logit, Logistic, Xlogx, Xlogy,
 
 		# views
 		AbstractUnsafeView, UnsafeVectorView, UnsafeMatrixView, UnsafeCubeView,
