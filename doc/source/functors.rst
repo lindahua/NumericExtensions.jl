@@ -95,7 +95,7 @@ Pre-defined functors
 * Comparison functors: ``Greater``, ``GreaterEqual``, ``Less``, ``LessEqual``, ``Equal``, ``NotEqual``
 * Number class functors: ``Isfinite``, ``Isinf``, ``Isnan``
 * Fused multiply and add: ``FMA`` (i.e. ``(a, b, c) -> a + b * c``)
-* Others: ``Xlogx``, ``Xlogy``
+* Others: ``Logit``, ``Logistic``, ``Xlogx``, ``Xlogy``
 
 Except for several functors that corresponding to operators, most functors are named using the capitalized version of the corresponding math function. Therefore, you don't have to look up this list to find the names. The collection of pre-defined functors will be extended in future. Please refer to ``src/functors.jl`` for the most updated list.
 
