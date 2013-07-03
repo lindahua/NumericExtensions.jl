@@ -326,7 +326,8 @@ function code_reduce_function(fname::Symbol, coder_expr::Expr)
 
 	quote 
 		function ($fname)($(rparamlist...), dims::DimSpec)
-			r = Array($vtype, reduced_size($shape, dims))
+			vty = $vtype
+			r = Array(result_type(op, vty, vty), reduced_size($shape, dims))
 			($fname!)(r, $(rarglist...), dims)
 		end
 	end
@@ -380,6 +381,14 @@ macro basic_mapreduction(fname, op, emptyfun)
 	esc(code_basic_mapreduction(fname, op, emptyfun))
 end
 
+
+function sum(x::ContiguousArray{Bool})
+	r = 0
+	for e in x
+		if e r+= 1 end
+	end
+	r
+end
 
 sum{T<:Number}(x::ContiguousArray{T}) = isempty(x) ? zero(T) : reduce(Add(), x)
 sum{T<:Number}(x::ContiguousArray{T}, dims::DimSpec) = isempty(x) ? zeros(T, reduced_size(x, dims)) : reduce(Add(), x, dims)

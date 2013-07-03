@@ -118,6 +118,11 @@ q = rand(3, 4)
 @test max(x) == reduce(Max(), x) == reduce(Max(), -Inf, x) == safe_max(x)
 @test min(x) == reduce(Min(), x) == reduce(Min(), Inf, x) == safe_min(x)
 
+@test sum(Bool[]) === 0
+@test sum([false]) === 0
+@test sum([true]) === 1 
+@test sum([true, false, true]) === 2
+
 @test_approx_eq asum(x) safe_sum(abs(x))
 @test_approx_eq amax(x) safe_max(abs(x))
 @test_approx_eq amin(x) safe_min(abs(x))
@@ -247,6 +252,15 @@ r = zeros(4); sum!(r, x3, (1, 3))
 
 r = zeros(3); sum!(r, x3, (2, 3))
 @test_approx_eq r vec(safe_sum(x3, (2, 3)))
+
+# sum over boolean arrays
+
+a = [true true false; false true false]
+@test sum(a) === 3
+@test eltype(sum(a, 1)) == Int
+@test sum(a, 1) == [1 2 0]
+@test eltype(sum(a, 2)) == Int
+@test sum(a, 2) == reshape([2, 1], 2, 1)
 
 # max
 

@@ -76,6 +76,9 @@ for Op in [:Add, :Subtract, :Multiply, :Pow, :Max, :Min]
     @eval result_type{T<:Number}(::($Op), ::Type{T}, ::Type{T}) = T
 end
 
+result_type(::Add, ::Type{Bool}, ::Type{Bool}) = Int
+result_type(::Subtract, ::Type{Bool}, ::Type{Bool}) = Int
+
 for Op in [:Divide, :Hypot, :Atan2]
     @eval result_type{T1<:Number, T2<:Number}(::$(Op), ::Type{T1}, ::Type{T2}) = to_fptype(promote_type(T1, T2))
     @eval result_type{T<:Number}(::$(Op), ::Type{T}, ::Type{T}) = to_fptype(T)
