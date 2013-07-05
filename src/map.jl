@@ -9,7 +9,7 @@ function code_map_function(fname!::Symbol, coder_expr::Expr)
 	quote
 		function ($fname!)($(paramlist[1]), dst::ContiguousArray, $(paramlist[2:]...))
 			for i in 1 : length(dst)
-				dst[i] = $kernel
+				@inbounds dst[i] = $kernel
 			end
 			dst
 		end

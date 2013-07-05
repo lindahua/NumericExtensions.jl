@@ -46,7 +46,7 @@ function code_full_reduction(fname::Symbol, coder_expr::Expr)
 			n::Int = $len
 			v = $ker1
 			for i in 2 : n
-				v = evaluate(op, v, $kernel)
+				@inbounds v = evaluate(op, v, $kernel)
 			end
 			v
 		end
@@ -55,7 +55,7 @@ function code_full_reduction(fname::Symbol, coder_expr::Expr)
 			n::Int = $len
 			v = initval
 			for i in 1 : n
-				v = evaluate(op, v, $kernel)
+				@inbounds v = evaluate(op, v, $kernel)
 			end
 			v
 		end
@@ -100,25 +100,25 @@ function code_singledim_reduction(fname::Symbol, coder_expr::Expr, mapfun!::Symb
 			idx = 0
 			for j in 1 : n
 				idx += 1
-				v = $kernel
+				@inbounds v = $kernel
 				for i in 2 : m
 					idx += 1
-					v = evaluate(op, v, $kernel)
+					@inbounds v = evaluate(op, v, $kernel)
 				end
-				dst[j] = v
+				@inbounds dst[j] = v
 			end
 		end
 
 		function ($fname_lastdim!)(dst::ContiguousArray, op::BinaryFunctor, m::Int, n::Int, $(paramlist...))
 			for i in 1 : m
-				dst[i] = $ker_i
+				@inbounds dst[i] = $ker_i
 			end	
 			idx = m
 
 			for j in 2 : n
 				for i in 1 : m
 					idx += 1
-					dst[i] = evaluate(op, dst[i], $kernel)
+					@inbounds dst[i] = evaluate(op, dst[i], $kernel)
 				end
 			end
 		end
@@ -129,14 +129,14 @@ function code_singledim_reduction(fname::Symbol, coder_expr::Expr, mapfun!::Symb
 			for l in 1 : k
 				for i in 1 : m
 					idx += 1
-					dst[od + i] = $kernel
+					@inbounds dst[od + i] = $kernel
 				end
 
 				for j in 2 : n
 					for i in 1 : m
 						odi = od + i
 						idx += 1
-						dst[odi] = evaluate(op, dst[odi], $kernel)
+						@inbounds dst[odi] = evaluate(op, dst[odi], $kernel)
 					end
 				end
 
@@ -206,23 +206,23 @@ function code_doubledims_reduction(fname::Symbol, coder_expr::Expr)
 			idx = 0
 			for j in 1 : n
 				idx += 1
-				v = $kernel
+				@inbounds v = $kernel
 
 				for i in 2 : m
 					idx += 1
-					v = evaluate(op, v, $kernel)
+					@inbounds v = evaluate(op, v, $kernel)
 				end
-				dst[j] = v
+				@inbounds dst[j] = v
 			end
 
 			for l in 2 : k
 				for j in 1 : n
-					v = dst[j]
+					@inbounds v = dst[j]
 					for i in 1 : m
 						idx += 1
-						v = evaluate(op, v, $kernel)
+						@inbounds v = evaluate(op, v, $kernel)
 					end
-					dst[j] = v
+					@inbounds dst[j] = v
 				end
 			end				
 		end

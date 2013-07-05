@@ -36,7 +36,7 @@ function _var{R<:FloatingPoint, T<:Real}(::Type{R}, x::Array{T}, ifirst::Int, il
 	s2 = convert(R, xi * xi)
 
 	for i in ifirst+1 : ilast
-		xi = x[i]
+		@inbounds xi = x[i]
 		s += xi
 		s2 += xi * xi
 	end
@@ -73,17 +73,17 @@ end
 
 function _varimpl_lastdim!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, s::Array{R}, x::ContiguousArray{T}, m::Int, n::Int)
 	for i in 1 : m
-		xi = x[i]
-		s[i] = xi
-		dst[i] = xi * xi
+		@inbounds xi = x[i]
+		@inbounds s[i] = xi
+		@inbounds dst[i] = xi * xi
 	end
 
 	o = m
 	for j in 2 : n
 		for i in 1 : m
-			xi = x[o + i]
-			s[i] += xi
-			dst[i] += xi * xi
+			@inbounds xi = x[o + i]
+			@inbounds s[i] += xi
+			@inbounds dst[i] += xi * xi
 		end
 		o += m
 	end
@@ -91,7 +91,7 @@ function _varimpl_lastdim!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, s:
 	inv_n = one(R) / convert(R, n)
 	inv_nm1 = one(R) / convert(R, n - 1)
 	for i in 1 : m
-		mu = s[i] * inv_n
+		@inbounds mu = s[i] * inv_n
 		dst[i] = max(dst[i] - n * (mu * mu), zero(R)) * inv_nm1
 	end
 end
@@ -164,16 +164,16 @@ function _logsumexp_firstdim!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R},
 		# compute max
 		u = x[o + 1]
 		for i in 2 : m
-			xi = x[o + i]
+			@inbounds xi = x[o + i]
 			if xi > u
 				u = xi
 			end
 		end
 
 		# sum exp
-		s = exp(x[o + 1] - u)
+		@inbounds s = exp(x[o + 1] - u)
 		for i in 2 : m
-			s += exp(x[o + i] - u)
+			@inbounds s += exp(x[o + i] - u)
 		end
 
 		# compute log
@@ -188,19 +188,19 @@ function _logsumexp_lastdim!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, 
 
 	# sum exp
 	for i in 1 : m
-		dst[i] = exp(x[i] - u[i])
+		@inbounds dst[i] = exp(x[i] - u[i])
 	end
 	o = m
 	for j in 2 : n
 		for i in 1 : m
-			dst[i] += exp(x[o + i] - u[i])
+			@inbounds dst[i] += exp(x[o + i] - u[i])
 		end
 		o += m
 	end
 
 	# compute log
 	for i in 1 : m
-		dst[i] = log(dst[i]) + u[i]
+		@inbounds dst[i] = log(dst[i]) + u[i]
 	end
 end
 
@@ -244,11 +244,11 @@ function softmax!{T<:FloatingPoint}(dst::ContiguousArray{T}, x::ContiguousArray{
 	s = dst[1] = exp(x[1] - u)
 	n = length(x)
 	for i in 2 : n
-		s += (dst[i] = exp(x[i] - u))
+		@inbounds s += (dst[i] = exp(x[i] - u))
 	end
 	c = inv(s)
 	for i in 1 : n
-		dst[i] *= c
+		@inbounds dst[i] *= c
 	end
 	dst
 end
@@ -280,13 +280,13 @@ function _softmax_lastdim!{T<:FloatingPoint}(dst::ContiguousArray{T}, u::Array{T
 	s = unsafe_view(u, m+1:2*m)
 
 	for i in 1 : m
-		s[i] = dst[i] = exp(x[i] - u[i])
+		@inbounds s[i] = dst[i] = exp(x[i] - u[i])
 	end
 	o = m
 
 	for j in 2 : n
 		for i in 1 : m
-			s[i] += (dst[o + i] = exp(x[o + i] - u[i]))
+			@inbounds s[i] += (dst[o + i] = exp(x[o + i] - u[i]))
 		end
 		o += m
 	end
@@ -295,7 +295,7 @@ function _softmax_lastdim!{T<:FloatingPoint}(dst::ContiguousArray{T}, u::Array{T
 	o = 0
 	for j in 1 : n
 		for i in 1 : m
-			dst[o + i] .*= s[i]
+			@inbounds dst[o + i] .*= s[i]
 		end
 		o += m
 	end

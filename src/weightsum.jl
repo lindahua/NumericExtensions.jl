@@ -36,9 +36,9 @@ function code_weighted_sumfuns(fname::Symbol, coder_expr::Expr)
 				zero(T) * zero(W)
 			else
 				idx = 1
-				s = ($(kernel)) * weights[1]
+				@inbounds s = ($(kernel)) * weights[1]
 				for idx in 2 : n
-					s += ($(kernel)) * weights[idx]
+					@inbounds s += ($(kernel)) * weights[idx]
 				end
 				s
 			end
@@ -48,10 +48,10 @@ function code_weighted_sumfuns(fname::Symbol, coder_expr::Expr)
 			idx = 0
 			for j in 1 : n
 				idx += 1
-				v = ($kernel) * weights[1]
+				@inbounds v = ($kernel) * weights[1]
 				for i in 2 : m
 					idx += 1
-					v += ($kernel) * weights[i]
+					@inbounds v += ($kernel) * weights[i]
 				end
 				dst[j] = v
 			end
@@ -64,10 +64,10 @@ function code_weighted_sumfuns(fname::Symbol, coder_expr::Expr)
 			idx = m
 
 			for j in 2 : n
-				wj = weights[j]
+				@inbounds wj = weights[j]
 				for i in 1 : m
 					idx += 1
-					dst[i] += ($kernel) * wj
+					@inbounds dst[i] += ($kernel) * wj
 				end
 			end
 		end
@@ -78,15 +78,15 @@ function code_weighted_sumfuns(fname::Symbol, coder_expr::Expr)
 			for l in 1 : k
 				for i in 1 : m
 					idx += 1
-					dst[od + i] = ($kernel) * weights[1]
+					@inbounds dst[od + i] = ($kernel) * weights[1]
 				end
 
 				for j in 2 : n
-					wj = weights[j]
+					@inbounds wj = weights[j]
 					for i in 1 : m
 						odi = od + i
 						idx += 1
-						dst[odi] += ($kernel) * wj
+						@inbounds dst[odi] += ($kernel) * wj
 					end
 				end
 
