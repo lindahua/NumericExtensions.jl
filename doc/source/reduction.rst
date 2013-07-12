@@ -300,21 +300,21 @@ Furthermore, ``wasum``, ``wadiffsum``, ``wsqsum``, ``wsqdiffsum`` are provided t
 
 .. code-block:: julia
 
-    wasum(x)              # weighted sum of abs(x)
-    wasum(x, dim)
-    wasum!(dst, x, dim)
+    wasum(w, x)              # weighted sum of abs(x)
+    wasum(w, x, dim)
+    wasum!(dst, w, x, dim)
 
-    wadiffsum(x, y)       # weighted sum of abs(x - y)
-    wadiffsum(x, y, dim)
-    wadiffsum!(dst, x, y, dim)
+    wadiffsum(w, x, y)       # weighted sum of abs(x - y)
+    wadiffsum(w, x, y, dim)
+    wadiffsum!(dst, w, x, y, dim)
 
-    wsqsum(x)             # weighted sum of abs2(x)
-    wsqsum(x, dim)
-    wsqsum!(dst, x, dim) 
+    wsqsum(w, x)             # weighted sum of abs2(x)
+    wsqsum(w, x, dim)
+    wsqsum!(dst, w, x, dim) 
 
-    wsqdiffsum(x, y)      # weighted sum of abs2(x - y)
-    wsqdiffsum(x, y, dim)
-    wsqdiffsum!(dst, x, y, dim)
+    wsqdiffsum(w, x, y)      # weighted sum of abs2(x - y)
+    wsqdiffsum(w, x, y, dim)
+    wsqdiffsum!(dst, w, x, y, dim)
 
 
 Performance
