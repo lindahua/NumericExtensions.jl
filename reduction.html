@@ -346,21 +346,21 @@ The general usage of these extended methods is summarized below:</p>
 </pre></div>
 </div>
 <p>Furthermore, <tt class="docutils literal"><span class="pre">wasum</span></tt>, <tt class="docutils literal"><span class="pre">wadiffsum</span></tt>, <tt class="docutils literal"><span class="pre">wsqsum</span></tt>, <tt class="docutils literal"><span class="pre">wsqdiffsum</span></tt> are provided to compute weighted sum of absolute values / squares to simplify common use:</p>
-<div class="highlight-julia"><div class="highlight"><pre><span class="n">wasum</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>              <span class="c"># weighted sum of abs(x)</span>
-<span class="n">wasum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
-<span class="n">wasum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<div class="highlight-julia"><div class="highlight"><pre><span class="n">wasum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>              <span class="c"># weighted sum of abs(x)</span>
+<span class="n">wasum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">wasum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
 
-<span class="n">wadiffsum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>       <span class="c"># weighted sum of abs(x - y)</span>
-<span class="n">wadiffsum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
-<span class="n">wadiffsum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">wadiffsum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>       <span class="c"># weighted sum of abs(x - y)</span>
+<span class="n">wadiffsum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">wadiffsum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
 
-<span class="n">wsqsum</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>             <span class="c"># weighted sum of abs2(x)</span>
-<span class="n">wsqsum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
-<span class="n">wsqsum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">wsqsum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>             <span class="c"># weighted sum of abs2(x)</span>
+<span class="n">wsqsum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">wsqsum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
 
-<span class="n">wsqdiffsum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>      <span class="c"># weighted sum of abs2(x - y)</span>
-<span class="n">wsqdiffsum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
-<span class="n">wsqdiffsum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">wsqdiffsum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>      <span class="c"># weighted sum of abs2(x - y)</span>
+<span class="n">wsqdiffsum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">wsqdiffsum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
