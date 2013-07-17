@@ -9,7 +9,7 @@ module NumericExtensions
 	import Base.+, Base.*, Base.\, Base./
 	import Base.sum, Base.max, Base.min, Base.dot, Base.LinAlg.BLAS.asum, Base.norm
 	import Base.mean, Base.var, Base.std
-	import Base.logdet, Base.full, Base.inv
+	import Base.logdet, Base.full, Base.inv, Base.diag
 
 	# import of useful BLAS & LAPACK routines
 	

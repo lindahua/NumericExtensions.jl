@@ -28,6 +28,7 @@ dim(a::PDMat) = a.dim
 full(a::PDMat) = copy(a.mat)
 inv(a::PDMat) = PDMat(inv(a.chol))
 logdet(a::PDMat) = logdet(a.chol)
+diag(a::PDMat) = diag(a.mat)
 
 * (a::PDMat, c::Float64) = PDMat(a.mat * c)
 * (a::PDMat, x::VecOrMat) = a.mat * x
@@ -104,6 +105,7 @@ dim(a::PDiagMat) = a.dim
 full(a::PDiagMat) = diagm(a.diag)
 inv(a::PDiagMat) = PDiagMat(a.inv_diag, a.diag)
 logdet(a::PDiagMat) = sum(log(a.diag))
+diag(a::PDiagMat) = copy(a.diag)
 
 * (a::PDiagMat, c::Float64) = PDiagMat(a.diag * c)
 * (a::PDiagMat, x::VecOrMat) = bmultiply(x, a.diag, 1)
@@ -186,6 +188,7 @@ dim(a::ScalMat) = a.dim
 full(a::ScalMat) = diagm(fill(a.value, a.dim))
 inv(a::ScalMat) = ScalMat(a.dim, a.inv_value, a.value)
 logdet(a::ScalMat) = a.dim * log(a.value)
+diag(a::ScalMat) = fill(a.value, a.dim)
 
 * (a::ScalMat, c::Float64) = ScalMat(a.dim, a.value * c)
 / (a::ScalMat, c::Float64) = ScalMat(a.dim, a.value / c)

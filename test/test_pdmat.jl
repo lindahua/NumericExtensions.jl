@@ -21,6 +21,7 @@ a = PDMat(C)
 @test full(a) == C
 @test !is(full(a), C)
 @test_approx_eq logdet(a) log(det(C))
+@test diag(a) == [4., 5., 6.]
 
 r = inv(a)
 @test isa(r, PDMat)
@@ -86,6 +87,7 @@ a = PDiagMat(va)
 @test dim(a) == 3
 @test_approx_eq full(a) diagm(va)
 @test_approx_eq logdet(a) log(det(full(a)))
+@test diag(a) == va
 
 r = inv(a)
 @test isa(r, PDiagMat)
@@ -152,6 +154,7 @@ a = ScalMat(3, dv)
 @test dim(a) == 3
 @test_approx_eq full(a) dv * eye(3,3)
 @test_approx_eq logdet(a) log(det(full(a)))
+@test diag(a) == [2.0, 2.0, 2.0]
 
 r = inv(a)
 @test isa(r, ScalMat)

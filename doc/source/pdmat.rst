@@ -37,6 +37,10 @@ Functions are defined to operate on positive definite matrices through a uniform
 
     Return the log-determinant of the matrix.
 
+.. py:function:: diag(a)
+
+    Return a vector of diangonal elements.
+
 .. py:function:: a * x
 
     Perform matrix-vector/matrix-matrix multiplication. 
