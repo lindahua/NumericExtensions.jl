@@ -63,6 +63,9 @@ whiten!(a, yc)
 
 # quad & invquad
 
+@test isa(quad(a, x1), Float64)
+@test isa(invquad(a, x1), Float64) 
+
 @test_approx_eq quad(a, x1) safe_quad(a, x1)
 @test_approx_eq quad(a, x) safe_quad(a, x)
 @test_approx_eq invquad(a, x1) safe_invquad(a, x1)
@@ -130,6 +133,9 @@ whiten!(a, yc)
 
 # quad and invquad
 
+@test isa(quad(a, x1), Float64)
+@test isa(invquad(a, x1), Float64) 
+
 @test_approx_eq quad(a, x1) safe_quad(a, x1)
 @test_approx_eq quad(a, x) safe_quad(a, x)
 @test_approx_eq invquad(a, x1) safe_invquad(a, x1)
@@ -195,6 +201,9 @@ whiten!(a, yc)
 @test_approx_eq unwhiten(a, whiten(a, eye(3))) eye(3)
 
 # quad and invquad
+
+@test isa(quad(a, x1), Float64)
+@test isa(invquad(a, x1), Float64) 
 
 @test_approx_eq quad(a, x1) safe_quad(a, x1)
 @test_approx_eq quad(a, x) safe_quad(a, x)
