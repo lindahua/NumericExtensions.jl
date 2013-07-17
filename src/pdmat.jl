@@ -143,8 +143,8 @@ unwhiten!(a::PDiagMat, x::Matrix{Float64}) = bmultiply!(x, sqrt(a.diag), 1)
 quad(a::PDiagMat, x::Vector{Float64}) = wsqsum(a.diag, x)
 invquad(a::PDiagMat, x::Vector{Float64}) = wsqsum(a.inv_diag, x)
 
-quad!(r::Array{Float64}, a::PDiagMat, x::Matrix{Float64}) = gemv!('T', 1., abs2(x), a.diag, 0., r)
-invquad!(r::Array{Float64}, a::PDiagMat, x::Matrix{Float64}) = gemv!('T', 1., abs2(x), a.inv_diag, 0., r)
+quad!(r::Array{Float64}, a::PDiagMat, x::Matrix{Float64}) = gemv!('T', 1., x .* x, a.diag, 0., r)
+invquad!(r::Array{Float64}, a::PDiagMat, x::Matrix{Float64}) = gemv!('T', 1., x .* x, a.inv_diag, 0., r)
 
 function X_A_Xt(a::PDiagMat, x::Matrix{Float64}) 
     z = bmultiply(x, sqrt(a.diag), 2)
