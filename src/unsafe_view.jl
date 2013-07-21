@@ -7,7 +7,6 @@ typealias ContiguousVector{T} ContiguousArray{T, 1}
 typealias ContiguousMatrix{T} ContiguousArray{T, 2}
 typealias ContiguousCube{T} ContiguousArray{T, 3}
 
-
 similar(a::AbstractUnsafeView, T::DataType, shape::NTuple) = Array(T, shape)
 similar{T}(a::AbstractUnsafeView{T}) = Array(T, size(a))
 
@@ -105,6 +104,8 @@ offset_view{T}(a::ContiguousArray{T}, offset::Int, d1::Int, d2::Int) = UnsafeMat
 function offset_view{T}(a::ContiguousArray{T}, offset::Int, d1::Int, d2::Int, d3::Int)
 	UnsafeCubeView{T}(pointer(a) + sizeof(T) * offset, d1, d2, d3)
 end
+
+unsafe_view(v) = v  # fallback
 
 # 1D
 
