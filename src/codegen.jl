@@ -34,10 +34,13 @@ to_fparray{T<:Integer,N}(x::AbstractArray{T,N}) = convert(Array{to_fptype(T), N}
 
 abstract EwiseCoder
 
+type CubeParams end
+type UnsafeArrayParams end
+
 type TrivialCoder <: EwiseCoder end
 
 generate_paramlist(::TrivialCoder) = (:(x::ContiguousArray),)
-generate_paramlist_forcubes(::TrivialCoder) = (:(x::ContiguousCube),)
+generate_paramlist(::TrivialCoder, ::CubeParams) = (:(x::ContiguousCube),)
 
 generate_arglist(::TrivialCoder) = (:x,)
 generate_kernel(::TrivialCoder, i::SymOrNum) = :(x[$i])
@@ -50,7 +53,7 @@ eltype_inference(::TrivialCoder) = :(eltype(x))
 type UnaryCoder <: EwiseCoder end
 
 generate_paramlist(::UnaryCoder) = (:(f::UnaryFunctor), :(x::ContiguousArray))
-generate_paramlist_forcubes(::UnaryCoder) = (:(f::UnaryFunctor), :(x::ContiguousCube))
+generate_paramlist(::UnaryCoder, ::CubeParams) = (:(f::UnaryFunctor), :(x::ContiguousCube))
 
 generate_arglist(::UnaryCoder) = (:f, :x)
 generate_kernel(::UnaryCoder, i::SymOrNum) = :(evaluate(f, x[$i]))
@@ -63,7 +66,7 @@ eltype_inference(::UnaryCoder) = :(result_type(f, eltype(x)))
 type BinaryCoder <: EwiseCoder end
 
 generate_paramlist(::BinaryCoder) = (:(f::BinaryFunctor), :(x1::ArrayOrNumber), :(x2::ArrayOrNumber))
-generate_paramlist_forcubes(::BinaryCoder) = (:(f::BinaryFunctor), :(x1::CubeOrNumber), :(x2::CubeOrNumber))
+generate_paramlist(::BinaryCoder, ::CubeParams) = (:(f::BinaryFunctor), :(x1::CubeOrNumber), :(x2::CubeOrNumber))
 
 generate_arglist(::BinaryCoder) = (:f, :x1, :x2)
 generate_kernel(::BinaryCoder, i::SymOrNum) = :(evaluate(f, get_scalar(x1, $i), get_scalar(x2, $i)))
@@ -76,7 +79,7 @@ eltype_inference(::BinaryCoder) = :(result_type(f, eltype(x1), eltype(x2)))
 type FDiffCoder <: EwiseCoder end
 
 generate_paramlist(::FDiffCoder) = (:(f::UnaryFunctor), :(x1::ArrayOrNumber), :(x2::ArrayOrNumber))
-generate_paramlist_forcubes(::FDiffCoder) = (:(f::UnaryFunctor), :(x1::CubeOrNumber), :(x2::CubeOrNumber))
+generate_paramlist(::FDiffCoder, ::CubeParams) = (:(f::UnaryFunctor), :(x1::CubeOrNumber), :(x2::CubeOrNumber))
 
 generate_arglist(::FDiffCoder) = (:f, :x1, :x2)
 generate_kernel(::FDiffCoder, i::SymOrNum) = :(evaluate(f, get_scalar(x1, $i) - get_scalar(x2, $i)))
@@ -89,7 +92,7 @@ eltype_inference(::FDiffCoder) = :(result_type(f, promote_type(eltype(x1), eltyp
 type TernaryCoder <: EwiseCoder end
 
 generate_paramlist(::TernaryCoder) = (:(f::TernaryFunctor), :(x1::ArrayOrNumber), :(x2::ArrayOrNumber), :(x3::ArrayOrNumber))
-generate_paramlist_forcubes(::TernaryCoder) = (:(f::TernaryFunctor), :(x1::CubeOrNumber), :(x2::CubeOrNumber), :(x3::CubeOrNumber))
+generate_paramlist(::TernaryCoder, ::CubeParams) = (:(f::TernaryFunctor), :(x1::CubeOrNumber), :(x2::CubeOrNumber), :(x3::CubeOrNumber))
 
 generate_arglist(::TernaryCoder) = (:f, :x1, :x2, :x3)
 generate_kernel(::TernaryCoder, i::SymOrNum) = :(evaluate(f, get_scalar(x1, $i), get_scalar(x2, $i), get_scalar(x3, $i)))

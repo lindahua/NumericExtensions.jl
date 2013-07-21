@@ -190,7 +190,7 @@ _mapdiff_to_dest!(dst::ContiguousArray, f::UnaryFunctor, x1, x2) = mapdiff!(f, d
 
 function code_doubledims_reduction(fname::Symbol, coder_expr::Expr)
 	coder = eval(coder_expr)
-	paramlist = generate_paramlist_forcubes(coder)
+	paramlist = generate_paramlist(coder, CubeParams())
 	rparamlist = _reduc_paramlist(coder, paramlist)
 	arglist = generate_arglist(coder)
 	shape = shape_inference(coder)

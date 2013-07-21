@@ -44,9 +44,6 @@ for e in [
     @eval evaluate(::($(e[1])), x::Number, y::Number) = ($(e[2]))(x, y)
 end
 
-evaluate{T<:Real}(::Max, x::T, y::T) = x < y ? y : x
-evaluate{T<:Real}(::Min, x::T, y::T) = x > y ? y : x
-
 immutable FixAbsPow{T<:Real} <: UnaryFunctor 
     p::T
 end
