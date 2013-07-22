@@ -14,7 +14,7 @@ macro check_nonempty(funname)
 	end
 end
 
-function mean(x::ContiguousArray)
+function mean{T<:Real}(x::ContiguousArray{T})
 	@check_nonempty("mean")
 	sum(x) / length(x)
 end
@@ -51,7 +51,7 @@ function varm{T<:Real}(x::ContiguousArray{T}, mu::Real)
 	s2 / (n - 1)
 end
 
-function varm!{R<:FloatingPoint,T<:Real}(dst::Array{R}, x::ContiguousVector{T}, mu::Real, dim::Int)
+function varm!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, x::ContiguousVector{T}, mu::Real, dim::Int)
 	if dim == 1
 		dst[1] = varm(x, mu)
 	else
@@ -152,31 +152,7 @@ end
 #
 ###################
 
-function _var{R<:FloatingPoint, T<:Real}(::Type{R}, x::ContiguousArray{T}, ifirst::Int, ilast::Int)
-	s = zero(R)
-	s2 = zero(R)
-	
-	nm1 = ilast - ifirst
-	n = nm1 + 1
-	rg = ifirst : ilast
-
-	for i in rg
-		@inbounds xi = x[i]
-		s += xi
-	end
-	mu = s / n
-
-	for i in rg
-		@inbounds xi = x[i]
-		s2 += abs2(xi - mu)
-	end
-	s2 / nm1
-end
-
-function var{T<:Real}(x::Array{T})
-	@check_nonempty("var")
-	_var(to_fptype(T), x, 1, length(x))
-end
+var{T<:Real}(x::ContiguousArray{T}) = varm(x, mean(x))
 
 function var!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, x::ContiguousVector{T}, dim::Int)
 	if dim == 1
@@ -196,12 +172,10 @@ function var!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, x::ContiguousAr
 	siz = size(x)
 
 	if dim == 1
-		o = 0
 		m = siz[1]
 		n = _trail_length(siz, 1)
 		for j in 1 : n
-			dst[j] = _var(R, x, o+1, o+m)
-			o += m
+			dst[j] = var(unsafe_view(x, :, j))
 		end		
 	else
 		varm!(dst, x, mean(x, dim), dim)
@@ -209,7 +183,7 @@ function var!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, x::ContiguousAr
 	dst
 end
 
-function var{T<:Real}(x::Array{T}, dim::Int)
+function var{T<:Real}(x::ContiguousArray{T}, dim::Int)
 	var!(Array(to_fptype(T), reduced_size(size(x), dim)), x, dim)
 end
 
