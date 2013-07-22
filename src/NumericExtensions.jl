@@ -8,7 +8,7 @@ module NumericExtensions
 	import Base.diagm
 	import Base.+, Base.*, Base.\, Base./
 	import Base.sum, Base.max, Base.min, Base.dot, Base.LinAlg.BLAS.asum, Base.norm
-	import Base.mean, Base.var, Base.std
+	import Base.mean, Base.var, Base.varm, Base.std, Base.stdm
 	import Base.logdet, Base.full, Base.inv, Base.diag
 
 	# import of useful BLAS & LAPACK routines
@@ -72,7 +72,7 @@ module NumericExtensions
 		vnorm, vnorm!, vdiffnorm, vdiffnorm!,
 
 		# statistics
-		mean!, var!, std!, entropy, entropy!,
+		mean!, var!, varm!, std!, stdm!, entropy, entropy!,
 		logsumexp, logsumexp!, softmax, softmax!,
 
 		# weightsum

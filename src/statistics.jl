@@ -1,6 +1,10 @@
 # Reduction functions related to statistics
 
-# mean
+###################
+#
+#  Mean
+#
+###################
 
 macro check_nonempty(funname)
 	quote
@@ -10,25 +14,143 @@ macro check_nonempty(funname)
 	end
 end
 
-function mean(x::Array)
+function mean(x::ContiguousArray)
 	@check_nonempty("mean")
 	sum(x) / length(x)
 end
 
-function mean{T<:Real}(x::Array{T}, dims::DimSpec)
+function mean{T<:Real}(x::ContiguousArray{T}, dims::DimSpec)
 	@check_nonempty("mean")
 	r = to_fparray(sum(x, dims))
 	c = convert(eltype(r), inv(_reduc_dim_length(x, dims)))
 	multiply!(r, c)
 end
 
-function mean!{R<:Real,T<:Real}(dst::Array{R}, x::Array{T}, dims::DimSpec)
+function mean!{R<:Real,T<:Real}(dst::ContiguousArray{R}, x::Array{T}, dims::DimSpec)
 	@check_nonempty("mean")
 	c = convert(R, inv(_reduc_dim_length(x, dims)))
 	multiply!(sum!(dst, x, dims), c)
 end
 
-# var
+###################
+#
+#  Varm & Stdm
+#
+###################
+
+# varm
+
+function varm{T<:Real}(x::ContiguousArray{T}, mu::Real)
+	@check_nonempty("varm")
+	n = length(x)
+
+	s2 = abs2(x[1] - mu)
+	for i = 2:n
+		@inbounds s2 += abs2(x[i] - mu)
+	end
+	s2 / (n - 1)
+end
+
+function varm!{R<:FloatingPoint,T<:Real}(dst::Array{R}, x::ContiguousVector{T}, mu::Real, dim::Int)
+	if dim == 1
+		dst[1] = varm(x, mu)
+	else
+		error("varm: dim must be 1 for vector.")
+	end
+	dst
+end
+
+function _varm_colwise!{R}(dst::ContiguousArray{R}, x, mu, m::Int, n::Int)
+	c = inv(m - 1)
+	o = 0
+	for j = 1:n
+		s2 = zero(R)
+		mu_j = mu[j]
+		for i = 1:m
+			@inbounds s2 += abs2(x[o + i] - mu_j)
+		end
+		dst[j] = s2 * c
+		o += m
+	end	
+end
+
+function _varm_rowwise!(dst, x, mu, m::Int, n::Int)
+	o::Int = 0
+	for i = 1:m
+		@inbounds dst[i] = abs2(x[o + i] - mu[i])
+	end
+	o += m
+	for j = 2:n-1
+		for i = 1:m
+			@inbounds dst[i] += abs2(x[o + i] - mu[i])
+		end
+		o += m
+	end 
+	c = inv(n - 1)
+	for i = 1:m
+		@inbounds v = dst[i] + abs2(x[o + i] - mu[i])
+		dst[i] = v * c
+	end
+end
+
+function varm!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, 
+	x::ContiguousArray{T}, mu::ContiguousArray{R}, dim::Int)
+
+	@check_nonempty("var")
+	nd = ndims(x)
+	if !(1 <= dim <= nd)
+		error("varm: invalid value for the dim argument.")
+	end
+	siz = size(x)
+
+	if dim == 1
+		m = siz[1]
+		n = _trail_length(siz, dim)
+		_varm_colwise!(dst, x, mu, m, n)
+
+	elseif dim == nd
+		m = _precede_length(siz, dim)
+		n = siz[dim]
+		_varm_rowwise!(dst, x, mu, m, n)
+
+	else  # 1 < dim < nd
+		m = _precede_length(siz, dim)
+		n = siz[dim]
+		k = _trail_length(siz, dim)
+		for l = 1:k
+			_varm_rowwise!(
+				unsafe_view(dst,:,l), unsafe_view(x,:,:,l), 
+				unsafe_view(mu,:,l), m, n)
+		end
+	end
+	dst
+end
+
+function varm{R<:FloatingPoint, T<:Real}(x::ContiguousArray{T}, mu::ContiguousArray{R}, dim::Int)
+	rsiz = reduced_size(size(x), dim)
+	if length(mu) != prod(rsiz)
+		error("Inconsistent argument dimensions.")
+	end
+	varm!(Array(R, rsiz), x, mu, dim)
+end
+
+# stdm
+
+stdm{T<:Real}(x::ContiguousArray{T}, mu::Real) = sqrt(varm(x, mu))
+stdm{T<:Real}(x::ContiguousArray{T}, mu::ContiguousArray{T}, dim::Int) = sqrt!(varm(x, mu, dim))
+
+function stdm!{R<:FloatingPoint, T<:Real}(dst::ContiguousArray{R}, 
+	x::ContiguousArray{T}, mu::ContiguousArray{T}, dim::Int)
+
+	sqrt!(varm!(dst, x, mu, dim))
+end
+
+
+###################
+#
+#  Var & Std
+#
+###################
 
 function _var{R<:FloatingPoint, T<:Real}(::Type{R}, x::Array{T}, ifirst::Int, ilast::Int)
 	xi = x[ifirst]
@@ -130,26 +252,35 @@ end
 
 # std
 
-std{T<:Real}(x::Array{T}) = sqrt(var(x))
-std{T<:Real}(x::Array{T}, dim::Int) = sqrt!(var(x, dim))
-std!{R<:FloatingPoint, T<:Real}(dst::Array{R}, x::Matrix{T}, dim::Int) = sqrt!(var!(dst, x, dim))
-
-# entropy
-
-entropy(x::Array) = - sum_xlogx(x)
-entropy(x::Array, dims::DimSpec) = negate!(sum_xlogx(x, dims))
-entropy!(dst::Array, x::Array, dims::DimSpec) = negate!(sum_xlogx!(dst, x, dims))
+std{T<:Real}(x::ContiguousArray{T}) = sqrt(var(x))
+std{T<:Real}(x::ContiguousArray{T}, dim::Int) = sqrt!(var(x, dim))
+std!{R<:FloatingPoint, T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, dim::Int) = sqrt!(var!(dst, x, dim))
 
 
-# logsumexp
+###################
+#
+#  Entropy
+#
+###################
 
-function logsumexp{T<:Real}(x::Array{T})
+entropy{T<:Real}(x::ContiguousArray{T}) = - sum_xlogx(x)
+entropy{T<:Real}(x::ContiguousArray{T}, dims::DimSpec) = negate!(sum_xlogx(x, dims))
+entropy!{T<:Real}(dst::ContiguousArray{T}, x::ContiguousArray{T}, dims::DimSpec) = negate!(sum_xlogx!(dst, x, dims))
+
+
+###################
+#
+#  Logsumexp
+#
+###################
+
+function logsumexp{T<:Real}(x::ContiguousArray{T})
 	@check_nonempty("logsumexp")
 	u = max(x)
 	log(sum_fdiff(Exp(), x, u)) + u
 end
 
-function logsumexp!{R<:FloatingPoint, T<:Real}(dst::Array{R}, x::Vector{T}, dim::Int)
+function logsumexp!{R<:FloatingPoint, T<:Real}(dst::ContiguousArray{R}, x::ContiguousVector{T}, dim::Int)
 	if dim == 1
 		dst[1] = logsumexp(x)
 	else
@@ -182,7 +313,9 @@ function _logsumexp_firstdim!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R},
 	end
 end
 
-function _logsumexp_lastdim!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, u::Array{T}, x::ContiguousArray{T}, m::Int, n::Int)
+function _logsumexp_lastdim!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, 
+	u::ContiguousArray{T}, x::ContiguousArray{T}, m::Int, n::Int)
+
 	# compute max
 	max!(u, unsafe_view(x, :, 1:n), (), 2)
 
@@ -204,14 +337,16 @@ function _logsumexp_lastdim!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, 
 	end
 end
 
-function _logsumexp_middim!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, u::Array{T}, x::ContiguousArray{T}, m::Int, n::Int, k::Int)
+function _logsumexp_middim!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, 
+	u::ContiguousArray{T}, x::ContiguousArray{T}, m::Int, n::Int, k::Int)
+
 	for l in 1 : k
 		_logsumexp_lastdim!(unsafe_view(dst, :, l), u, unsafe_view(x, :, :, l), m, n)
 	end
 end
 
 
-function logsumexp!{R<:FloatingPoint,T<:Real}(dst::Array{R}, x::Array{T}, dim::Int)
+function logsumexp!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, dim::Int)
 	@check_nonempty("logsumexp")
 	nd = ndims(x)
 	if !(1 <= dim <= nd)
@@ -231,12 +366,16 @@ function logsumexp!{R<:FloatingPoint,T<:Real}(dst::Array{R}, x::Array{T}, dim::I
 	dst
 end
 
-function logsumexp{T<:Real}(x::Array{T}, dim::Int)
+function logsumexp{T<:Real}(x::ContiguousArray{T}, dim::Int)
 	logsumexp!(Array(to_fptype(T), reduced_size(size(x), dim)), x, dim)
 end
 
 
-# softmax
+###################
+#
+#  Softmax
+#
+###################
 
 function softmax!{T<:FloatingPoint}(dst::ContiguousArray{T}, x::ContiguousArray{T})
 	@check_nonempty("softmax")
@@ -272,7 +411,9 @@ function _softmax_firstdim!{T<:FloatingPoint}(dst::ContiguousArray{T}, x::Contig
 	end
 end
 
-function _softmax_lastdim!{T<:FloatingPoint}(dst::ContiguousArray{T}, u::Array{T}, x::ContiguousArray{T}, m::Int, n::Int)
+function _softmax_lastdim!{T<:FloatingPoint}(dst::ContiguousArray{T}, 
+	u::ContiguousArray{T}, x::ContiguousArray{T}, m::Int, n::Int)
+
 	# compute max
 	max!(u, unsafe_view(x, :, 1:n), (), 2)
 
@@ -301,7 +442,9 @@ function _softmax_lastdim!{T<:FloatingPoint}(dst::ContiguousArray{T}, u::Array{T
 	end
 end
 
-function _softmax_middim!{T<:FloatingPoint}(dst::ContiguousArray{T}, u::Array{T}, x::ContiguousArray{T}, m::Int, n::Int, k::Int)
+function _softmax_middim!{T<:FloatingPoint}(dst::ContiguousArray{T}, 
+	u::ContiguousArray{T}, x::ContiguousArray{T}, m::Int, n::Int, k::Int)
+
 	for l in 1 : k
 		_softmax_lastdim!(unsafe_view(dst, :, :, l), u, unsafe_view(x, :, :, l), m, n)
 	end

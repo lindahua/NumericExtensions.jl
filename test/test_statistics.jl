@@ -47,10 +47,36 @@ safe_mean(x, d::(Int, Int)) = sum(x, d) / (size(x, d[1]) * size(x, d[2]))
 r = zeros(size(x2, 2)); mean!(r, x2, 1) 
 @test_approx_eq r vec(mean(x2, 1))
 
+# varm
+
+safe_varm(x, u) = sum(abs2(x - u)) / (length(x) - 1)
+safe_varm(x, u, d::Int) = sum(abs2(x .- u), d) / (size(x, d) - 1)
+
+@test_approx_eq varm(x, mean(y)) safe_varm(x, mean(y))
+@test_approx_eq varm(x1, mean(y1,1), 1) safe_varm(x1, mean(y1,1), 1)
+@test_approx_eq varm(x2, mean(y2,1), 1) safe_varm(x2, mean(y2,1), 1)
+@test_approx_eq varm(x2, mean(y2,2), 2) safe_varm(x2, mean(y2,2), 2)
+@test_approx_eq varm(x3, mean(y3,1), 1) safe_varm(x3, mean(y3,1), 1)
+@test_approx_eq varm(x3, mean(y3,2), 2) safe_varm(x3, mean(y3,2), 2)
+@test_approx_eq varm(x3, mean(y3,3), 3) safe_varm(x3, mean(y3,3), 3)
+
+# stdm
+
+safe_stdm(x, u) = sqrt(safe_varm(x, u))
+safe_stdm(x, u, d::Int) = sqrt(safe_varm(x, u, d))
+
+@test_approx_eq stdm(x, mean(y)) safe_stdm(x, mean(y))
+@test_approx_eq stdm(x1, mean(y1,1), 1) safe_stdm(x1, mean(y1,1), 1)
+@test_approx_eq stdm(x2, mean(y2,1), 1) safe_stdm(x2, mean(y2,1), 1)
+@test_approx_eq stdm(x2, mean(y2,2), 2) safe_stdm(x2, mean(y2,2), 2)
+@test_approx_eq stdm(x3, mean(y3,1), 1) safe_stdm(x3, mean(y3,1), 1)
+@test_approx_eq stdm(x3, mean(y3,2), 2) safe_stdm(x3, mean(y3,2), 2)
+@test_approx_eq stdm(x3, mean(y3,3), 3) safe_stdm(x3, mean(y3,3), 3)
+
 # var
 
-safe_var(x) = sum(abs2(x - mean(x))) / (length(x) - 1)
-safe_var(x, d::Int) = sum(abs2(x .- mean(x, d)), d) / (size(x, d) - 1)
+safe_var(x) = safe_varm(x, mean(x))
+safe_var(x, d::Int) = safe_varm(x, mean(x, d), d)
 
 @test_approx_eq var(x) safe_var(x)
 @test_approx_eq var(x1, 1) safe_var(x1, 1) 
