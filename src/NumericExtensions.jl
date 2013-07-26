@@ -37,6 +37,7 @@ module NumericExtensions
 		Greater, GreaterEqual, Less, LessEqual, Equal, NotEqual,
 		Isfinite, Isnan, Isinf,
 
+		Recip,
 		logit, logistic, xlogx, xlogy, Logit, Logistic, Xlogx, Xlogy,
 
 		# views

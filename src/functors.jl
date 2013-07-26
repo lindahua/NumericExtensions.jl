@@ -49,11 +49,13 @@ immutable FixAbsPow{T<:Real} <: UnaryFunctor
 end
 evaluate(op::FixAbsPow, x::Number) = abs(x) ^ op.p
 
+type Recip <: UnaryFunctor end
 type Logit <: UnaryFunctor end
 type Logistic <: UnaryFunctor end
 type Xlogx <: UnaryFunctor end
 type Xlogy <: BinaryFunctor end
 
+evaluate{T<:FloatingPoint}(::Recip, x::T) = one(T) / x
 evaluate{T<:FloatingPoint}(::Logit, x::T) = log(x/(one(T)-x))
 evaluate{T<:FloatingPoint}(::Logistic, x::T) = one(T)/(one(T) + exp(-x))
 evaluate{T<:FloatingPoint}(::Xlogx, x::T) = x > 0 ? x * log(x) : zero(T)
@@ -119,6 +121,7 @@ result_type{Tp<:Real, T<:Number}(::FixAbsPow, ::Type{T}) = promote_type(Tp, T)
 result_type{T1<:Number,T2<:Number,T3<:Number}(::FMA, ::Type{T1}, ::Type{T2}, ::Type{T3}) = promote_type(T1, promote_type(T2, T3))
 result_type{T<:Number}(::FMA, ::Type{T}, ::Type{T}, ::Type{T}) = T
 
+result_type{T<:FloatingPoint}(::Recip, ::Type{T}) = T
 result_type{T<:FloatingPoint}(::Logit, ::Type{T}) = T
 result_type{T<:FloatingPoint}(::Logistic, ::Type{T}, ::Type{T}) = T
 result_type{T<:FloatingPoint}(::Xlogx, ::Type{T}) = T
