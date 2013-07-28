@@ -72,7 +72,7 @@ module NumericExtensions
 		sum_xlogx, sum_xlogx!, sum_xlogy, sum_xlogy!, 
 
 		# norms
-		vnorm, vnorm!, vdiffnorm, vdiffnorm!,
+		vnorm, vnorm!, vdiffnorm, vdiffnorm!, normalize, normalize!,
 
 		# statistics
 		mean!, var!, varm!, std!, stdm!, entropy, entropy!,

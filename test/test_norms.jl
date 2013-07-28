@@ -72,3 +72,51 @@ y3 = randn(3, 4, 5)
 @test_approx_eq vdiffnorm(x3, y3, 3, 2) sum(abs(x3 - y3).^3, 2).^(1/3)
 @test_approx_eq vdiffnorm(x3, y3, 3, 3) sum(abs(x3 - y3).^3, 3).^(1/3)
 
+# normalization
+
+@test_approx_eq normalize(x1, 1) x1 ./ vnorm(x1, 1)
+@test_approx_eq normalize(x1, 2) x1 ./ vnorm(x1, 2)
+@test_approx_eq normalize(x1, 3) x1 ./ vnorm(x1, 3)
+@test_approx_eq normalize(x1, Inf) x1 ./ vnorm(x1, Inf)
+
+x2c = copy(x2)
+normalize!(x2c, 1)
+@test_approx_eq x2c x2 ./ vnorm(x2, 1)
+
+@test_approx_eq normalize(x1, 1, 1) x1 ./ vnorm(x1, 1, 1)
+@test_approx_eq normalize(x2, 1, 1) x2 ./ vnorm(x2, 1, 1)
+@test_approx_eq normalize(x2, 1, 2) x2 ./ vnorm(x2, 1, 2)
+@test_approx_eq normalize(x3, 1, 1) x3 ./ vnorm(x3, 1, 1)
+@test_approx_eq normalize(x3, 1, 2) x3 ./ vnorm(x3, 1, 2)
+@test_approx_eq normalize(x3, 1, 3) x3 ./ vnorm(x3, 1, 3)
+
+@test_approx_eq normalize(x1, 2, 1) x1 ./ vnorm(x1, 2, 1)
+@test_approx_eq normalize(x2, 2, 1) x2 ./ vnorm(x2, 2, 1)
+@test_approx_eq normalize(x2, 2, 2) x2 ./ vnorm(x2, 2, 2)
+@test_approx_eq normalize(x3, 2, 1) x3 ./ vnorm(x3, 2, 1)
+@test_approx_eq normalize(x3, 2, 2) x3 ./ vnorm(x3, 2, 2)
+@test_approx_eq normalize(x3, 2, 3) x3 ./ vnorm(x3, 2, 3)
+
+@test_approx_eq normalize(x1, 3, 1) x1 ./ vnorm(x1, 3, 1)
+@test_approx_eq normalize(x2, 3, 1) x2 ./ vnorm(x2, 3, 1)
+@test_approx_eq normalize(x2, 3, 2) x2 ./ vnorm(x2, 3, 2)
+@test_approx_eq normalize(x3, 3, 1) x3 ./ vnorm(x3, 3, 1)
+@test_approx_eq normalize(x3, 3, 2) x3 ./ vnorm(x3, 3, 2)
+@test_approx_eq normalize(x3, 3, 3) x3 ./ vnorm(x3, 3, 3)
+
+@test_approx_eq normalize(x1, Inf, 1) x1 ./ vnorm(x1, Inf, 1)
+@test_approx_eq normalize(x2, Inf, 1) x2 ./ vnorm(x2, Inf, 1)
+@test_approx_eq normalize(x2, Inf, 2) x2 ./ vnorm(x2, Inf, 2)
+@test_approx_eq normalize(x3, Inf, 1) x3 ./ vnorm(x3, Inf, 1)
+@test_approx_eq normalize(x3, Inf, 2) x3 ./ vnorm(x3, Inf, 2)
+@test_approx_eq normalize(x3, Inf, 3) x3 ./ vnorm(x3, Inf, 3)
+
+x2c = copy(x2)
+normalize!(x2c, 2, 1)
+@test_approx_eq x2c x2 ./ vnorm(x2, 2, 1)
+
+x2c = copy(x2)
+normalize!(x2c, 2, 2)
+@test_approx_eq x2c x2 ./ vnorm(x2, 2, 2)
+
+

@@ -65,3 +65,70 @@ function vdiffnorm{Tx<:Number,Ty<:Number,Tp<:Real}(x::ContiguousArray{Tx}, y::Co
 	vdiffnorm!(r, x, y, p, dims)
 	r
 end
+
+
+#################################################
+#
+# 	Normalization
+#
+#################################################
+
+# normalize an array as a whole
+
+function normalize!{Td<:Real,Tx<:Real}(dst::ContiguousArray{Td}, x::ContiguousArray{Tx}, p::Real)
+	return map!(Multiply(), dst, x, inv(vnorm(x, p)))
+end
+normalize!{Tx<:Real}(x::ContiguousArray{Tx}, p::Real) = normalize!(x, x, p)
+normalize{Tx<:Real}(x::ContiguousArray{Tx}, p::Real) = x * inv(vnorm(x, p))
+
+# normalize along specific dimension
+
+function normalize!{Td<:Real,Tx<:Real}(dst::ContiguousArray{Td}, x::ContiguousArray{Tx}, p::Real, d::Int)
+	if !(p > 0)
+		throw(ArgumentError("p must be positive."))
+	end
+	if length(dst) != length(x)
+		throw(ArgumentError("Inconsistent argument dimensions!"))
+	end
+
+	if d == 1
+		siz = size(x)
+		m = siz[1]
+		n = succ_length(siz, 1)
+
+		if p == 1
+			for j = 1:n			
+				xj = unsafe_view(x, :, j)
+				yj = unsafe_view(dst, :, j)
+				map!(Multiply(), yj, xj, inv(asum(xj)))
+			end
+		elseif p == 2
+			for j = 1:n
+				xj = unsafe_view(x, :, j)
+				yj = unsafe_view(dst, :, j)
+				map!(Multiply(), yj, xj, inv(sqrt(sqsum(xj))))
+			end
+		elseif isinf(p)
+			for j = 1:n
+				xj = unsafe_view(x, :, j)
+				yj = unsafe_view(dst, :, j)
+				map!(Multiply(), yj, xj, inv(amax(xj)))
+			end
+		else
+			for j = 1:n
+				xj = unsafe_view(x, :, j)
+				yj = unsafe_view(dst, :, j)
+				u = sum(FixAbsPow(p), xj) .^ inv(p)
+				map!(Multiply(), yj, xj, inv(u))
+			end
+		end
+
+	else
+		broadcast!(.*, dst, x, rcp!(vnorm(x, p, d)))
+	end
+	dst
+end
+
+normalize!{Tx<:Real}(x::ContiguousArray{Tx}, p::Real, d::Int) = normalize!(x, x, p, d)
+normalize{Tx<:Real}(x::ContiguousArray{Tx}, p::Real, d::Int) = normalize!(similar(x), x, p, d)
+
