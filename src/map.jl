@@ -2,14 +2,13 @@
 
 # code generators
 
-function code_map_function(fname!::Symbol, coder_expr::Expr)
-	coder = eval(coder_expr)
-	paramlist = generate_paramlist(coder)
-	kernel = generate_kernel(coder, :i)
+function code_map_function{KType<:EwiseFunKernel}(fname!::Symbol, kergen::Type{KType})
+	plst = paramlist(kergen, :ContiguousArray)
+	ker = kernel(kergen, :i)
 	quote
-		function ($fname!)($(paramlist[1]), dst::ContiguousArray, $(paramlist[2:]...))
+		function ($fname!)($(plst[1]), dst::ContiguousArray, $(plst[2:]...))
 			for i in 1 : length(dst)
-				@inbounds dst[i] = $kernel
+				@inbounds dst[i] = $ker
 			end
 			dst
 		end
@@ -17,15 +16,15 @@ function code_map_function(fname!::Symbol, coder_expr::Expr)
 end
 
 macro map_function(fname, coder)
-	esc(code_map_function(fname, coder))
+	esc(code_map_function(fname, eval(coder)))
 end
 
 # generic map functions
 
-@map_function map! UnaryCoder()
-@map_function map! BinaryCoder()
-@map_function mapdiff! FDiffCoder()
-@map_function map! TernaryCoder()
+@map_function map! UnaryFunKernel
+@map_function map! BinaryFunKernel
+@map_function mapdiff! DiffFunKernel
+@map_function map! TernaryFunKernel
 
 map1!(f::Functor, x1, xr...) = map!(f, x1, x1, xr...)
 

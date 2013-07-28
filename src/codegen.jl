@@ -5,10 +5,6 @@
 typealias SymOrNum Union(Symbol, Number)
 
 typealias ArrayOrNumber Union(ContiguousArray, Number)
-typealias VectorOrNumber Union(ContiguousVector, Number)
-typealias MatrixOrNumber Union(ContiguousMatrix, Number)
-typealias CubeOrNumber Union(ContiguousCube, Number)
-
 typealias DimSpec Union(Int, (Int, Int))
 
 # element access
@@ -25,80 +21,75 @@ get_scalar(x::Number, i::Int, j::Int, k::Int) = x
 
 result_eltype(op::UnaryFunctor, x::ContiguousArray) = result_type(op, eltype(x))
 result_eltype(op::BinaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber) = result_type(op, eltype(x1), eltype(x2))
-result_eltype(op::TernaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber, x3::ArrayOrNumber) = result_type(op, eltype(x1), eltype(x2), eltype(x3))
+function result_eltype(op::TernaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber, x3::ArrayOrNumber)
+	return result_type(op, eltype(x1), eltype(x2), eltype(x3))
+end
 
 to_fparray{T<:FloatingPoint}(x::AbstractArray{T}) = x
 to_fparray{T<:Integer,N}(x::AbstractArray{T,N}) = convert(Array{to_fptype(T), N}, x)
 
+
 # building block generators
 
-abstract EwiseCoder
+abstract EwiseKernel
+abstract EwiseFunKernel <: EwiseKernel
 
-type CubeParams end
-type UnsafeArrayParams end
+type DirectKernel <: EwiseKernel end
 
-type TrivialCoder <: EwiseCoder end
+arglist(::Type{DirectKernel}) = (:x,)
+paramlist(::Type{DirectKernel}, aty::Symbol) = (:(x::$aty),)
+kernel(::Type{DirectKernel}, i::SymOrNum) = :(x[$i])
+emptytest(::Type{DirectKernel}) = :(isempty(x))
 
-generate_paramlist(::TrivialCoder) = (:(x::ContiguousArray),)
-generate_paramlist(::TrivialCoder, ::CubeParams) = (:(x::ContiguousCube),)
+length_inference(::Type{DirectKernel}) = :(length(x))
+shape_inference(::Type{DirectKernel}) = :(size(x))
+eltype_inference(::Type{DirectKernel}) = :(eltype(x))
 
-generate_arglist(::TrivialCoder) = (:x,)
-generate_kernel(::TrivialCoder, i::SymOrNum) = :(x[$i])
-generate_emptytest(::TrivialCoder) = :(isempty(x))
+type UnaryFunKernel <: EwiseFunKernel end
 
-length_inference(::TrivialCoder) = :(length(x))
-shape_inference(::TrivialCoder) = :(size(x))
-eltype_inference(::TrivialCoder) = :(eltype(x))
+arglist(::Type{UnaryFunKernel}) = (:f, :x)
+paramlist(::Type{UnaryFunKernel}, aty::Symbol) = (:(f::UnaryFunctor), :(x::$aty))
+kernel(::Type{UnaryFunKernel}, i::SymOrNum) = :(evaluate(f, x[$i]))
+emptytest(::Type{UnaryFunKernel}) = :(isempty(x))
 
-type UnaryCoder <: EwiseCoder end
+length_inference(::Type{UnaryFunKernel}) = :(length(x))
+shape_inference(::Type{UnaryFunKernel}) = :(size(x))
+eltype_inference(::Type{UnaryFunKernel}) = :(result_type(f, eltype(x))) 
 
-generate_paramlist(::UnaryCoder) = (:(f::UnaryFunctor), :(x::ContiguousArray))
-generate_paramlist(::UnaryCoder, ::CubeParams) = (:(f::UnaryFunctor), :(x::ContiguousCube))
+type BinaryFunKernel <: EwiseFunKernel end
 
-generate_arglist(::UnaryCoder) = (:f, :x)
-generate_kernel(::UnaryCoder, i::SymOrNum) = :(evaluate(f, x[$i]))
-generate_emptytest(::UnaryCoder) = :(isempty(x))
+arglist(::Type{BinaryFunKernel}) = (:f, :x1, :x2)
+paramlist(::Type{BinaryFunKernel}, aty::Symbol) = (:(f::BinaryFunctor), 
+	:(x1::Union($aty,Number)), :(x2::Union($aty,Number)))
+kernel(::Type{BinaryFunKernel}, i::SymOrNum) = :(evaluate(f, get_scalar(x1, $i), get_scalar(x2, $i)))
+emptytest(::Type{BinaryFunKernel}) = :(isempty(x1) || isempty(x2))
 
-length_inference(::UnaryCoder) = :(length(x))
-shape_inference(::UnaryCoder) = :(size(x))
-eltype_inference(::UnaryCoder) = :(result_type(f, eltype(x))) 
+length_inference(::Type{BinaryFunKernel}) = :(prod(map_shape(x1, x2)))
+shape_inference(::Type{BinaryFunKernel}) = :(map_shape(x1, x2))
+eltype_inference(::Type{BinaryFunKernel}) = :(result_type(f, eltype(x1), eltype(x2)))
 
-type BinaryCoder <: EwiseCoder end
+type DiffFunKernel <: EwiseFunKernel end
 
-generate_paramlist(::BinaryCoder) = (:(f::BinaryFunctor), :(x1::ArrayOrNumber), :(x2::ArrayOrNumber))
-generate_paramlist(::BinaryCoder, ::CubeParams) = (:(f::BinaryFunctor), :(x1::CubeOrNumber), :(x2::CubeOrNumber))
+arglist(::Type{DiffFunKernel}) = (:f, :x1, :x2)
+paramlist(::Type{DiffFunKernel}, aty::Symbol) = (:(f::UnaryFunctor), 
+	:(x1::Union($aty,Number)), :(x2::Union($aty,Number)))
+kernel(::Type{DiffFunKernel}, i::SymOrNum) = :(evaluate(f, get_scalar(x1, $i) - get_scalar(x2, $i)))
+emptytest(::Type{DiffFunKernel}) = :(isempty(x1) || isempty(x2))
 
-generate_arglist(::BinaryCoder) = (:f, :x1, :x2)
-generate_kernel(::BinaryCoder, i::SymOrNum) = :(evaluate(f, get_scalar(x1, $i), get_scalar(x2, $i)))
-generate_emptytest(::BinaryCoder) = :(isempty(x1) || isempty(x2))
+length_inference(::Type{DiffFunKernel}) = :(prod(map_shape(x1, x2)))
+shape_inference(::Type{DiffFunKernel}) = :(map_shape(x1, x2))
+eltype_inference(::Type{DiffFunKernel}) = :(result_type(f, promote_type(eltype(x1), eltype(x2))))
 
-length_inference(::BinaryCoder) = :(prod(map_shape(x1, x2)))
-shape_inference(::BinaryCoder) = :(map_shape(x1, x2))
-eltype_inference(::BinaryCoder) = :(result_type(f, eltype(x1), eltype(x2)))
+type TernaryFunKernel <: EwiseFunKernel end
 
-type FDiffCoder <: EwiseCoder end
+arglist(::Type{TernaryFunKernel}) = (:f, :x1, :x2, :x3)
+paramlist(::Type{TernaryFunKernel}, aty::Symbol) = (:(f::TernaryFunctor), 
+	:(x1::Union($aty,Number)), :(x2::Union($aty,Number)), :(x3::Union($aty,Number)))
+kernel(::Type{TernaryFunKernel}, i::SymOrNum) = :(evaluate(f, 
+	get_scalar(x1, $i), get_scalar(x2, $i), get_scalar(x3, $i)))
+emptytest(::Type{TernaryFunKernel}) = :(isempty(x1) || isempty(x2) || isempty(x3))
 
-generate_paramlist(::FDiffCoder) = (:(f::UnaryFunctor), :(x1::ArrayOrNumber), :(x2::ArrayOrNumber))
-generate_paramlist(::FDiffCoder, ::CubeParams) = (:(f::UnaryFunctor), :(x1::CubeOrNumber), :(x2::CubeOrNumber))
-
-generate_arglist(::FDiffCoder) = (:f, :x1, :x2)
-generate_kernel(::FDiffCoder, i::SymOrNum) = :(evaluate(f, get_scalar(x1, $i) - get_scalar(x2, $i)))
-generate_emptytest(::FDiffCoder) = :(isempty(x1) || isempty(x2))
-
-length_inference(::FDiffCoder) = :(prod(map_shape(x1, x2)))
-shape_inference(::FDiffCoder) = :(map_shape(x1, x2))
-eltype_inference(::FDiffCoder) = :(result_type(f, promote_type(eltype(x1), eltype(x2))))
-
-type TernaryCoder <: EwiseCoder end
-
-generate_paramlist(::TernaryCoder) = (:(f::TernaryFunctor), :(x1::ArrayOrNumber), :(x2::ArrayOrNumber), :(x3::ArrayOrNumber))
-generate_paramlist(::TernaryCoder, ::CubeParams) = (:(f::TernaryFunctor), :(x1::CubeOrNumber), :(x2::CubeOrNumber), :(x3::CubeOrNumber))
-
-generate_arglist(::TernaryCoder) = (:f, :x1, :x2, :x3)
-generate_kernel(::TernaryCoder, i::SymOrNum) = :(evaluate(f, get_scalar(x1, $i), get_scalar(x2, $i), get_scalar(x3, $i)))
-generate_emptytest(::TernaryCoder) = :(isempty(x1) || isempty(x2) || isempty(x3))
-
-length_inference(::TernaryCoder) = :(prod(map_shape(x1, x2, x3)))
-shape_inference(::TernaryCoder) = :(map_shape(x1, x2, x3))
-eltype_inference(::TernaryCoder) = :(result_type(f, eltype(x1), eltype(x2), eltype(x3)))
+length_inference(::Type{TernaryFunKernel}) = :(prod(map_shape(x1, x2, x3)))
+shape_inference(::Type{TernaryFunKernel}) = :(map_shape(x1, x2, x3))
+eltype_inference(::Type{TernaryFunKernel}) = :(result_type(f, eltype(x1), eltype(x2), eltype(x3)))
 
