@@ -101,15 +101,15 @@ function code_weighted_sumfuns{KType<:EwiseKernel}(fname::Symbol, ktype::Type{KT
 			else
 				if dim == 1
 					d1 = siz[1]
-					d2 = _trail_length(siz, 1)
+					d2 = succ_length(siz, 1)
 					($fname_firstdim!)(dst, d1, d2, weights, $(alst...))
 				elseif dim < nd
-					d0 = _precede_length(siz, dim)
+					d0 = prec_length(siz, dim)
 					d1 = siz[dim]
-					d2 = _trail_length(siz, dim)
+					d2 = succ_length(siz, dim)
 					($fname_middim!)(dst, d0, d1, d2, weights, $(alst...))
 				elseif dim == nd
-					d0 = _precede_length(siz, dim)
+					d0 = prec_length(siz, dim)
 					d1 = siz[dim]
 					($fname_lastdim!)(dst, d0, d1, weights, $(alst...))
 				end
@@ -162,15 +162,15 @@ function wsum!{T<:BlasFP}(dst::Array{T}, w::Array{T}, x::Array{T}, dim::Int)
 	rd = siz[dim]  # this ensures 1 <= dim <= nd
 
 	if dim == 1
-		rx = reshape(x, siz[1], _trail_length(siz, 1))
+		rx = reshape(x, siz[1], succ_length(siz, 1))
 		gemv!('T', one(T), rx, vec(w), zero(T), vec(dst))
 	elseif dim == nd
-		rx = reshape(x, _precede_length(siz, nd), siz[nd])
+		rx = reshape(x, prec_length(siz, nd), siz[nd])
 		gemv!('N', one(T), rx, vec(w), zero(T), vec(dst))
 	else
-		m::Int = _precede_length(siz, dim)
+		m::Int = prec_length(siz, dim)
 		n::Int = siz[dim]
-		k::Int = _trail_length(siz, dim)
+		k::Int = succ_length(siz, dim)
 		plen = m * n
 
 		vw = vec(w)

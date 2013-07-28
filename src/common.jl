@@ -24,39 +24,14 @@ map_shape(x1::Number, x2::Number, x3::AbstractArray) = size(x3)
 
 # get length value from shape
 
-function _precede_length(s::(Int,), d::Int)
-	dim == 1 ? 1 : throw(BoundsError())
+function prec_length{N}(s::NTuple{N}, d::Int)
+	d == 1 ? 1 :
+	d == 2 ? s[1] :
+	d == 3 ? s[1] * s[2] : prod(s[1:d-1])
 end
 
-function _precede_length(s::(Int,Int), d::Int)
-	d == 2 ? s[1] : throw(BoundsError())
-end
-
-function _precede_length(s::(Int, Int, Int), d::Int)
-	d == 2 ? s[1] : 
-	d == 3 ? s[1] * s[2] :
-	throw(BoundsError())
-end
-
-function _precede_length{N}(s::NTuple{N}, d::Int)
-	2 <= d <= N ? prod(s[1:d-1]) : throw(BoundsError())
-end
-
-function _trail_length(s::(Int,), d::Int)
-	d == 1 ? 1 : throw(BoundsError())
-end
-
-function _trail_length(s::(Int,Int), d::Int)
-	d == 1 ? s[2] : throw(BoundsError())
-end
-
-function _trail_length(s::(Int, Int, Int), d::Int)
-	d == 1 ? s[2] * s[3] :
-	d == 2 ? s[3] :
-	throw(BoundsError())
-end
-
-function _trail_length{N}(s::NTuple{N}, d::Int)
-	1 <= d <= N-1 ? prod(s[d+1:N]) : throw(BoundsError())
+function succ_length{N}(s::NTuple{N}, d::Int)
+	d == N ? 1 :
+	d == N-1 ? s[N] : prod(s[d+1:N])
 end
 

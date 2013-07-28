@@ -105,18 +105,18 @@ function varm!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R},
 
 	if dim == 1
 		m = siz[1]
-		n = _trail_length(siz, dim)
+		n = succ_length(siz, dim)
 		_varm_colwise!(dst, x, mu, m, n)
 
 	elseif dim == nd
-		m = _precede_length(siz, dim)
+		m = prec_length(siz, dim)
 		n = siz[dim]
 		_varm_rowwise!(dst, x, mu, m, n)
 
 	else  # 1 < dim < nd
-		m = _precede_length(siz, dim)
+		m = prec_length(siz, dim)
 		n = siz[dim]
-		k = _trail_length(siz, dim)
+		k = succ_length(siz, dim)
 		for l = 1:k
 			_varm_rowwise!(
 				unsafe_view(dst,:,l), unsafe_view(x,:,:,l), 
@@ -173,7 +173,7 @@ function var!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, x::ContiguousAr
 
 	if dim == 1
 		m = siz[1]
-		n = _trail_length(siz, 1)
+		n = succ_length(siz, 1)
 		for j in 1 : n
 			dst[j] = var(unsafe_view(x, :, j))
 		end		
@@ -292,13 +292,13 @@ function logsumexp!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, x::Contig
 	siz = size(x)
 
 	if dim == 1
-		_logsumexp_firstdim!(dst, x, siz[1], _trail_length(siz, dim))
+		_logsumexp_firstdim!(dst, x, siz[1], succ_length(siz, dim))
 	elseif dim == nd
-		prelen = _precede_length(siz, dim)
+		prelen = prec_length(siz, dim)
 		_logsumexp_lastdim!(dst, Array(T, prelen), x, prelen, siz[dim])
 	else
-		prelen = _precede_length(siz, dim)
-		_logsumexp_middim!(dst, Array(T, prelen), x, prelen, siz[dim], _trail_length(siz, dim))
+		prelen = prec_length(siz, dim)
+		_logsumexp_middim!(dst, Array(T, prelen), x, prelen, siz[dim], succ_length(siz, dim))
 	end
 	dst
 end
@@ -396,13 +396,13 @@ function softmax!{T<:FloatingPoint}(dst::ContiguousArray{T}, x::ContiguousArray{
 	siz = size(x)
 
 	if dim == 1
-		_softmax_firstdim!(dst, x, siz[1], _trail_length(siz, dim))
+		_softmax_firstdim!(dst, x, siz[1], succ_length(siz, dim))
 	elseif dim == nd
-		prelen = _precede_length(siz, dim)
+		prelen = prec_length(siz, dim)
 		_softmax_lastdim!(dst, Array(T, prelen * 2), x, prelen, siz[dim])
 	else
-		prelen = _precede_length(siz, dim)
-		_softmax_middim!(dst, Array(T, prelen * 2), x, prelen, siz[dim], _trail_length(siz, dim))
+		prelen = prec_length(siz, dim)
+		_softmax_middim!(dst, Array(T, prelen * 2), x, prelen, siz[dim], succ_length(siz, dim))
 	end
 	dst	
 end

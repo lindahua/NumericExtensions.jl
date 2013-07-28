@@ -88,77 +88,65 @@ function code_singledim_reduction{KType<:EwiseKernel}(fname::Symbol, ktype::Type
 	ker_idx = kernel(ktype, :idx)
 
 	fname! = symbol(string(fname, '!'))
-	fname_firstdim! = symbol(string(fname, "_firstdim!"))
-	fname_lastdim! = symbol(string(fname, "_lastdim!"))
-	fname_middim! = symbol(string(fname, "_middim!"))
+	fname_impl! = symbol(string(fname, "_impl!"))
 
 	quote
-		function ($fname_firstdim!)(dst::ContiguousArray, m::Int, n::Int, $(plst...))
-			idx = 0
-			for j in 1 : n
-				idx += 1
-				@inbounds v = $ker_idx
-				for i in 2 : m
-					idx += 1
-					@inbounds v = evaluate(op, v, $ker_idx)
-				end
-				@inbounds dst[j] = v
-			end
-		end
-
-		function ($fname_lastdim!)(dst::ContiguousArray, m::Int, n::Int, $(plst...))
-			for idx in 1 : m
-				@inbounds dst[idx] = $ker_idx
-			end	
-			idx = m
-
-			for j in 2 : n
-				for i in 1 : m
-					idx += 1
-					@inbounds dst[i] = evaluate(op, dst[i], $ker_idx)
-				end
-			end
-		end
-
-		function ($fname_middim!)(dst::ContiguousArray, m::Int, n::Int, k::Int, $(plst...))
-			od = 0
-			idx = 0
-			for l in 1 : k
-				for i in 1 : m
-					idx += 1
-					@inbounds dst[od + i] = $ker_idx
+		function ($fname_impl!)(dst::ContiguousArray, m::Int, n::Int, k::Int, $(plst...))
+			if n == 1  # each page has a single row (simply evaluate)
+				for idx = 1:m*k
+					@inbounds dst[idx] = $ker_idx
 				end
 
-				for j in 2 : n
-					for i in 1 : m
-						odi = od + i
+			elseif m == 1  # each page has a single column
+				idx = 0
+				for l = 1:k
+					idx += 1
+					@inbounds s = $ker_idx
+					for j = 2:n
 						idx += 1
-						@inbounds dst[odi] = evaluate(op, dst[odi], $ker_idx)
+						@inbounds s = evaluate(op, s, $ker_idx)						
+					end
+					@inbounds dst[l] = s
+				end
+
+			elseif k == 1 # only one page
+				for idx = 1:m
+					@inbounds dst[idx] = $ker_idx
+				end
+				idx = m
+				for j = 2:n
+					for i = 1:m
+						idx += 1
+						@inbounds dst[i] = evaluate(op, dst[i], $ker_idx)
 					end
 				end
 
-				od += m
+			else  # multiple generic pages
+				idx = 0
+				od = 0
+				for l = 1:k					
+					for i = 1:m
+						idx += 1
+						@inbounds dst[od+i] = $ker_idx
+					end
+					for j = 2:n
+						for i = 1:m
+							idx += 1
+							odi = od + i
+							@inbounds dst[odi] = evaluate(op, dst[odi], $ker_idx)
+						end
+					end
+					od += m
+				end
 			end
 		end
 
 		function ($fname!)(dst::ContiguousArray, $(plst...), dim::Int)
 			rsiz = $shape
-			nd = length(rsiz)
-			if dim == 1
-				d1 = rsiz[1]
-				d2 = _trail_length(rsiz, 1)
-				($fname_firstdim!)(dst, d1, d2, $(alst...))
-			elseif dim < nd
-				d0 = _precede_length(rsiz, dim)
-				d1 = rsiz[dim]
-				d2 = _trail_length(rsiz, dim)
-				($fname_middim!)(dst, d0, d1, d2, $(alst...))
-			elseif dim == nd
-				d0 = _precede_length(rsiz, dim)
-				d1 = rsiz[dim]
-				($fname_lastdim!)(dst, d0, d1, $(alst...))
+			if dim <= length(rsiz)
+				($fname_impl!)(dst, prec_length(rsiz, dim), rsiz[dim], succ_length(rsiz, dim), $(alst...))
 			else
-				($mapfun!)(dst, $(alst0...))
+				($fname_impl!)(dst, prod(rsiz), 1, 1, $(alst...))
 			end
 			dst
 		end
@@ -192,8 +180,7 @@ function code_doubledims_reduction{KType<:EwiseKernel}(fname::Symbol, ktype::Typ
 	ker_idx = kernel(ktype, :idx)
 
 	fname! = symbol(string(fname, '!'))
-	fname_firstdim! = symbol(string(fname, "_firstdim!"))
-	fname_lastdim! = symbol(string(fname, "_lastdim!"))
+	fname_impl! = symbol(string(fname, "_impl!"))
 	fname_dim13! = symbol(string(fname, "_dim13!"))
 
 	quote
@@ -224,9 +211,9 @@ function code_doubledims_reduction{KType<:EwiseKernel}(fname::Symbol, ktype::Typ
 
 		function ($fname!)(dst::ContiguousArray, $(plst...), dims::(Int, Int))
 			siz = $shape
-			dims == (1, 2) ? ($fname_firstdim!)(dst, siz[1] * siz[2], siz[3], $(alst...)) :
+			dims == (1, 2) ? ($fname_impl!)(dst, 1, siz[1] * siz[2], siz[3], $(alst...)) :
 			dims == (1, 3) ? ($fname_dim13!)(dst, siz[1], siz[2], siz[3], $(alst...)) :
-			dims == (2, 3) ? ($fname_lastdim!)(dst, siz[1], siz[2] * siz[3], $(alst...)) :
+			dims == (2, 3) ? ($fname_impl!)(dst, siz[1], siz[2] * siz[3], 1, $(alst...)) :
 			throw(ArgumentError("dims must be either of (1, 2), (1, 3), or (2, 3)."))
 			dst
 		end

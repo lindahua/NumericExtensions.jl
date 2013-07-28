@@ -128,7 +128,7 @@ unsafe_view{T}(a::ContiguousMatrix{T}, r1::Colon, r2::Colon) = UnsafeMatrixView{
 
 function unsafe_view{T}(a::ContiguousArray{T}, r1::Colon, r2::Colon) 
 	siz = size(a)
-	UnsafeMatrixView{T}(pointer(a), siz[1], _trail_length(siz, 1))
+	UnsafeMatrixView{T}(pointer(a), siz[1], succ_length(siz, 1))
 end
 
 unsafe_view(a::ContiguousArray, r::Colon, r2::Range1{Int}) = offset_view(a, offset(a, 1, r2[1]), size(a, 1), length(r2))
@@ -144,7 +144,7 @@ unsafe_view{T}(a::ContiguousMatrix{T}, r::Colon, r2::Colon, r3::Colon) = UnsafeC
 
 function unsafe_view{T}(a::ContiguousArray{T}, r::Colon, r2::Colon, r3::Colon)
 	siz = size(a)
-	UnsafeCubeView{T}(pointer(a), siz[1], siz[2], _trail_length(siz, 2))
+	UnsafeCubeView{T}(pointer(a), siz[1], siz[2], succ_length(siz, 2))
 end
 
 function unsafe_view(a::ContiguousArray, r::Colon, r2::Colon, r3::Range1{Int})
