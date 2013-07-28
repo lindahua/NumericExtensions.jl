@@ -2,9 +2,9 @@
 
 # code generators
 
-function code_map_function{KType<:EwiseFunKernel}(fname!::Symbol, kergen::Type{KType})
-	plst = paramlist(kergen, :ContiguousArray)
-	ker = kernel(kergen, :i)
+function code_map_function{KType<:EwiseFunKernel}(fname!::Symbol, ktype::Type{KType})
+	plst = paramlist(ktype, :ContiguousArray)
+	ker = kernel(ktype, :i)
 	quote
 		function ($fname!)($(plst[1]), dst::ContiguousArray, $(plst[2:]...))
 			for i in 1 : length(dst)
