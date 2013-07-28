@@ -20,9 +20,7 @@ function code_weighted_sumfuns{KType<:EwiseKernel}(fname::Symbol, ktype::Type{KT
 	vtype = eltype_inference(ktype)
 
 	fname! = symbol(string(fname, '!'))
-	fname_firstdim! = symbol(string(fname, "_firstdim!"))
-	fname_lastdim! = symbol(string(fname, "_lastdim!"))
-	fname_middim! = symbol(string(fname, "_middim!"))
+	fname_impl! = symbol(string(fname, "_impl!"))
 
 	quote
 		function ($fname){W<:Number}(weights::ContiguousArray{W}, $(plst...))
@@ -41,79 +39,70 @@ function code_weighted_sumfuns{KType<:EwiseKernel}(fname::Symbol, ktype::Type{KT
 			end
 		end
 
-		function ($fname_firstdim!)(dst::ContiguousArray, m::Int, n::Int, weights::ContiguousArray, $(plst...))
-			idx = 0
-			for j in 1 : n
-				idx += 1
-				@inbounds v = ($ker_idx) * weights[1]
-				for i in 2 : m
-					idx += 1
-					@inbounds v += ($ker_idx) * weights[i]
-				end
-				dst[j] = v
-			end
-		end
+		function ($fname_impl!)(dst::ContiguousArray, m::Int, n::Int, k::Int, w::ContiguousArray, $(plst...))
+			@check_weightsize length(w) == n
 
-		function ($fname_lastdim!)(dst::ContiguousArray, m::Int, n::Int, weights::ContiguousArray, $(plst...))
-			for idx in 1 : m
-				dst[idx] = ($ker_idx) * weights[1]
-			end	
-			idx = m
-
-			for j in 2 : n
-				@inbounds wj = weights[j]
-				for i in 1 : m
-					idx += 1
-					@inbounds dst[i] += ($ker_idx) * wj
-				end
-			end
-		end
-
-		function ($fname_middim!)(dst::ContiguousArray, m::Int, n::Int, k::Int, weights::ContiguousArray, $(plst...))
-			od = 0
-			idx = 0
-			for l in 1 : k
-				for i in 1 : m
-					idx += 1
-					@inbounds dst[od + i] = ($ker_idx) * weights[1]
+			if n == 1  # each page has a single row (simply evaluate)
+				@inbounds w1 = w[1]
+				for idx = 1:m*k
+					@inbounds dst[idx] = w1 * $ker_idx
 				end
 
-				for j in 2 : n
-					@inbounds wj = weights[j]
-					for i in 1 : m
-						odi = od + i
+			elseif m == 1  # each page has a single column
+				idx = 0
+				for l = 1:k
+					idx += 1
+					@inbounds s = w[1] * ($ker_idx)
+					for j = 2:n
 						idx += 1
-						@inbounds dst[odi] += ($ker_idx) * wj
+						@inbounds s += w[j] * ($ker_idx)						
+					end
+					@inbounds dst[l] = s
+				end
+
+			elseif k == 1 # only one page
+				@inbounds w1 = w[1]
+				for idx = 1:m
+					@inbounds dst[idx] = w1 * $ker_idx
+				end
+				idx = m
+				for j = 2:n
+					@inbounds wj = w[j]
+					for i = 1:m
+						idx += 1
+						@inbounds dst[i] += wj * ($ker_idx)
 					end
 				end
 
-				od += m
+			else  # multiple generic pages
+				idx = 0
+				od = 0
+				@inbounds w1 = w[1]
+				for l = 1:k					
+					for i = 1:m
+						idx += 1
+						@inbounds dst[od+i] = w1 * $ker_idx
+					end
+					for j = 2:n
+						@inbounds wj = w[j]
+						for i = 1:m
+							idx += 1
+							odi = od + i
+							@inbounds dst[odi] += wj * ($ker_idx)
+						end
+					end
+					od += m
+				end
 			end
 		end
 
 		function ($fname!){W<:Number}(dst::ContiguousArray, weights::ContiguousArray{W}, $(plst...), dim::Int)
 			siz = $shape
-			nd = length(siz)
-			@check_weightsize siz[dim] == length(weights) # this ensures 1 <= dim <= nd
-
-			if nd == 1
-				dst[1] = ($fname)(weights, $(alst...))
+			if 1 <= dim <= length(siz)
+				($fname_impl!)(dst, prec_length(siz, dim), siz[dim], succ_length(siz, dim), weights, $(alst...))
 			else
-				if dim == 1
-					d1 = siz[1]
-					d2 = succ_length(siz, 1)
-					($fname_firstdim!)(dst, d1, d2, weights, $(alst...))
-				elseif dim < nd
-					d0 = prec_length(siz, dim)
-					d1 = siz[dim]
-					d2 = succ_length(siz, dim)
-					($fname_middim!)(dst, d0, d1, d2, weights, $(alst...))
-				elseif dim == nd
-					d0 = prec_length(siz, dim)
-					d1 = siz[dim]
-					($fname_lastdim!)(dst, d0, d1, weights, $(alst...))
-				end
-			end
+				throw(ArgumentError("The value of dim is invalid."))
+			end			
 			dst
 		end
 
