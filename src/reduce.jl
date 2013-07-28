@@ -1,28 +1,32 @@
 
 # auxiliary code-generation routines
 
-function _reduc_paramlist(cdr::Union(UnaryCoder, BinaryCoder, TernaryCoder, FDiffCoder), plist)
-	tuple(plist[1], :(op::BinaryFunctor), plist[2:]...)
+function reduc_paramlist{KType<:EwiseFunKernel}(kgen::Type{KType}, aty::Symbol; with_init::Bool=false)
+	plst = paramlist(kgen, aty)
+	if with_init
+		tuple(plst[1], :(op::BinaryFunctor), :(initval), plst[2:]...)
+	else
+		tuple(plst[1], :(op::BinaryFunctor), plst[2:]...)
+	end
 end
 
-function _reduc_paramlist(cdr::TrivialCoder, plist)
-	tuple(:(op::BinaryFunctor), plist...)
+function reduc_arglist(ktype::Type{DirectKernel})
+	alst = arglist(ktype)
+	tuple(:op, alst...)
 end
 
-function _reduc_arglist(cdr::Union(UnaryCoder, BinaryCoder, TernaryCoder, FDiffCoder), alist)
-	tuple(alist[1], :op, alist[2:]...)
+function reduc_paramlist(ktype::Type{DirectKernel}, aty::Symbol; with_init::Bool=false)
+	plst = paramlist(ktype, aty)
+	if with_init
+		tuple(:(op::BinaryFunctor), :(initval), plst...)
+	else
+		tuple(:(op::BinaryFunctor), plst...)
+	end
 end
 
-function _reduc_arglist(cdr::TrivialCoder, alist)
-	tuple(:op, alist...)
-end
-
-function _reduc_paramlist_withinit(cdr::Union(UnaryCoder, BinaryCoder, TernaryCoder, FDiffCoder), plist)
-	tuple(plist[1], :(op::BinaryFunctor), :(initval), plist[2:]...)
-end
-
-function _reduc_paramlist_withinit(cdr::TrivialCoder, plist)
-	tuple(:(op::BinaryFunctor), :(initval), plist...)
+function reduc_arglist{KType<:EwiseFunKernel}(ktype::Type{KType})
+	alst = arglist(ktype)
+	tuple(alst[1], :op, alst[2:]...)
 end
 
 
@@ -32,45 +36,42 @@ end
 #
 #################################################
 
-function code_full_reduction(fname::Symbol, coder_expr::Expr)
-	coder = eval(coder_expr)
-	paramlist = generate_paramlist(coder)
-	rparamlist = _reduc_paramlist(coder, paramlist)
-	rparamlist_withinit = _reduc_paramlist_withinit(coder, paramlist)
-
-	ker1 = generate_kernel(coder, 1)
-	kernel = generate_kernel(coder, :i)
-	len = length_inference(coder)
+function code_full_reduction{KType<:EwiseKernel}(fname::Symbol, ktype::Type{KType})
+	plst = reduc_paramlist(ktype, :ContiguousArray)
+	plst_winit = reduc_paramlist(ktype, :ContiguousArray; with_init=true)
+	ker_i = kernel(ktype, :i)
+	len = length_inference(ktype)
 	quote
-		function ($fname)($(rparamlist...))
+		function ($fname)($(plst...))
 			n::Int = $len
-			v = $ker1
+			i = 1
+			v = $ker_i
 			for i in 2 : n
-				@inbounds v = evaluate(op, v, $kernel)
+				@inbounds v = evaluate(op, v, $ker_i)
 			end
 			v
 		end
 
-		function ($fname)($(rparamlist_withinit...))
+		function ($fname)($(plst_winit...))
 			n::Int = $len
 			v = initval
 			for i in 1 : n
-				@inbounds v = evaluate(op, v, $kernel)
+				@inbounds v = evaluate(op, v, $ker_i)
 			end
 			v
 		end
 	end
 end
 
-macro full_reduction(fname, coder)
-	esc(code_full_reduction(fname, coder))
+macro full_reduction(fname, ktype)
+	esc(code_full_reduction(fname, eval(ktype)))
 end
 
-@full_reduction reduce TrivialCoder()
-@full_reduction mapreduce UnaryCoder()
-@full_reduction mapreduce BinaryCoder()
-@full_reduction mapreduce TernaryCoder()
-@full_reduction mapdiff_reduce FDiffCoder()
+@full_reduction reduce DirectKernel
+@full_reduction mapreduce UnaryFunKernel
+@full_reduction mapreduce BinaryFunKernel
+@full_reduction mapreduce TernaryFunKernel
+@full_reduction mapdiff_reduce DiffFunKernel
 
 
 ########################################################
@@ -79,16 +80,12 @@ end
 #
 ########################################################
 
-function code_singledim_reduction(fname::Symbol, coder_expr::Expr, mapfun!::Symbol)
-	coder = eval(coder_expr)
-	paramlist = generate_paramlist(coder)
-	rparamlist = _reduc_paramlist(coder, paramlist)
-
-	arglist = generate_arglist(coder)
-	shape = shape_inference(coder)
-
-	kernel = generate_kernel(coder, :idx)
-	ker_i = generate_kernel(coder, :i)
+function code_singledim_reduction{KType<:EwiseKernel}(fname::Symbol, ktype::Type{KType}, mapfun!::Symbol)
+	plst = reduc_paramlist(ktype, :ContiguousArray)
+	alst0 = arglist(ktype)
+	alst = reduc_arglist(ktype)
+	shape = shape_inference(ktype)
+	ker_idx = kernel(ktype, :idx)
 
 	fname! = symbol(string(fname, '!'))
 	fname_firstdim! = symbol(string(fname, "_firstdim!"))
@@ -96,47 +93,47 @@ function code_singledim_reduction(fname::Symbol, coder_expr::Expr, mapfun!::Symb
 	fname_middim! = symbol(string(fname, "_middim!"))
 
 	quote
-		function ($fname_firstdim!)(dst::ContiguousArray, op::BinaryFunctor, m::Int, n::Int, $(paramlist...))
+		function ($fname_firstdim!)(dst::ContiguousArray, m::Int, n::Int, $(plst...))
 			idx = 0
 			for j in 1 : n
 				idx += 1
-				@inbounds v = $kernel
+				@inbounds v = $ker_idx
 				for i in 2 : m
 					idx += 1
-					@inbounds v = evaluate(op, v, $kernel)
+					@inbounds v = evaluate(op, v, $ker_idx)
 				end
 				@inbounds dst[j] = v
 			end
 		end
 
-		function ($fname_lastdim!)(dst::ContiguousArray, op::BinaryFunctor, m::Int, n::Int, $(paramlist...))
-			for i in 1 : m
-				@inbounds dst[i] = $ker_i
+		function ($fname_lastdim!)(dst::ContiguousArray, m::Int, n::Int, $(plst...))
+			for idx in 1 : m
+				@inbounds dst[idx] = $ker_idx
 			end	
 			idx = m
 
 			for j in 2 : n
 				for i in 1 : m
 					idx += 1
-					@inbounds dst[i] = evaluate(op, dst[i], $kernel)
+					@inbounds dst[i] = evaluate(op, dst[i], $ker_idx)
 				end
 			end
 		end
 
-		function ($fname_middim!)(dst::ContiguousArray, op::BinaryFunctor, m::Int, n::Int, k::Int, $(paramlist...))
+		function ($fname_middim!)(dst::ContiguousArray, m::Int, n::Int, k::Int, $(plst...))
 			od = 0
 			idx = 0
 			for l in 1 : k
 				for i in 1 : m
 					idx += 1
-					@inbounds dst[od + i] = $kernel
+					@inbounds dst[od + i] = $ker_idx
 				end
 
 				for j in 2 : n
 					for i in 1 : m
 						odi = od + i
 						idx += 1
-						@inbounds dst[odi] = evaluate(op, dst[odi], $kernel)
+						@inbounds dst[odi] = evaluate(op, dst[odi], $ker_idx)
 					end
 				end
 
@@ -144,42 +141,42 @@ function code_singledim_reduction(fname::Symbol, coder_expr::Expr, mapfun!::Symb
 			end
 		end
 
-		function ($fname!)(dst::ContiguousArray, $(rparamlist...), dim::Int)
+		function ($fname!)(dst::ContiguousArray, $(plst...), dim::Int)
 			rsiz = $shape
 			nd = length(rsiz)
 			if dim == 1
 				d1 = rsiz[1]
 				d2 = _trail_length(rsiz, 1)
-				($fname_firstdim!)(dst, op, d1, d2, $(arglist...))
+				($fname_firstdim!)(dst, d1, d2, $(alst...))
 			elseif dim < nd
 				d0 = _precede_length(rsiz, dim)
 				d1 = rsiz[dim]
 				d2 = _trail_length(rsiz, dim)
-				($fname_middim!)(dst, op, d0, d1, d2, $(arglist...))
+				($fname_middim!)(dst, d0, d1, d2, $(alst...))
 			elseif dim == nd
 				d0 = _precede_length(rsiz, dim)
 				d1 = rsiz[dim]
-				($fname_lastdim!)(dst, op, d0, d1, $(arglist...))
+				($fname_lastdim!)(dst, d0, d1, $(alst...))
 			else
-				($mapfun!)(dst, $(arglist...))
+				($mapfun!)(dst, $(alst0...))
 			end
 			dst
 		end
 	end
 end
 
-macro singledim_reduction(fname, coder, mapfun)
-	esc(code_singledim_reduction(fname, coder, mapfun))
+macro singledim_reduction(fname, ktype, mapfun)
+	esc(code_singledim_reduction(fname, eval(ktype), mapfun))
 end
 
 _map_to_dest!(dst::ContiguousArray, f::Functor, xs...) = map!(f, dst, xs...)
 _mapdiff_to_dest!(dst::ContiguousArray, f::UnaryFunctor, x1, x2) = mapdiff!(f, dst, x1, x2)
 
-@singledim_reduction reduce TrivialCoder() copy!
-@singledim_reduction mapreduce UnaryCoder() _map_to_dest!
-@singledim_reduction mapreduce BinaryCoder() _map_to_dest!
-@singledim_reduction mapreduce TernaryCoder() _map_to_dest!
-@singledim_reduction mapdiff_reduce FDiffCoder() _mapdiff_to_dest!
+@singledim_reduction reduce         DirectKernel     copy!
+@singledim_reduction mapreduce      UnaryFunKernel   _map_to_dest!
+@singledim_reduction mapreduce      BinaryFunKernel  _map_to_dest!
+@singledim_reduction mapreduce      TernaryFunKernel _map_to_dest!
+@singledim_reduction mapdiff_reduce DiffFunKernel    _mapdiff_to_dest!
 
 
 ########################################################
@@ -188,13 +185,11 @@ _mapdiff_to_dest!(dst::ContiguousArray, f::UnaryFunctor, x1, x2) = mapdiff!(f, d
 #
 ########################################################
 
-function code_doubledims_reduction(fname::Symbol, coder_expr::Expr)
-	coder = eval(coder_expr)
-	paramlist = generate_paramlist(coder, CubeParams())
-	rparamlist = _reduc_paramlist(coder, paramlist)
-	arglist = generate_arglist(coder)
-	shape = shape_inference(coder)
-	kernel = generate_kernel(coder, :idx)
+function code_doubledims_reduction{KType<:EwiseKernel}(fname::Symbol, ktype::Type{KType})
+	plst = reduc_paramlist(ktype, :ContiguousCube)
+	alst = reduc_arglist(ktype)
+	shape = shape_inference(ktype)
+	ker_idx = kernel(ktype, :idx)
 
 	fname! = symbol(string(fname, '!'))
 	fname_firstdim! = symbol(string(fname, "_firstdim!"))
@@ -202,15 +197,15 @@ function code_doubledims_reduction(fname::Symbol, coder_expr::Expr)
 	fname_dim13! = symbol(string(fname, "_dim13!"))
 
 	quote
-		function ($fname_dim13!)(dst::ContiguousArray, op::BinaryFunctor, m::Int, n::Int, k::Int, $(paramlist...))
+		function ($fname_dim13!)(dst::ContiguousArray, m::Int, n::Int, k::Int, $(plst...))
 			idx = 0
 			for j in 1 : n
 				idx += 1
-				@inbounds v = $kernel
+				@inbounds v = $ker_idx
 
 				for i in 2 : m
 					idx += 1
-					@inbounds v = evaluate(op, v, $kernel)
+					@inbounds v = evaluate(op, v, $ker_idx)
 				end
 				@inbounds dst[j] = v
 			end
@@ -220,33 +215,33 @@ function code_doubledims_reduction(fname::Symbol, coder_expr::Expr)
 					@inbounds v = dst[j]
 					for i in 1 : m
 						idx += 1
-						@inbounds v = evaluate(op, v, $kernel)
+						@inbounds v = evaluate(op, v, $ker_idx)
 					end
 					@inbounds dst[j] = v
 				end
 			end				
 		end
 
-		function ($fname!)(dst::ContiguousArray, $(rparamlist...), dims::(Int, Int))
+		function ($fname!)(dst::ContiguousArray, $(plst...), dims::(Int, Int))
 			siz = $shape
-			dims == (1, 2) ? ($fname_firstdim!)(dst, op, siz[1] * siz[2], siz[3], $(arglist...)) :
-			dims == (1, 3) ? ($fname_dim13!)(dst, op, siz[1], siz[2], siz[3], $(arglist...)) :
-			dims == (2, 3) ? ($fname_lastdim!)(dst, op, siz[1], siz[2] * siz[3], $(arglist...)) :
+			dims == (1, 2) ? ($fname_firstdim!)(dst, siz[1] * siz[2], siz[3], $(alst...)) :
+			dims == (1, 3) ? ($fname_dim13!)(dst, siz[1], siz[2], siz[3], $(alst...)) :
+			dims == (2, 3) ? ($fname_lastdim!)(dst, siz[1], siz[2] * siz[3], $(alst...)) :
 			throw(ArgumentError("dims must be either of (1, 2), (1, 3), or (2, 3)."))
 			dst
 		end
 	end
 end
 
-macro doubledims_reduction(fname, coder)
-	esc(code_doubledims_reduction(fname, coder))
+macro doubledims_reduction(fname, ktype)
+	esc(code_doubledims_reduction(fname, eval(ktype)))
 end
 
-@doubledims_reduction reduce TrivialCoder()
-@doubledims_reduction mapreduce UnaryCoder()
-@doubledims_reduction mapreduce BinaryCoder()
-@doubledims_reduction mapreduce TernaryCoder()
-@doubledims_reduction mapdiff_reduce FDiffCoder()
+@doubledims_reduction reduce DirectKernel
+@doubledims_reduction mapreduce UnaryFunKernel
+@doubledims_reduction mapreduce BinaryFunKernel
+@doubledims_reduction mapreduce TernaryFunKernel
+@doubledims_reduction mapdiff_reduce DiffFunKernel
 
 
 ########################################################
@@ -311,37 +306,32 @@ function _reduc_dim_length(x::AbstractArray, dims::NTuple{Int})
 end
 
 
-function code_reduce_function(fname::Symbol, coder_expr::Expr)
-	coder = eval(coder_expr)
-	paramlist = generate_paramlist(coder)
-	rparamlist = _reduc_paramlist(coder, paramlist)
-
-	arglist = generate_arglist(coder)
-	rarglist = _reduc_arglist(coder, arglist)
-
-	shape = shape_inference(coder)
-	vtype = eltype_inference(coder)
+function code_reduce_function{KType<:EwiseKernel}(fname::Symbol, ktype::Type{KType})
+	plst = reduc_paramlist(ktype, :ContiguousArray)
+	alst = reduc_arglist(ktype)
+	shape = shape_inference(ktype)
+	vtype = eltype_inference(ktype)
 
 	fname! = symbol(string(fname, '!'))
 
 	quote 
-		function ($fname)($(rparamlist...), dims::DimSpec)
+		function ($fname)($(plst...), dims::DimSpec)
 			vty = $vtype
 			r = Array(result_type(op, vty, vty), reduced_size($shape, dims))
-			($fname!)(r, $(rarglist...), dims)
+			($fname!)(r, $(alst...), dims)
 		end
 	end
 end
 
-macro reduce_function(fname, coder)
-	esc(code_reduce_function(fname, coder))
+macro reduce_function(fname, ktype)
+	esc(code_reduce_function(fname, eval(ktype)))
 end
 
-@reduce_function reduce TrivialCoder()
-@reduce_function mapreduce UnaryCoder()
-@reduce_function mapreduce BinaryCoder()
-@reduce_function mapreduce TernaryCoder()
-@reduce_function mapdiff_reduce FDiffCoder()
+@reduce_function reduce DirectKernel
+@reduce_function mapreduce UnaryFunKernel
+@reduce_function mapreduce BinaryFunKernel
+@reduce_function mapreduce TernaryFunKernel
+@reduce_function mapdiff_reduce DiffFunKernel
 
 
 #################################################
@@ -352,27 +342,27 @@ end
 
 empty_notallowed(ty::Type) = throw(ArgumentError("Empty array is not allowed."))
 
-function code_basic_reduction(fname::Symbol, op::Expr, coder::EwiseCoder, gfun::Symbol, emptyfun::Symbol)
-	paramlist = generate_paramlist(coder)
-	arglist = generate_arglist(coder)
-	vtype = eltype_inference(coder)
-	emptytest = generate_emptytest(coder)
+function code_basic_reduction{KType<:EwiseKernel}(fname::Symbol, op::Expr, ktype::Type{KType}, gfun::Symbol, emptyfun::Symbol)
+	plst = paramlist(ktype, :ContiguousArray)
+	alst = arglist(ktype)
+	vtype = eltype_inference(ktype)
+	eptest = emptytest(ktype)
 
 	fname! = symbol(string(fname, '!'))
 	gfun! = symbol(string(gfun, '!'))
 
 	quote
-		($fname)($(paramlist...)) = ($emptytest) ? ($emptyfun)($vtype) : ($gfun)($(arglist[1]), $op, $(arglist[2:]...))
-		($fname)($(paramlist...), dims::DimSpec) = ($gfun)($(arglist[1]), $op, $(arglist[2:]...), dims) 
-		($fname!)(dst::ContiguousArray, $(paramlist...), dims::DimSpec) = ($gfun!)(dst, $(arglist[1]), $op, $(arglist[2:]...), dims)
+		($fname)($(plst...)) = ($eptest) ? ($emptyfun)($vtype) : ($gfun)($(alst[1]), $op, $(alst[2:]...))
+		($fname)($(plst...), dims::DimSpec) = ($gfun)($(alst[1]), $op, $(alst[2:]...), dims) 
+		($fname!)(dst::ContiguousArray, $(plst...), dims::DimSpec) = ($gfun!)(dst, $(alst[1]), $op, $(alst[2:]...), dims)
 	end
 end
 
 function code_basic_mapreduction(fname::Symbol, op::Expr, emptyfun::Symbol)
-	c1 = code_basic_reduction(fname, op, UnaryCoder(), :mapreduce, emptyfun)
-	c2 = code_basic_reduction(fname, op, BinaryCoder(), :mapreduce, emptyfun)
-	c3 = code_basic_reduction(fname, op, TernaryCoder(), :mapreduce, emptyfun)
-	c2d = code_basic_reduction(symbol(string(fname, "_fdiff")), op, FDiffCoder(), :mapdiff_reduce, emptyfun)
+	c1 = code_basic_reduction(fname, op, UnaryFunKernel, :mapreduce, emptyfun)
+	c2 = code_basic_reduction(fname, op, BinaryFunKernel, :mapreduce, emptyfun)
+	c3 = code_basic_reduction(fname, op, TernaryFunKernel, :mapreduce, emptyfun)
+	c2d = code_basic_reduction(symbol(string(fname, "_fdiff")), op, DiffFunKernel, :mapdiff_reduce, emptyfun)
 
 	combined = Expr(:block, c1.args..., c2.args..., c3.args..., c2d.args...)
 end

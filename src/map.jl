@@ -15,8 +15,8 @@ function code_map_function{KType<:EwiseFunKernel}(fname!::Symbol, ktype::Type{KT
 	end
 end
 
-macro map_function(fname, coder)
-	esc(code_map_function(fname, eval(coder)))
+macro map_function(fname, ktype)
+	esc(code_map_function(fname, eval(ktype)))
 end
 
 # generic map functions

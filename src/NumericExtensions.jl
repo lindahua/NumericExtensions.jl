@@ -100,7 +100,7 @@ module NumericExtensions
 	include("map.jl")
 	include("vbroadcast.jl")
 	include("diagop.jl")
-	# include("reduce.jl")
+	include("reduce.jl")
 	# include("statistics.jl")
 	# include("weightsum.jl")
 

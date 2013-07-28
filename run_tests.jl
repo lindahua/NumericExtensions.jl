@@ -4,7 +4,7 @@ tests = [ "functors",
 		  "views", 
 		  "map", 
 		  "vbroadcast", 
-		  # "reduce", 
+		  "reduce", 
 		  # "statistics", 
 		  # "wsum", 
 		  #"pdmat"
