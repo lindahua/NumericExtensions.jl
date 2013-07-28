@@ -5,10 +5,9 @@ tests = [ "functors",
 		  "map", 
 		  "vbroadcast", 
 		  "reduce", 
-		  # "statistics", 
-		  # "wsum", 
-		  #"pdmat"
-		  ]
+		  "statistics", 
+		  "wsum", 
+		  "pdmat"]
 
 for t in tests
 	tf = joinpath("test", "test_$t.jl")

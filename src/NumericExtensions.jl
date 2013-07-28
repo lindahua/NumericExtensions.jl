@@ -101,8 +101,8 @@ module NumericExtensions
 	include("vbroadcast.jl")
 	include("diagop.jl")
 	include("reduce.jl")
-	# include("statistics.jl")
-	# include("weightsum.jl")
+	include("statistics.jl")
+	include("weightsum.jl")
 
 	include("pdmat.jl")
 

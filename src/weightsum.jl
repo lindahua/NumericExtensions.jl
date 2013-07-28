@@ -9,18 +9,15 @@ macro check_weightsize(cond)
 end
 
 
-function code_weighted_sumfuns(fname::Symbol, coder_expr::Expr)
-	coder = eval(coder_expr)
+function code_weighted_sumfuns{KType<:EwiseKernel}(fname::Symbol, ktype::Type{KType})
+	plst = paramlist(ktype, :ContiguousArray)
+	alst = arglist(ktype)
 
-	paramlist = generate_paramlist(coder)
-	arglist = generate_arglist(coder)
+	ker_idx = kernel(ktype, :idx)
 
-	kernel = generate_kernel(coder, :idx)
-	ker_i = generate_kernel(coder, :i)
-
-	len = length_inference(coder)
-	shape = shape_inference(coder)
-	vtype = eltype_inference(coder)
+	len = length_inference(ktype)
+	shape = shape_inference(ktype)
+	vtype = eltype_inference(ktype)
 
 	fname! = symbol(string(fname, '!'))
 	fname_firstdim! = symbol(string(fname, "_firstdim!"))
@@ -28,7 +25,7 @@ function code_weighted_sumfuns(fname::Symbol, coder_expr::Expr)
 	fname_middim! = symbol(string(fname, "_middim!"))
 
 	quote
-		function ($fname){W<:Number}(weights::ContiguousArray{W}, $(paramlist...))
+		function ($fname){W<:Number}(weights::ContiguousArray{W}, $(plst...))
 			n::Int = $len
 			@check_weightsize n == length(weights)
 
@@ -36,30 +33,30 @@ function code_weighted_sumfuns(fname::Symbol, coder_expr::Expr)
 				zero(T) * zero(W)
 			else
 				idx = 1
-				@inbounds s = ($(kernel)) * weights[1]
+				@inbounds s = ($ker_idx) * weights[1]
 				for idx in 2 : n
-					@inbounds s += ($(kernel)) * weights[idx]
+					@inbounds s += ($ker_idx) * weights[idx]
 				end
 				s
 			end
 		end
 
-		function ($fname_firstdim!)(dst::ContiguousArray, m::Int, n::Int, weights::ContiguousArray, $(paramlist...))
+		function ($fname_firstdim!)(dst::ContiguousArray, m::Int, n::Int, weights::ContiguousArray, $(plst...))
 			idx = 0
 			for j in 1 : n
 				idx += 1
-				@inbounds v = ($kernel) * weights[1]
+				@inbounds v = ($ker_idx) * weights[1]
 				for i in 2 : m
 					idx += 1
-					@inbounds v += ($kernel) * weights[i]
+					@inbounds v += ($ker_idx) * weights[i]
 				end
 				dst[j] = v
 			end
 		end
 
-		function ($fname_lastdim!)(dst::ContiguousArray, m::Int, n::Int, weights::ContiguousArray, $(paramlist...))
-			for i in 1 : m
-				dst[i] = ($ker_i) * weights[1]
+		function ($fname_lastdim!)(dst::ContiguousArray, m::Int, n::Int, weights::ContiguousArray, $(plst...))
+			for idx in 1 : m
+				dst[idx] = ($ker_idx) * weights[1]
 			end	
 			idx = m
 
@@ -67,18 +64,18 @@ function code_weighted_sumfuns(fname::Symbol, coder_expr::Expr)
 				@inbounds wj = weights[j]
 				for i in 1 : m
 					idx += 1
-					@inbounds dst[i] += ($kernel) * wj
+					@inbounds dst[i] += ($ker_idx) * wj
 				end
 			end
 		end
 
-		function ($fname_middim!)(dst::ContiguousArray, m::Int, n::Int, k::Int, weights::ContiguousArray, $(paramlist...))
+		function ($fname_middim!)(dst::ContiguousArray, m::Int, n::Int, k::Int, weights::ContiguousArray, $(plst...))
 			od = 0
 			idx = 0
 			for l in 1 : k
 				for i in 1 : m
 					idx += 1
-					@inbounds dst[od + i] = ($kernel) * weights[1]
+					@inbounds dst[od + i] = ($ker_idx) * weights[1]
 				end
 
 				for j in 2 : n
@@ -86,7 +83,7 @@ function code_weighted_sumfuns(fname::Symbol, coder_expr::Expr)
 					for i in 1 : m
 						odi = od + i
 						idx += 1
-						@inbounds dst[odi] += ($kernel) * wj
+						@inbounds dst[odi] += ($ker_idx) * wj
 					end
 				end
 
@@ -94,49 +91,49 @@ function code_weighted_sumfuns(fname::Symbol, coder_expr::Expr)
 			end
 		end
 
-		function ($fname!){W<:Number}(dst::ContiguousArray, weights::ContiguousArray{W}, $(paramlist...), dim::Int)
+		function ($fname!){W<:Number}(dst::ContiguousArray, weights::ContiguousArray{W}, $(plst...), dim::Int)
 			siz = $shape
 			nd = length(siz)
 			@check_weightsize siz[dim] == length(weights) # this ensures 1 <= dim <= nd
 
 			if nd == 1
-				dst[1] = ($fname)(weights, $(arglist...))
+				dst[1] = ($fname)(weights, $(alst...))
 			else
 				if dim == 1
 					d1 = siz[1]
 					d2 = _trail_length(siz, 1)
-					($fname_firstdim!)(dst, d1, d2, weights, $(arglist...))
+					($fname_firstdim!)(dst, d1, d2, weights, $(alst...))
 				elseif dim < nd
 					d0 = _precede_length(siz, dim)
 					d1 = siz[dim]
 					d2 = _trail_length(siz, dim)
-					($fname_middim!)(dst, d0, d1, d2, weights, $(arglist...))
+					($fname_middim!)(dst, d0, d1, d2, weights, $(alst...))
 				elseif dim == nd
 					d0 = _precede_length(siz, dim)
 					d1 = siz[dim]
-					($fname_lastdim!)(dst, d0, d1, weights, $(arglist...))
+					($fname_lastdim!)(dst, d0, d1, weights, $(alst...))
 				end
 			end
 			dst
 		end
 
-		function ($fname){W<:Number}(weights::ContiguousArray{W}, $(paramlist...), dim::Int)
+		function ($fname){W<:Number}(weights::ContiguousArray{W}, $(plst...), dim::Int)
 			r = Array(promote_type($vtype, W), reduced_size($shape, dim))
-			($fname!)(r, weights, $(arglist...), dim)
+			($fname!)(r, weights, $(alst...), dim)
 		end
 	end
 end
 
-macro weighted_sumfuns(fname, coder)
-	esc(code_weighted_sumfuns(fname, coder))
+macro weighted_sumfuns(fname, ktype)
+	esc(code_weighted_sumfuns(fname, eval(ktype)))
 end
 
 
-@weighted_sumfuns wsum TrivialCoder()
-@weighted_sumfuns wsum UnaryCoder()
-@weighted_sumfuns wsum BinaryCoder()
-@weighted_sumfuns wsum TernaryCoder()
-@weighted_sumfuns wsum_fdiff FDiffCoder()
+@weighted_sumfuns wsum DirectKernel
+@weighted_sumfuns wsum UnaryFunKernel
+@weighted_sumfuns wsum BinaryFunKernel
+@weighted_sumfuns wsum TernaryFunKernel
+@weighted_sumfuns wsum_fdiff DiffFunKernel
 
 
 # Specialized cases
