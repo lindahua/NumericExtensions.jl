@@ -70,6 +70,8 @@ module NumericExtensions
 		dot!, adiffsum, adiffsum!, sqdiffsum, sqdiffsum!,
 		adiffmax, adiffmax!, adiffmin, adiffmin!,  
 		sum_xlogx, sum_xlogx!, sum_xlogy, sum_xlogy!, 
+
+		# norms
 		vnorm, vnorm!, vdiffnorm, vdiffnorm!,
 
 		# statistics
@@ -101,6 +103,7 @@ module NumericExtensions
 	include("vbroadcast.jl")
 	include("diagop.jl")
 	include("reduce.jl")
+	include("norms.jl")
 	include("statistics.jl")
 	include("weightsum.jl")
 

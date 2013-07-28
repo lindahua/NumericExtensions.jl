@@ -5,6 +5,7 @@ tests = [ "functors",
 		  "map", 
 		  "vbroadcast", 
 		  "reduce", 
+		  "norms",
 		  "statistics", 
 		  "wsum", 
 		  "pdmat"]

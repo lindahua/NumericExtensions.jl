@@ -465,40 +465,4 @@ r = zeros(6); adiffsum!(r, x2, y2, 1)
 @test_approx_eq sum_xlogy(p2, q2, 1) sum(p2 .* log(q2), 1)
 @test_approx_eq sum_xlogy(p2, q2, 2) sum(p2 .* log(q2), 2)
 
-# vnorm
-
-@test_approx_eq vnorm(x1, 1, 1) sum(abs(x1), 1)
-@test_approx_eq vnorm(x2, 1, 1) sum(abs(x2), 1)
-@test_approx_eq vnorm(x2, 1, 2) sum(abs(x2), 2)
-
-@test_approx_eq vnorm(x1, 2, 1) sqrt(sum(abs2(x1), 1))
-@test_approx_eq vnorm(x2, 2, 1) sqrt(sum(abs2(x2), 1))
-@test_approx_eq vnorm(x2, 2, 2) sqrt(sum(abs2(x2), 2))
-
-@test_approx_eq vnorm(x1, Inf, 1) max(abs(x1), (), 1)
-@test_approx_eq vnorm(x1, Inf, 2) max(abs(x1), (), 2)
-@test_approx_eq vnorm(x2, Inf, 2) max(abs(x2), (), 2)
-
-@test_approx_eq vnorm(x1, 3, 1) sum(abs(x1).^3, 1).^(1/3)
-@test_approx_eq vnorm(x2, 3, 1) sum(abs(x2).^3, 1).^(1/3)
-@test_approx_eq vnorm(x2, 3, 2) sum(abs(x2).^3, 2).^(1/3)
-
-# vnormdiff
-
-@test_approx_eq vdiffnorm(x1, y1, 1, 1) sum(abs(x1 - y1), 1)
-@test_approx_eq vdiffnorm(x2, y2, 1, 1) sum(abs(x2 - y2), 1)
-@test_approx_eq vdiffnorm(x2, y2, 1, 2) sum(abs(x2 - y2), 2)
-
-@test_approx_eq vdiffnorm(x1, y1, 2, 1) sqrt(sum(abs2(x1 - y1), 1))
-@test_approx_eq vdiffnorm(x2, y2, 2, 1) sqrt(sum(abs2(x2 - y2), 1))
-@test_approx_eq vdiffnorm(x2, y2, 2, 2) sqrt(sum(abs2(x2 - y2), 2))
-
-@test_approx_eq vdiffnorm(x1, y1, Inf, 1) max(abs(x1 - y1), (), 1)
-@test_approx_eq vdiffnorm(x2, y2, Inf, 1) max(abs(x2 - y2), (), 1)
-@test_approx_eq vdiffnorm(x2, y2, Inf, 2) max(abs(x2 - y2), (), 2)
-
-@test_approx_eq vdiffnorm(x1, y1, 3, 1) sum(abs(x1 - y1).^3, 1).^(1/3)
-@test_approx_eq vdiffnorm(x2, y2, 3, 1) sum(abs(x2 - y2).^3, 1).^(1/3)
-@test_approx_eq vdiffnorm(x2, y2, 3, 2) sum(abs(x2 - y2).^3, 2).^(1/3)
-
 
