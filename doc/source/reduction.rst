@@ -215,14 +215,6 @@ In addition to these basic reduction functions, we also define a set of derived 
     sqdiffsum(x, y, dims)
     sqdiffsum!(dst, x, y, dims)
 
-    vnorm(x, p)   # == norm(vec(x), p)
-    vnorm(x, p, dims)
-    vnorm!(dst, x, p, dims)
-
-    vdiffnorm(x, y, p)  # == norm(vec(x - y), p)
-    vdiffnorm(x, y, p, dims)
-    vdiffnorm!(dst, x, y, p, dims)
-
 Although this is quite a large set of functions, the actual code is quite concise, as most of such functions are generated through macros (see ``src/reduce.jl``)
 
 In addition to the common reduction functions, this package also provides a set of statistics functions that are particularly useful in probabilistic or information theoretical computation, as follows
