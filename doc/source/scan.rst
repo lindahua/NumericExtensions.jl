@@ -7,8 +7,8 @@ Let ``x`` be an input vector and ``f`` be a binary operator, then the output ``y
 
 .. math::
 
-	y[1] = x[1]
-	y[i] = f(y[i-1], x[i]), \forall i = 2, 3, \ldots
+	y[1] &= x[1] \\
+	y[i] &= f(y[i-1], x[i]), \forall i = 2, 3, \ldots
 
 For example, the function ``cumsum`` is a special case of array scanning.
 
