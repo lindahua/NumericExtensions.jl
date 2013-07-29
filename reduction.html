@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Reduction &mdash; NumericExtensions.jl 0.2.0 documentation</title>
+    <title>Reduction &mdash; NumericExtensions.jl 0.2.12 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.2.0',
+        VERSION:     '0.2.12',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,8 +25,8 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="NumericExtensions.jl 0.2.0 documentation" href="index.html" />
-    <link rel="next" title="Fast Shared-memory Views" href="views.html" />
+    <link rel="top" title="NumericExtensions.jl 0.2.12 documentation" href="index.html" />
+    <link rel="next" title="Vector Norms and Normalization" href="norms.html" />
     <link rel="prev" title="Vector Broadcasting" href="vbroadcast.html" /> 
   </head>
   <body>
@@ -37,12 +37,12 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="views.html" title="Fast Shared-memory Views"
+          <a href="norms.html" title="Vector Norms and Normalization"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="vbroadcast.html" title="Vector Broadcasting"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">NumericExtensions.jl 0.2.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NumericExtensions.jl 0.2.12 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -64,8 +64,8 @@
   <p class="topless"><a href="vbroadcast.html"
                         title="previous chapter">Vector Broadcasting</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="views.html"
-                        title="next chapter">Fast Shared-memory Views</a></p>
+  <p class="topless"><a href="norms.html"
+                        title="next chapter">Vector Norms and Normalization</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/reduction.txt"
@@ -275,14 +275,6 @@ The general usage of these extended methods is summarized below:</p>
 <span class="n">sqdiffsum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>  <span class="c"># == sum(abs2(x - y))</span>
 <span class="n">sqdiffsum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
 <span class="n">sqdiffsum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
-
-<span class="n">vnorm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>   <span class="c"># == norm(vec(x), p)</span>
-<span class="n">vnorm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
-<span class="n">vnorm</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
-
-<span class="n">vdiffnorm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>  <span class="c"># == norm(vec(x - y), p)</span>
-<span class="n">vdiffnorm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
-<span class="n">vdiffnorm</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Although this is quite a large set of functions, the actual code is quite concise, as most of such functions are generated through macros (see <tt class="docutils literal"><span class="pre">src/reduce.jl</span></tt>)</p>
@@ -394,12 +386,12 @@ The general usage of these extended methods is summarized below:</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="views.html" title="Fast Shared-memory Views"
+          <a href="norms.html" title="Vector Norms and Normalization"
              >next</a> |</li>
         <li class="right" >
           <a href="vbroadcast.html" title="Vector Broadcasting"
              >previous</a> |</li>
-        <li><a href="index.html">NumericExtensions.jl 0.2.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NumericExtensions.jl 0.2.12 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

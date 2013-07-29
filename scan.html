@@ -1,0 +1,214 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Array Scanning &mdash; NumericExtensions.jl 0.2.12 documentation</title>
+    
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.2.12',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="NumericExtensions.jl 0.2.12 documentation" href="index.html" />
+    <link rel="next" title="Fast Shared-memory Views" href="views.html" />
+    <link rel="prev" title="Vector Norms and Normalization" href="norms.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="views.html" title="Fast Shared-memory Views"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="norms.html" title="Vector Norms and Normalization"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">NumericExtensions.jl 0.2.12 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Array Scanning</a><ul>
+<li><a class="reference internal" href="#generic-scanning">Generic Scanning</a></li>
+<li><a class="reference internal" href="#common-scanning-functions">Common Scanning Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="norms.html"
+                        title="previous chapter">Vector Norms and Normalization</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="views.html"
+                        title="next chapter">Fast Shared-memory Views</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/scan.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="array-scanning">
+<h1>Array Scanning<a class="headerlink" href="#array-scanning" title="Permalink to this headline">¶</a></h1>
+<p><em>Scanning</em> refers to the operation that applies a binary function recursively as follows:</p>
+<p>Let <tt class="docutils literal"><span class="pre">x</span></tt> be an input vector and <tt class="docutils literal"><span class="pre">f</span></tt> be a binary operator, then the output <tt class="docutils literal"><span class="pre">y</span></tt> is a vector of the same length given by</p>
+<div class="math">
+<p><img src="_images/math/e6b63c9f3e043a8b401026881139d0f559d1d795.png" alt="y[1] &amp;= x[1] \\
+y[i] &amp;= f(y[i-1], x[i]), \forall i = 2, 3, \ldots"/></p>
+</div><p>For example, the function <tt class="docutils literal"><span class="pre">cumsum</span></tt> is a special case of array scanning.</p>
+<p>This package provides both generic scanning functions, such as <tt class="docutils literal"><span class="pre">scan</span></tt>, <tt class="docutils literal"><span class="pre">scan!</span></tt>, <tt class="docutils literal"><span class="pre">mapscan</span></tt>, and <tt class="docutils literal"><span class="pre">mapscan!</span></tt>, as well as specialized scanning functions, such as <tt class="docutils literal"><span class="pre">cumsum</span></tt> and <tt class="docutils literal"><span class="pre">cumsum!</span></tt>, etc.</p>
+<div class="section" id="generic-scanning">
+<h2>Generic Scanning<a class="headerlink" href="#generic-scanning" title="Permalink to this headline">¶</a></h2>
+<p><strong>Synopsis</strong></p>
+<p>Let <tt class="docutils literal"><span class="pre">op</span></tt> be a binary operator, <tt class="docutils literal"><span class="pre">f1</span></tt>, <tt class="docutils literal"><span class="pre">f2</span></tt>, and <tt class="docutils literal"><span class="pre">f3</span></tt> be respectively unary, binary, and ternary functors.</p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="n">scan</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>                 <span class="c"># scan x using operator op</span>
+<span class="n">mapscan</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">f1</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>          <span class="c"># scan f1(x)</span>
+<span class="n">mapscan</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>       <span class="c"># scan f2(x, y)</span>
+<span class="n">mapscan</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>    <span class="c"># scan f3(x, y, z)</span>
+
+<span class="n">scan</span><span class="o">!</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>             <span class="c"># write the results of scanning of x to r</span>
+<span class="n">mapscan</span><span class="o">!</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">f1</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+<span class="n">mapscan</span><span class="o">!</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="n">mapscan</span><span class="o">!</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+
+<span class="n">scan</span><span class="o">!</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>                <span class="c"># inplace scanning of x using operator op</span>
+</pre></div>
+</div>
+<p>Both <tt class="docutils literal"><span class="pre">scan</span></tt> and <tt class="docutils literal"><span class="pre">scan!</span></tt> accepts a dimension argument for scanning vectors along a specific dimension.</p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="n">scan</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>                <span class="c"># scan vectors of x along dim using operator op</span>
+<span class="n">mapscan</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">f1</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>         <span class="c"># scan vectors of f1(x) along dim</span>
+<span class="n">mapscan</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>      <span class="c"># scan vectors of f2(x, y) along dim</span>
+<span class="n">mapscan</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>   <span class="c"># scan vectors of f3(x, y, z) along dim</span>
+
+<span class="n">scan</span><span class="o">!</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>            <span class="c"># write the results of scanning of x to r</span>
+<span class="n">mapscan</span><span class="o">!</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">f1</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">mapscan</span><span class="o">!</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">mapscan</span><span class="o">!</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+
+<span class="n">scan</span><span class="o">!</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>               <span class="c"># inplace scanning of x along dim</span>
+</pre></div>
+</div>
+<p>Note: <tt class="docutils literal"><span class="pre">mapscan</span></tt> and <tt class="docutils literal"><span class="pre">mapscan!</span></tt> use efficient ways to scan the terms without creating a temporary array such as <tt class="docutils literal"><span class="pre">f1(x)</span></tt>. Hence, <tt class="docutils literal"><span class="pre">mapscan(op,</span> <span class="pre">f1,</span> <span class="pre">x)</span></tt> is generally faster than <tt class="docutils literal"><span class="pre">scan(op,</span> <span class="pre">f(x))</span></tt>.</p>
+<p><strong>Examples</strong></p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="n">scan</span><span class="p">(</span><span class="n">Add</span><span class="p">(),</span> <span class="n">x</span><span class="p">)</span>          <span class="c"># equivalent to cumsum(x)</span>
+<span class="n">scan</span><span class="p">(</span><span class="n">Add</span><span class="p">(),</span> <span class="n">x</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>       <span class="c"># equivalent to cumsum(x, 1)</span>
+<span class="n">scan</span><span class="o">!</span><span class="p">(</span><span class="n">Add</span><span class="p">(),</span> <span class="n">x</span><span class="p">)</span>         <span class="c"># writing cumsum(x) inplace (i.e. back to x)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="common-scanning-functions">
+<h2>Common Scanning Functions<a class="headerlink" href="#common-scanning-functions" title="Permalink to this headline">¶</a></h2>
+<p>For some common scanning operations, we provide specific functions to simplify the use.</p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="c"># cumsum uses Add() as scanning operator</span>
+
+<span class="n">cumsum</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">cumsum</span><span class="o">!</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+<span class="n">cumsum</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="n">cumsum</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+<span class="n">cumsum</span><span class="p">(</span><span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="n">cumsum</span><span class="p">(</span><span class="n">f3</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+
+<span class="n">cumsum</span><span class="o">!</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">f1</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+<span class="n">cumsum</span><span class="o">!</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="n">cumsum</span><span class="o">!</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+
+<span class="c"># cummax uses Max() as scanning operator</span>
+
+<span class="n">cummax</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">cummax</span><span class="o">!</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+<span class="n">cummax</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="n">cummax</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+<span class="n">cummax</span><span class="p">(</span><span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="n">cummax</span><span class="p">(</span><span class="n">f3</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+
+<span class="n">cummax</span><span class="o">!</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">f1</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+<span class="n">cummax</span><span class="o">!</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="n">cummax</span><span class="o">!</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+
+<span class="c"># cummin uses Min() as scanning operator</span>
+
+<span class="n">cummin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">cummin</span><span class="o">!</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+<span class="n">cummin</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="n">cummin</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+<span class="n">cummin</span><span class="p">(</span><span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="n">cummin</span><span class="p">(</span><span class="n">f3</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+
+<span class="n">cummin</span><span class="o">!</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">f1</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+<span class="n">cummin</span><span class="o">!</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="n">cummin</span><span class="o">!</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="views.html" title="Fast Shared-memory Views"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="norms.html" title="Vector Norms and Normalization"
+             >previous</a> |</li>
+        <li><a href="index.html">NumericExtensions.jl 0.2.12 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Dahua Lin.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>
