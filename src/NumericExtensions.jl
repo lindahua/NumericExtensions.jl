@@ -8,6 +8,7 @@ module NumericExtensions
 	import Base.diagm
 	import Base.+, Base.*, Base.\, Base./
 	import Base.sum, Base.max, Base.min, Base.dot, Base.LinAlg.BLAS.asum, Base.norm
+	import Base.cumsum, Base.cummax, Base.cummin, Base.cumprod
 	import Base.mean, Base.var, Base.varm, Base.std, Base.stdm
 	import Base.logdet, Base.full, Base.inv, Base.diag
 
@@ -73,6 +74,10 @@ module NumericExtensions
 
 		# norms
 		vnorm, vnorm!, vdiffnorm, vdiffnorm!, normalize, normalize!,
+
+		# scan
+		scan, scan!, mapscan, mapscan!, 
+		cumsum!, cummax!, cummin!,
 
 		# statistics
 		mean!, var!, varm!, std!, stdm!, entropy, entropy!,

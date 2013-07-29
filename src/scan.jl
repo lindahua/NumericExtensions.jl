@@ -45,7 +45,7 @@ end
 
 # inplace scan
 
-scan!(op::BinaryFunctor, x::ContiguousVector) = scan!(op, x, x)
+scan!(op::BinaryFunctor, x::ContiguousVector) = scan!(x, op, x)
 
 
 #################################################
@@ -116,7 +116,7 @@ function code_dimscan_functions{KType<:EwiseKernel}(fname::Symbol, ktype::Type{K
 
 		function ($_fname!)(siz::NTuple, dst::ContiguousArray, $(plst...), dim::Int)
 			if 1 <= dim <= length(siz)
-				($fname_impl!)(dst, prec_length(siz, dim), rsiz[dim], succ_length(siz, dim), $(alst...))
+				($fname_impl!)(dst, prec_length(siz, dim), siz[dim], succ_length(siz, dim), $(alst...))
 			else
 				throw(ArgumentError("The value of dim is invalid."))
 			end
@@ -128,7 +128,7 @@ function code_dimscan_functions{KType<:EwiseKernel}(fname::Symbol, ktype::Type{K
 			if length(dst) != prod(siz)
 				throw(ArgumentError("Inconsistent argument dimensions."))
 			end
-			($_fname!)(siz, dst, &(alst...), dim)
+			($_fname!)(siz, dst, $(alst...), dim)
 		end
 
 		function ($fname)($(plst...), dim::Int)
@@ -147,6 +147,10 @@ end
 @dimscan_functions mapscan BinaryFunKernel
 @dimscan_functions mapscan TernaryFunKernel
 
+# inplace scan
+
+scan!(op::BinaryFunctor, x::ContiguousArray, dim::Int) = scan!(x, op, x, dim)
+
 
 #################################################
 #
@@ -158,11 +162,13 @@ function code_cumfuns(fname::Symbol, op::Expr, ktype::Type{DirectKernel})
 	fname! = symbol(string(fname, '!'))
 
 	quote
-		($fname!)(dst::ContiguousVector, x::ContiguousVector) = scan!($op, x)
+		($fname!)(dst::ContiguousVector, x::ContiguousVector) = scan!(dst, $op, x)
 
 		($fname!)(dst::ContiguousArray, x::ContiguousArray, dim::Int) = scan!(dst, $op, x, dim)
 
-		($fname!)(x::ContiguousArray) = scan!($op, x)
+		($fname!)(x::ContiguousVector) = scan!($op, x)
+
+		($fname!)(x::ContiguousArray, dim::Int) = scan!($op, x, dim)
 
 		($fname)(x::ContiguousVector) = scan($op, x)
 
