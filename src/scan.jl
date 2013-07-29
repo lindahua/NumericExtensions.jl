@@ -20,9 +20,9 @@ function code_vecscan_functions{KType<:EwiseKernel}(fname::Symbol, ktype::Type{K
 		function ($fname!)(dst::ContiguousVector, $(plst...))
 			n::Int = $len
 			i = 1
-			dst[1] = v = $ker_i
+			@inbounds dst[1] = v = $ker_i
 			for i in 2 : n
-				dst[i] = v = evaluate(op, v, $ker_i)
+				@inbounds dst[i] = v = evaluate(op, v, $ker_i)
 			end
 			dst
 		end
@@ -71,29 +71,29 @@ function code_dimscan_functions{KType<:EwiseKernel}(fname::Symbol, ktype::Type{K
 		function ($fname_impl!)(dst::ContiguousArray, m::Int, n::Int, k::Int, $(plst...))
 			if n == 1  # each page has a single column (simply evaluate)
 				for idx = 1:m*k
-					dst[idx] = $ker_idx
+					@inbounds dst[idx] = $ker_idx
 				end
 
 			elseif m == 1  # each page has a single row
 				idx = 0
 				for l = 1:k
 					idx += 1
-					dst[idx] = s = $ker_idx
+					@inbounds dst[idx] = s = $ker_idx
 					for j = 2:n
 						idx += 1
-						dst[idx] = s = evaluate(op, s, $ker_idx)
+						@inbounds dst[idx] = s = evaluate(op, s, $ker_idx)
 					end					
 				end
 
 			elseif k == 1 # only one page
 				for idx = 1:m
-					dst[idx] = $ker_idx
+					@inbounds dst[idx] = $ker_idx
 				end
 				idx = m
 				for j = 2:n
 					for i = 1:m
 						idx += 1
-						dst[idx] = evaluate(op, dst[idx-m], $ker_idx)
+						@inbounds dst[idx] = evaluate(op, dst[idx-m], $ker_idx)
 					end
 				end
 
@@ -102,12 +102,12 @@ function code_dimscan_functions{KType<:EwiseKernel}(fname::Symbol, ktype::Type{K
 				for l = 1:k					
 					for i = 1:m
 						idx += 1
-						dst[idx] = $ker_idx
+						@inbounds dst[idx] = $ker_idx
 					end
 					for j = 2:n
 						for i = 1:m
 							idx += 1
-							dst[idx] = evaluate(op, dst[idx-m], $ker_idx)
+							@inbounds dst[idx] = evaluate(op, dst[idx-m], $ker_idx)
 						end
 					end
 				end
