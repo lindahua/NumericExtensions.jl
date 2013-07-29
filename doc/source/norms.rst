@@ -10,10 +10,10 @@ Vector Norm Evaluation
 
 .. code-block:: julia
 
-	vnorm(x, p)             # compute L-p norm of vec(x)
-	vnorm(x, p, dim)        # compute L-p norm of x along dimension dim
-	vnorm!(r, x, p, dim)    # compute L-p norm along specific dimension and 
-	                        # write results to r
+    vnorm(x, p)             # compute L-p norm of vec(x)
+    vnorm(x, p, dim)        # compute L-p norm of x along dimension dim
+    vnorm!(r, x, p, dim)    # compute L-p norm along specific dimension and 
+                            # write results to r
 
     vdiffnorm(x, y, p)             # compute L-p norm of vec(x - y)
     vdiffnorm(x, y, p, dim)        # compute L-p norm of x - y along dim
