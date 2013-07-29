@@ -215,14 +215,6 @@ In addition to these basic reduction functions, we also define a set of derived 
     sqdiffsum(x, y, dims)
     sqdiffsum!(dst, x, y, dims)
 
-    vnorm(x, p)   # == norm(vec(x), p)
-    vnorm(x, p, dims)
-    vnorm!(dst, x, p, dims)
-
-    vdiffnorm(x, y, p)  # == norm(vec(x - y), p)
-    vdiffnorm(x, y, p, dims)
-    vdiffnorm!(dst, x, y, p, dims)
-
 Although this is quite a large set of functions, the actual code is quite concise, as most of such functions are generated through macros (see ``src/reduce.jl``)
 
 In addition to the common reduction functions, this package also provides a set of statistics functions that are particularly useful in probabilistic or information theoretical computation, as follows
@@ -300,21 +292,21 @@ Furthermore, ``wasum``, ``wadiffsum``, ``wsqsum``, ``wsqdiffsum`` are provided t
 
 .. code-block:: julia
 
-    wasum(x)              # weighted sum of abs(x)
-    wasum(x, dim)
-    wasum!(dst, x, dim)
+    wasum(w, x)              # weighted sum of abs(x)
+    wasum(w, x, dim)
+    wasum!(dst, w, x, dim)
 
-    wadiffsum(x, y)       # weighted sum of abs(x - y)
-    wadiffsum(x, y, dim)
-    wadiffsum!(dst, x, y, dim)
+    wadiffsum(w, x, y)       # weighted sum of abs(x - y)
+    wadiffsum(w, x, y, dim)
+    wadiffsum!(dst, w, x, y, dim)
 
-    wsqsum(x)             # weighted sum of abs2(x)
-    wsqsum(x, dim)
-    wsqsum!(dst, x, dim) 
+    wsqsum(w, x)             # weighted sum of abs2(x)
+    wsqsum(w, x, dim)
+    wsqsum!(dst, w, x, dim) 
 
-    wsqdiffsum(x, y)      # weighted sum of abs2(x - y)
-    wsqdiffsum(x, y, dim)
-    wsqdiffsum!(dst, x, y, dim)
+    wsqdiffsum(w, x, y)      # weighted sum of abs2(x - y)
+    wsqdiffsum(w, x, y, dim)
+    wsqdiffsum!(dst, w, x, y, dim)
 
 
 Performance

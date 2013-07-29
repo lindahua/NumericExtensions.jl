@@ -25,6 +25,8 @@ Documentation of NumericExtensions.jl
     map.rst
     vbroadcast.rst
     reduction.rst
+    norms.rst
+    scan.rst
     views.rst
     pdmat.rst
 
