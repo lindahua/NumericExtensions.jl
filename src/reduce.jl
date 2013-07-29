@@ -45,7 +45,7 @@ function code_full_reduction{KType<:EwiseKernel}(fname::Symbol, ktype::Type{KTyp
 		function ($fname)($(plst...))
 			n::Int = $len
 			i = 1
-			v = $ker_i
+			@inbounds v = $ker_i
 			for i in 2 : n
 				@inbounds v = evaluate(op, v, $ker_i)
 			end
@@ -92,19 +92,19 @@ function code_singledim_reduction{KType<:EwiseKernel}(fname::Symbol, ktype::Type
 
 	quote
 		function ($fname_impl!)(dst::ContiguousArray, m::Int, n::Int, k::Int, $(plst...))
-			if n == 1  # each page has a single row (simply evaluate)
+			if n == 1  # each page has a single column (simply evaluate)
 				for idx = 1:m*k
 					@inbounds dst[idx] = $ker_idx
 				end
 
-			elseif m == 1  # each page has a single column
+			elseif m == 1  # each page has a single row
 				idx = 0
 				for l = 1:k
 					idx += 1
 					@inbounds s = $ker_idx
 					for j = 2:n
 						idx += 1
-						@inbounds s = evaluate(op, s, $ker_idx)						
+						@inbounds s = evaluate(op, s, $ker_idx)
 					end
 					@inbounds dst[l] = s
 				end
@@ -142,11 +142,11 @@ function code_singledim_reduction{KType<:EwiseKernel}(fname::Symbol, ktype::Type
 		end
 
 		function ($fname!)(dst::ContiguousArray, $(plst...), dim::Int)
-			rsiz = $shape
-			if dim <= length(rsiz)
-				($fname_impl!)(dst, prec_length(rsiz, dim), rsiz[dim], succ_length(rsiz, dim), $(alst...))
+			siz = $shape
+			if 1 <= dim <= length(siz)
+				($fname_impl!)(dst, prec_length(siz, dim), siz[dim], succ_length(siz, dim), $(alst...))
 			else
-				($fname_impl!)(dst, prod(rsiz), 1, 1, $(alst...))
+				($fname_impl!)(dst, prod(siz), 1, 1, $(alst...))
 			end
 			dst
 		end

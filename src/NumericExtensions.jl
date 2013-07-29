@@ -104,6 +104,7 @@ module NumericExtensions
 	include("diagop.jl")
 	include("reduce.jl")
 	include("norms.jl")
+	include("scan.jl")
 	include("statistics.jl")
 	include("weightsum.jl")
 
