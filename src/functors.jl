@@ -116,7 +116,7 @@ result_type{T<:Real}(::Abs, ::Type{T}) = T
 result_type{T<:Real}(::Abs, ::Type{Complex{T}}) = to_fptype(T)
 result_type{T<:Real}(::Abs2, ::Type{T}) = T
 result_type{T<:Real}(::Abs2, ::Type{Complex{T}}) = T
-result_type{Tp<:Real, T<:Number}(::FixAbsPow, ::Type{T}) = promote_type(Tp, T)
+result_type{Tp<:Real, T<:Number}(::FixAbsPow{Tp}, ::Type{T}) = promote_type(Tp, T)
 
 result_type{T1<:Number,T2<:Number,T3<:Number}(::FMA, ::Type{T1}, ::Type{T2}, ::Type{T3}) = promote_type(T1, promote_type(T2, T3))
 result_type{T<:Number}(::FMA, ::Type{T}, ::Type{T}, ::Type{T}) = T
