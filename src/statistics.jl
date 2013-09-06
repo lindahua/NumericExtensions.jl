@@ -254,7 +254,16 @@ function _logsumexp_lastdim!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R},
 	u::ContiguousArray{T}, x::ContiguousArray{T}, m::Int, n::Int)
 
 	# compute max
-	max!(u, unsafe_view(x, :, 1:n), (), 2)
+	for i in 1 : m
+		@inbounds u[i] = x[i]
+	end
+	o = m
+	for j in 2 : n
+		for i in 1 : m
+			@inbounds u[i] = max(u[i], x[o + i])
+		end
+		o += m
+	end
 
 	# sum exp
 	for i in 1 : m
@@ -352,7 +361,16 @@ function _softmax_lastdim!{T<:FloatingPoint}(dst::ContiguousArray{T},
 	u::ContiguousArray{T}, x::ContiguousArray{T}, m::Int, n::Int)
 
 	# compute max
-	max!(u, unsafe_view(x, :, 1:n), (), 2)
+	for i in 1 : m
+		@inbounds u[i] = x[i]
+	end
+	o = m
+	for j in 2 : n
+		for i in 1 : m
+			@inbounds u[i] = max(u[i], x[o + i])
+		end
+		o += m
+	end
 
 	# compute sum
 	s = unsafe_view(u, m+1:2*m)
