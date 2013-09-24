@@ -45,6 +45,13 @@ unwhiten!(a::PDMat, x::Vector{Float64}) = (trmv!('U', 'T', 'N', a.chol.UL, x); x
 unwhiten(a::PDMat, x::Matrix{Float64}) = trmm('L', 'U', 'T', 'N', 1.0, a.chol.UL, x)
 unwhiten!(a::PDMat, x::Matrix{Float64}) = (trmm!('L', 'U', 'T', 'N', 1.0, a.chol.UL, x); x)
 
+function unwhiten_winv!(J::PDMat, x::VecOrMat{Float64})
+    Base.LinAlg.LAPACK.trtrs!('U', 'N', 'N', J.chol.UL, x)
+    return x
+end
+
+unwhiten_winv(J::PDMat, x::VecOrMat{Float64}) = unwhiten_winv!(J, copy(x))
+
 # quadratic forms
 
 quad(a::PDMat, x::Vector{Float64}) = dot(x, a.mat * x)
@@ -108,8 +115,10 @@ logdet(a::PDiagMat) = sum(log(a.diag))
 diag(a::PDiagMat) = copy(a.diag)
 
 * (a::PDiagMat, c::Float64) = PDiagMat(a.diag * c)
-* (a::PDiagMat, x::VecOrMat) = bmultiply(x, a.diag, 1)
-\ (a::PDiagMat, x::VecOrMat) = bmultiply(x, a.inv_diag, 1)
+* (a::PDiagMat, x::Vector{Float64}) = a.diag .* x
+\ (a::PDiagMat, x::Vector{Float64}) = a.inv_diag .* x
+* (a::PDiagMat, x::Matrix{Float64}) = bmultiply(x, a.diag, 1)
+\ (a::PDiagMat, x::Matrix{Float64}) = bmultiply(x, a.inv_diag, 1)
 
 # whiten and unwhiten 
 
@@ -137,6 +146,9 @@ unwhiten(a::PDiagMat, x::Matrix{Float64}) = bmultiply(x, sqrt(a.diag), 1)
 
 unwhiten!(a::PDiagMat, x::Vector{Float64}) = _mul_sqrt!(x, a.diag)
 unwhiten!(a::PDiagMat, x::Matrix{Float64}) = bmultiply!(x, sqrt(a.diag), 1)
+
+unwhiten_winv!(J::PDiagMat, z::VecOrMat{Float64}) = whiten!(J, z)
+unwhiten_winv(J::PDiagMat, z::VecOrMat{Float64}) = whiten(J, z)
 
 # quadratic forms
 
@@ -216,6 +228,9 @@ function unwhiten!(a::ScalMat, x::VecOrMat{Float64})
     @check_argdims dim(a) == size(x, 1)
     multiply!(x, sqrt(a.value))
 end
+
+unwhiten_winv!(J::ScalMat,  z::VecOrMat{Float64}) = whiten!(J, z)
+unwhiten_winv(J::ScalMat, z::VecOrMat{Float64}) = whiten(J, z)
 
 # quadratic forms
 

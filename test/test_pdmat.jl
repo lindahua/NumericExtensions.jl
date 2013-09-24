@@ -38,6 +38,8 @@ x1 = rand(3)
 @test_approx_eq full(a / 2.0) full(a) / 2.0
 @test full(a * 2.0) == full(2.0 * a)
 
+@test_approx_eq a * x1 full(a) * x1
+@test_approx_eq a \ x1 full(a) \ x1
 @test_approx_eq a * x full(a) * x
 @test_approx_eq a \ x full(a) \ x
 
@@ -107,6 +109,8 @@ x1 = rand(3)
 @test_approx_eq full(a / 2.0) full(a) / 2.0
 @test full(a * 2.0) == full(2.0 * a)
 
+@test_approx_eq a * x1 full(a) * x1
+@test_approx_eq a \ x1 full(a) \ x1
 @test_approx_eq a * x full(a) * x
 @test_approx_eq a \ x full(a) \ x
 
@@ -177,6 +181,8 @@ x1 = rand(3)
 @test_approx_eq full(a / 2.0) full(a) / 2.0
 @test full(a * 2.0) == full(2.0 * a)
 
+@test_approx_eq a * x1 full(a) * x1
+@test_approx_eq a \ x1 full(a) \ x1
 @test_approx_eq a * x full(a) * x
 @test_approx_eq a \ x full(a) \ x
 
