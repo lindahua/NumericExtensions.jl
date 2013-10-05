@@ -7,7 +7,7 @@ module NumericExtensions
 	import Base.map, Base.map!, Base.reduce, Base.mapreduce
 	import Base.diagm
 	import Base.+, Base.*, Base.\, Base./
-	import Base.sum, Base.max, Base.min, Base.dot, Base.LinAlg.BLAS.asum, Base.norm
+	import Base.sum, Base.max, Base.min, Base.dot, Base.norm, Base.LinAlg.BLAS.asum
 	import Base.cumsum, Base.cummax, Base.cummin, Base.cumprod
 	import Base.mean, Base.var, Base.varm, Base.std, Base.stdm
 	import Base.logdet, Base.full, Base.inv, Base.diag
@@ -64,16 +64,16 @@ module NumericExtensions
 
 		# reduce
 		reduce!, mapreduce!, mapdiff_reduce, mapdiff_reduce!,
-		sum!, sum_fdiff, sum_fdiff!,
-		max!, max_fdiff, max_fdiff!,
-		min!, min_fdiff, min_fdiff!,
-		asum, asum!, amax, amax!, amin, amin!, sqsum, sqsum!,  
-		dot!, adiffsum, adiffsum!, sqdiffsum, sqdiffsum!,
-		adiffmax, adiffmax!, adiffmin, adiffmin!,  
-		sum_xlogx, sum_xlogx!, sum_xlogy, sum_xlogy!, 
+		sum!, sumfdiff, sumfdiff!,
+		max!, maxfdiff, maxfdiff!,
+		min!, minfdiff, minfdiff!,
+		sumabs, sumabs!, maxabs, maxabs!, minabs, minabs!, sumsq, sumsq!, asum,
+		dot!, sumabsdiff, sumabsdiff!, sumsqdiff, sumsqdiff!,
+		maxabsdiff, maxabsdiff!, minabsdiff, minabsdiff!,  
+		sumxlogx, sumxlogx!, sumxlogy, sumxlogy!, 
 
 		# norms
-		vnorm, vnorm!, vdiffnorm, vdiffnorm!, normalize, normalize!,
+		vnorm, vnorm!, vnormdiff, vnormdiff!, normalize, normalize!,
 
 		# scan
 		scan, scan!, mapscan, mapscan!, 
@@ -84,9 +84,9 @@ module NumericExtensions
 		logsumexp, logsumexp!, softmax, softmax!,
 
 		# weightsum
-		wsum, wsum!, wsum_fdiff, wsum_fdiff!,
-		wasum, wasum!, wadiffsum, wadiffsum!,
-		wsqsum, wsqsum!, wsqdiffsum, wsqdiffsum!,
+		wsum, wsum!, wsumfdiff, wsumfdiff!,
+		wsumabs, wsumabs!, wsumabsdiff, wsumabsdiff!,
+		wsumsq, wsumsq!, wsumsqdiff, wsumsqdiff!,
 
 		# pdmat
         AbstractPDMat, PDMat, PDiagMat, ScalMat, 
@@ -117,4 +117,6 @@ module NumericExtensions
 	include("pdmat.jl")
 
 	include("benchmark.jl")
+
+	include("deprecates.jl")
 end

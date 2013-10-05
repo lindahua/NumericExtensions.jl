@@ -331,7 +331,7 @@ function code_basic_mapreduction(fname::Symbol, op::Expr, emptyfun::Symbol)
 	c1 = code_basic_reduction(fname, op, UnaryFunKernel, :mapreduce, emptyfun)
 	c2 = code_basic_reduction(fname, op, BinaryFunKernel, :mapreduce, emptyfun)
 	c3 = code_basic_reduction(fname, op, TernaryFunKernel, :mapreduce, emptyfun)
-	c2d = code_basic_reduction(symbol(string(fname, "_fdiff")), op, DiffFunKernel, :mapdiff_reduce, emptyfun)
+	c2d = code_basic_reduction(symbol(string(fname, "fdiff")), op, DiffFunKernel, :mapdiff_reduce, emptyfun)
 
 	combined = Expr(:block, c1.args..., c2.args..., c3.args..., c2d.args...)
 end
@@ -415,27 +415,28 @@ end
 
 # specific function definitions
 
-@derived_reduction1 asum sum Abs()
-@derived_reduction1 amax max Abs()
-@derived_reduction1 amin min Abs()
-@derived_reduction1 sqsum sum Abs2()
-@derived_reduction1 sum_xlogx sum Xlogx()
+@derived_reduction1 sumabs sum Abs()
+@derived_reduction1 maxabs max Abs()
+@derived_reduction1 minabs min Abs()
+@derived_reduction1 sumsq sum Abs2()
+@derived_reduction1 sumxlogx sum Xlogx()
 
-@derived_reduction2 adiffsum sum_fdiff Abs()
-@derived_reduction2 adiffmax max_fdiff Abs()
-@derived_reduction2 adiffmin min_fdiff Abs()
-@derived_reduction2 sqdiffsum sum_fdiff Abs2()
-@derived_reduction2 sum_xlogy sum Xlogy()
+@derived_reduction2 sumabsdiff sumfdiff Abs()
+@derived_reduction2 maxabsdiff maxfdiff Abs()
+@derived_reduction2 minabsdiff minfdiff Abs()
+@derived_reduction2 sumsqdiff sumfdiff Abs2()
+@derived_reduction2 sumxlogy sum Xlogy()
 
 # special treatment for dot for sqsum
 
 typealias BlasFP Union(Float32, Float64, Complex{Float32}, Complex{Float64})
 const blas_dot = Base.LinAlg.BLAS.dot
+const blas_asum = Base.LinAlg.BLAS.asum
 
 dot(x1::ContiguousArray, x2::ContiguousArray, dims::DimSpec) = sum(Multiply(), x1, x2, dims)
 dot!(dst::ContiguousArray, x1::ContiguousArray, x2::ContiguousArray, dims::DimSpec) = sum!(dst, Multiply(), x1, x2, dims)
 
 dot{T<:BlasFP}(x1::Array{T}, x2::Array{T}) = blas_dot(x1, x2)
-sqsum{T<:BlasFP}(x::Array{T}) = blas_dot(x, x)
-
+sumsq{T<:BlasFP}(x::Array{T}) = blas_dot(x, x)
+sumabs{T<:BlasFP}(x::Array{T}) = blas_asum(x)
 

@@ -123,38 +123,38 @@ q = rand(3, 4)
 @test sum([true]) === 1 
 @test sum([true, false, true]) === 2
 
-@test_approx_eq asum(x) safe_sum(abs(x))
-@test_approx_eq amax(x) safe_max(abs(x))
-@test_approx_eq amin(x) safe_min(abs(x))
-@test_approx_eq sqsum(x) safe_sum(abs2(x))
+@test_approx_eq sumabs(x) safe_sum(abs(x))
+@test_approx_eq maxabs(x) safe_max(abs(x))
+@test_approx_eq minabs(x) safe_min(abs(x))
+@test_approx_eq sumsq(x) safe_sum(abs2(x))
 
 @test_approx_eq dot(x, y) safe_sum(x .* y)
-@test_approx_eq adiffsum(x, y) safe_sum(abs(x - y))
-@test_approx_eq adiffmax(x, y) safe_max(abs(x - y))
-@test_approx_eq adiffmin(x, y) safe_min(abs(x - y))
-@test_approx_eq sqdiffsum(x, y) safe_sum(abs2(x - y))
+@test_approx_eq sumabsdiff(x, y) safe_sum(abs(x - y))
+@test_approx_eq maxabsdiff(x, y) safe_max(abs(x - y))
+@test_approx_eq minabsdiff(x, y) safe_min(abs(x - y))
+@test_approx_eq sumsqdiff(x, y) safe_sum(abs2(x - y))
 
-@test_approx_eq adiffsum(x, 1.5) safe_sum(abs(x - 1.5))
-@test_approx_eq adiffmax(x, 1.5) safe_max(abs(x - 1.5))
-@test_approx_eq adiffmin(x, 1.5) safe_min(abs(x - 1.5))
-@test_approx_eq sqdiffsum(x, 1.5) safe_sum(abs2(x - 1.5))
+@test_approx_eq sumabsdiff(x, 1.5) safe_sum(abs(x - 1.5))
+@test_approx_eq maxabsdiff(x, 1.5) safe_max(abs(x - 1.5))
+@test_approx_eq minabsdiff(x, 1.5) safe_min(abs(x - 1.5))
+@test_approx_eq sumsqdiff(x, 1.5) safe_sum(abs2(x - 1.5))
 
 @test_approx_eq mapreduce(Abs2(), Add(), x) safe_sum(abs2(x))
 @test_approx_eq mapreduce(Multiply(), Add(), x, y) safe_sum(x .* y)
 @test_approx_eq mapdiff_reduce(Abs2(), Add(), 2.3, x) safe_sum(abs2(2.3 - x))
 
-@test_approx_eq sum_xlogx(p) sum(p .* log(p))
-@test_approx_eq sum_xlogy(p, q) sum(p .* log(q))
+@test_approx_eq sumxlogx(p) sum(p .* log(p))
+@test_approx_eq sumxlogy(p, q) sum(p .* log(q))
 
 @test_approx_eq vnorm(x, 1) safe_sum(abs(x))
 @test_approx_eq vnorm(x, 2) sqrt(safe_sum(abs2(x)))
 @test_approx_eq vnorm(x, 3) safe_sum(abs(x) .^ 3) .^ (1/3)
 @test_approx_eq vnorm(x, Inf) safe_max(abs(x))
 
-@test_approx_eq vdiffnorm(x, y, 1) safe_sum(abs(x - y))
-@test_approx_eq vdiffnorm(x, y, 2) sqrt(safe_sum(abs2(x - y)))
-@test_approx_eq vdiffnorm(x, y, 3) safe_sum(abs(x - y) .^ 3) .^ (1/3)
-@test_approx_eq vdiffnorm(x, y, Inf) safe_max(abs(x - y))
+@test_approx_eq vnormdiff(x, y, 1) safe_sum(abs(x - y))
+@test_approx_eq vnormdiff(x, y, 2) sqrt(safe_sum(abs2(x - y)))
+@test_approx_eq vnormdiff(x, y, 3) safe_sum(abs(x - y) .^ 3) .^ (1/3)
+@test_approx_eq vnormdiff(x, y, Inf) safe_max(abs(x - y))
 
 @test_approx_eq sum(FMA(), x, y, z) safe_sum(x + y .* z)
 @test_approx_eq sum(FMA(), x, y, 2.) safe_sum(x + y .* 2)
@@ -320,56 +320,56 @@ r = zeros(1, 6); mapdiff_reduce!(r, Abs2(), Add(), x2, y2, 1)
 @test_approx_eq r sum(abs2(x2 - y2), 1)
 
 
-# asum
+# sumabs
 
-@test_approx_eq asum(x1, 1) sum(abs(x1), 1)
-@test_approx_eq asum(x1, 2) sum(abs(x1), 2)
-@test_approx_eq asum(x2, 1) sum(abs(x2), 1)
-@test_approx_eq asum(x2, 2) sum(abs(x2), 2)
-@test_approx_eq asum(x2, 3) sum(abs(x2), 3)
-@test_approx_eq asum(x3, 1) sum(abs(x3), 1)
-@test_approx_eq asum(x3, 2) sum(abs(x3), 2)
-@test_approx_eq asum(x3, 3) sum(abs(x3), 3)
-@test_approx_eq asum(x3, 4) sum(abs(x3), 4)
-@test_approx_eq asum(x4, 1) sum(abs(x4), 1)
-@test_approx_eq asum(x4, 2) sum(abs(x4), 2)
-@test_approx_eq asum(x4, 3) sum(abs(x4), 3)
-@test_approx_eq asum(x4, 4) sum(abs(x4), 4)
-@test_approx_eq asum(x4, 5) sum(abs(x4), 5)
+@test_approx_eq sumabs(x1, 1) sum(abs(x1), 1)
+@test_approx_eq sumabs(x1, 2) sum(abs(x1), 2)
+@test_approx_eq sumabs(x2, 1) sum(abs(x2), 1)
+@test_approx_eq sumabs(x2, 2) sum(abs(x2), 2)
+@test_approx_eq sumabs(x2, 3) sum(abs(x2), 3)
+@test_approx_eq sumabs(x3, 1) sum(abs(x3), 1)
+@test_approx_eq sumabs(x3, 2) sum(abs(x3), 2)
+@test_approx_eq sumabs(x3, 3) sum(abs(x3), 3)
+@test_approx_eq sumabs(x3, 4) sum(abs(x3), 4)
+@test_approx_eq sumabs(x4, 1) sum(abs(x4), 1)
+@test_approx_eq sumabs(x4, 2) sum(abs(x4), 2)
+@test_approx_eq sumabs(x4, 3) sum(abs(x4), 3)
+@test_approx_eq sumabs(x4, 4) sum(abs(x4), 4)
+@test_approx_eq sumabs(x4, 5) sum(abs(x4), 5)
 
-@test_approx_eq asum(x3, (1, 2)) sum(abs(x3), (1, 2))
-@test_approx_eq asum(x3, (1, 3)) sum(abs(x3), (1, 3))
-@test_approx_eq asum(x3, (2, 3)) sum(abs(x3), (2, 3))
+@test_approx_eq sumabs(x3, (1, 2)) sum(abs(x3), (1, 2))
+@test_approx_eq sumabs(x3, (1, 3)) sum(abs(x3), (1, 3))
+@test_approx_eq sumabs(x3, (2, 3)) sum(abs(x3), (2, 3))
 
-r = zeros(6); asum!(r, x2, 1)
+r = zeros(6); sumabs!(r, x2, 1)
 @test_approx_eq r vec(sum(abs(x2), 1))
 
-# amax
+# maxabs
 
-@test_approx_eq amax(x1, 1) max(abs(x1), (), 1)
-@test_approx_eq amax(x2, 1) max(abs(x2), (), 1)
-@test_approx_eq amax(x2, 2) max(abs(x2), (), 2)
-@test_approx_eq amax(x3, 1) max(abs(x3), (), 1)
-@test_approx_eq amax(x3, 2) max(abs(x3), (), 2)
-@test_approx_eq amax(x3, 3) max(abs(x3), (), 3)
+@test_approx_eq maxabs(x1, 1) max(abs(x1), (), 1)
+@test_approx_eq maxabs(x2, 1) max(abs(x2), (), 1)
+@test_approx_eq maxabs(x2, 2) max(abs(x2), (), 2)
+@test_approx_eq maxabs(x3, 1) max(abs(x3), (), 1)
+@test_approx_eq maxabs(x3, 2) max(abs(x3), (), 2)
+@test_approx_eq maxabs(x3, 3) max(abs(x3), (), 3)
 
-# amin
+# minabs
 
-@test_approx_eq amin(x1, 1) min(abs(x1), (), 1)
-@test_approx_eq amin(x2, 1) min(abs(x2), (), 1)
-@test_approx_eq amin(x2, 2) min(abs(x2), (), 2)
-@test_approx_eq amin(x3, 1) min(abs(x3), (), 1)
-@test_approx_eq amin(x3, 2) min(abs(x3), (), 2)
-@test_approx_eq amin(x3, 3) min(abs(x3), (), 3)
+@test_approx_eq minabs(x1, 1) min(abs(x1), (), 1)
+@test_approx_eq minabs(x2, 1) min(abs(x2), (), 1)
+@test_approx_eq minabs(x2, 2) min(abs(x2), (), 2)
+@test_approx_eq minabs(x3, 1) min(abs(x3), (), 1)
+@test_approx_eq minabs(x3, 2) min(abs(x3), (), 2)
+@test_approx_eq minabs(x3, 3) min(abs(x3), (), 3)
 
-# sqsum
+# sumsq
 
-@test_approx_eq sqsum(x1, 1) sum(abs2(x1), 1)
-@test_approx_eq sqsum(x2, 1) sum(abs2(x2), 1)
-@test_approx_eq sqsum(x2, 2) sum(abs2(x2), 2)
-@test_approx_eq sqsum(x3, 1) sum(abs2(x3), 1)
-@test_approx_eq sqsum(x3, 2) sum(abs2(x3), 2)
-@test_approx_eq sqsum(x3, 3) sum(abs2(x3), 3)
+@test_approx_eq sumsq(x1, 1) sum(abs2(x1), 1)
+@test_approx_eq sumsq(x2, 1) sum(abs2(x2), 1)
+@test_approx_eq sumsq(x2, 2) sum(abs2(x2), 2)
+@test_approx_eq sumsq(x3, 1) sum(abs2(x3), 1)
+@test_approx_eq sumsq(x3, 2) sum(abs2(x3), 2)
+@test_approx_eq sumsq(x3, 3) sum(abs2(x3), 3)
 
 # dot
 
@@ -395,56 +395,56 @@ r = zeros(6); asum!(r, x2, 1)
 r = zeros(6); dot!(r, x2, y2, 1)
 @test_approx_eq r vec(sum(x2 .* y2, 1))
 
-# adiffsum
+# sumabsdiff
 
-@test_approx_eq adiffsum(x1, y1, 1) sum(abs(x1 - y1), 1)
-@test_approx_eq adiffsum(x1, y1, 2) sum(abs(x1 - y1), 2)
-@test_approx_eq adiffsum(x2, y2, 1) sum(abs(x2 - y2), 1)
-@test_approx_eq adiffsum(x2, y2, 2) sum(abs(x2 - y2), 2)
-@test_approx_eq adiffsum(x2, y2, 3) sum(abs(x2 - y2), 3)
-@test_approx_eq adiffsum(x3, y3, 1) sum(abs(x3 - y3), 1)
-@test_approx_eq adiffsum(x3, y3, 2) sum(abs(x3 - y3), 2)
-@test_approx_eq adiffsum(x3, y3, 3) sum(abs(x3 - y3), 3)
-@test_approx_eq adiffsum(x3, y3, 4) sum(abs(x3 - y3), 4)
-@test_approx_eq adiffsum(x4, y4, 1) sum(abs(x4 - y4), 1)
-@test_approx_eq adiffsum(x4, y4, 2) sum(abs(x4 - y4), 2)
-@test_approx_eq adiffsum(x4, y4, 3) sum(abs(x4 - y4), 3)
-@test_approx_eq adiffsum(x4, y4, 4) sum(abs(x4 - y4), 4)
-@test_approx_eq adiffsum(x4, y4, 5) sum(abs(x4 - y4), 5)
+@test_approx_eq sumabsdiff(x1, y1, 1) sum(abs(x1 - y1), 1)
+@test_approx_eq sumabsdiff(x1, y1, 2) sum(abs(x1 - y1), 2)
+@test_approx_eq sumabsdiff(x2, y2, 1) sum(abs(x2 - y2), 1)
+@test_approx_eq sumabsdiff(x2, y2, 2) sum(abs(x2 - y2), 2)
+@test_approx_eq sumabsdiff(x2, y2, 3) sum(abs(x2 - y2), 3)
+@test_approx_eq sumabsdiff(x3, y3, 1) sum(abs(x3 - y3), 1)
+@test_approx_eq sumabsdiff(x3, y3, 2) sum(abs(x3 - y3), 2)
+@test_approx_eq sumabsdiff(x3, y3, 3) sum(abs(x3 - y3), 3)
+@test_approx_eq sumabsdiff(x3, y3, 4) sum(abs(x3 - y3), 4)
+@test_approx_eq sumabsdiff(x4, y4, 1) sum(abs(x4 - y4), 1)
+@test_approx_eq sumabsdiff(x4, y4, 2) sum(abs(x4 - y4), 2)
+@test_approx_eq sumabsdiff(x4, y4, 3) sum(abs(x4 - y4), 3)
+@test_approx_eq sumabsdiff(x4, y4, 4) sum(abs(x4 - y4), 4)
+@test_approx_eq sumabsdiff(x4, y4, 5) sum(abs(x4 - y4), 5)
 
-@test_approx_eq adiffsum(x3, y3, (1, 2)) sum(abs(x3 - y3), (1, 2))
-@test_approx_eq adiffsum(x3, y3, (1, 3)) sum(abs(x3 - y3), (1, 3))
-@test_approx_eq adiffsum(x3, y3, (2, 3)) sum(abs(x3 - y3), (2, 3))
+@test_approx_eq sumabsdiff(x3, y3, (1, 2)) sum(abs(x3 - y3), (1, 2))
+@test_approx_eq sumabsdiff(x3, y3, (1, 3)) sum(abs(x3 - y3), (1, 3))
+@test_approx_eq sumabsdiff(x3, y3, (2, 3)) sum(abs(x3 - y3), (2, 3))
 
-r = zeros(6); adiffsum!(r, x2, y2, 1)
+r = zeros(6); sumabsdiff!(r, x2, y2, 1)
 @test_approx_eq r vec(sum(abs(x2 - y2), 1))
 
 # vdiffmax
 
-@test_approx_eq adiffmax(x1, y1, 1) max(abs(x1 - y1), (), 1)
-@test_approx_eq adiffmax(x2, y2, 1) max(abs(x2 - y2), (), 1)
-@test_approx_eq adiffmax(x2, y2, 2) max(abs(x2 - y2), (), 2)
-@test_approx_eq adiffmax(x3, y3, 1) max(abs(x3 - y3), (), 1)
-@test_approx_eq adiffmax(x3, y3, 2) max(abs(x3 - y3), (), 2)
-@test_approx_eq adiffmax(x3, y3, 3) max(abs(x3 - y3), (), 3)
+@test_approx_eq maxabsdiff(x1, y1, 1) max(abs(x1 - y1), (), 1)
+@test_approx_eq maxabsdiff(x2, y2, 1) max(abs(x2 - y2), (), 1)
+@test_approx_eq maxabsdiff(x2, y2, 2) max(abs(x2 - y2), (), 2)
+@test_approx_eq maxabsdiff(x3, y3, 1) max(abs(x3 - y3), (), 1)
+@test_approx_eq maxabsdiff(x3, y3, 2) max(abs(x3 - y3), (), 2)
+@test_approx_eq maxabsdiff(x3, y3, 3) max(abs(x3 - y3), (), 3)
 
 # vdiffmin
 
-@test_approx_eq adiffmin(x1, y1, 1) min(abs(x1 - y1), (), 1)
-@test_approx_eq adiffmin(x2, y2, 1) min(abs(x2 - y2), (), 1)
-@test_approx_eq adiffmin(x2, y2, 2) min(abs(x2 - y2), (), 2)
-@test_approx_eq adiffmin(x3, y3, 1) min(abs(x3 - y3), (), 1)
-@test_approx_eq adiffmin(x3, y3, 2) min(abs(x3 - y3), (), 2)
-@test_approx_eq adiffmin(x3, y3, 3) min(abs(x3 - y3), (), 3)
+@test_approx_eq minabsdiff(x1, y1, 1) min(abs(x1 - y1), (), 1)
+@test_approx_eq minabsdiff(x2, y2, 1) min(abs(x2 - y2), (), 1)
+@test_approx_eq minabsdiff(x2, y2, 2) min(abs(x2 - y2), (), 2)
+@test_approx_eq minabsdiff(x3, y3, 1) min(abs(x3 - y3), (), 1)
+@test_approx_eq minabsdiff(x3, y3, 2) min(abs(x3 - y3), (), 2)
+@test_approx_eq minabsdiff(x3, y3, 3) min(abs(x3 - y3), (), 3)
 
-# sqdiffsum
+# sumsqdiff
 
-@test_approx_eq sqdiffsum(x1, y1, 1) sum(abs2(x1 - y1), 1)
-@test_approx_eq sqdiffsum(x2, y2, 1) sum(abs2(x2 - y2), 1)
-@test_approx_eq sqdiffsum(x2, y2, 2) sum(abs2(x2 - y2), 2)
-@test_approx_eq sqdiffsum(x3, y3, 1) sum(abs2(x3 - y3), 1)
-@test_approx_eq sqdiffsum(x3, y3, 2) sum(abs2(x3 - y3), 2)
-@test_approx_eq sqdiffsum(x3, y3, 3) sum(abs2(x3 - y3), 3)
+@test_approx_eq sumsqdiff(x1, y1, 1) sum(abs2(x1 - y1), 1)
+@test_approx_eq sumsqdiff(x2, y2, 1) sum(abs2(x2 - y2), 1)
+@test_approx_eq sumsqdiff(x2, y2, 2) sum(abs2(x2 - y2), 2)
+@test_approx_eq sumsqdiff(x3, y3, 1) sum(abs2(x3 - y3), 1)
+@test_approx_eq sumsqdiff(x3, y3, 2) sum(abs2(x3 - y3), 2)
+@test_approx_eq sumsqdiff(x3, y3, 3) sum(abs2(x3 - y3), 3)
 
 # reduce on fma
 
@@ -457,12 +457,12 @@ r = zeros(6); adiffsum!(r, x2, y2, 1)
 
 # entropy
 
-@test_approx_eq sum_xlogx(p1, 1) sum(p1 .* log(p1), 1)
-@test_approx_eq sum_xlogx(p2, 1) sum(p2 .* log(p2), 1)
-@test_approx_eq sum_xlogx(p2, 2) sum(p2 .* log(p2), 2)
+@test_approx_eq sumxlogx(p1, 1) sum(p1 .* log(p1), 1)
+@test_approx_eq sumxlogx(p2, 1) sum(p2 .* log(p2), 1)
+@test_approx_eq sumxlogx(p2, 2) sum(p2 .* log(p2), 2)
 
-@test_approx_eq sum_xlogy(p1, q1, 1) sum(p1 .* log(q1), 1)
-@test_approx_eq sum_xlogy(p2, q2, 1) sum(p2 .* log(q2), 1)
-@test_approx_eq sum_xlogy(p2, q2, 2) sum(p2 .* log(q2), 2)
+@test_approx_eq sumxlogy(p1, q1, 1) sum(p1 .* log(q1), 1)
+@test_approx_eq sumxlogy(p2, q2, 1) sum(p2 .* log(q2), 1)
+@test_approx_eq sumxlogy(p2, q2, 2) sum(p2 .* log(q2), 2)
 
 

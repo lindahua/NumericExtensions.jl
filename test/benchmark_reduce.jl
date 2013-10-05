@@ -69,38 +69,38 @@ _max(x::Array, d::DIMS) = max(x, (), d)
 _min(x::Array) = min(x)
 _min(x::Array, d::DIMS) = min(x, (), d)
 
-_asum(x::Array) = sum(abs(x))
-_asum(x::Array, d::DIMS) = sum(abs(x), d)
+_sumabs(x::Array) = sum(abs(x))
+_sumabs(x::Array, d::DIMS) = sum(abs(x), d)
 
-_amax(x::Array) = max(abs(x))
-_amax(x::Array, d::DIMS) = max(abs(x), (), d)
+_maxabs(x::Array) = max(abs(x))
+_maxabs(x::Array, d::DIMS) = max(abs(x), (), d)
 
-_amin(x::Array) = min(abs(x))
-_amin(x::Array, d::DIMS) = min(abs(x), (), d)
+_minabs(x::Array) = min(abs(x))
+_minabs(x::Array, d::DIMS) = min(abs(x), (), d)
 
-_sqsum(x::Array) = sum(abs2(x))
-_sqsum(x::Array, d::DIMS) = sum(abs2(x), d)
+_sumsq(x::Array) = sum(abs2(x))
+_sumsq(x::Array, d::DIMS) = sum(abs2(x), d)
 
 _dot(x::Array, y::Array) = sum(x .* y)
 _dot(x::Array, y::Array, d::DIMS) = sum(x .* y, d)
 
-_adiffsum(x::Array, y::Array) = sum(abs(x - y))
-_adiffsum(x::Array, y::Array, d::DIMS) = sum(abs(x - y), d)
+_sumabsdiff(x::Array, y::Array) = sum(abs(x - y))
+_sumabsdiff(x::Array, y::Array, d::DIMS) = sum(abs(x - y), d)
 
-_adiffmax(x::Array, y::Array) = max(abs(x - y))
-_adiffmax(x::Array, y::Array, d::DIMS) = max(abs(x - y), (), d)
+_maxabsdiff(x::Array, y::Array) = max(abs(x - y))
+_maxabsdiff(x::Array, y::Array, d::DIMS) = max(abs(x - y), (), d)
 
-_adiffmin(x::Array, y::Array) = min(abs(x - y))
-_adiffmin(x::Array, y::Array, d::DIMS) = min(abs(x - y), (), d)
+_minabsdiff(x::Array, y::Array) = min(abs(x - y))
+_minabsdiff(x::Array, y::Array, d::DIMS) = min(abs(x - y), (), d)
 
-_sqdiffsum(x::Array, y::Array) = sum(abs2(x - y))
-_sqdiffsum(x::Array, y::Array, d::DIMS) = sum(abs2(x - y), d)
+_sumsqdiff(x::Array, y::Array) = sum(abs2(x - y))
+_sumsqdiff(x::Array, y::Array, d::DIMS) = sum(abs2(x - y), d)
 
 _entropy(x::Array) = -sum(x .* log(x))
 _entropy(x::Array, d::DIMS) = -sum(x .* log(x), d)
 
-_sum_xlogy(x::Array, y::Array) = sum(x .* log(y)) 
-_sum_xlogy(x::Array, y::Array, d::DIMS) = sum(x .* log(y), d)
+_sumxlogy(x::Array, y::Array) = sum(x .* log(y)) 
+_sumxlogy(x::Array, y::Array, d::DIMS) = sum(x .* log(y), d)
 
 _logsumexp(x::Array) = (u = max(x); log(sum(exp(x - u))) + u)
 _logsumexp(x::Array, d::DIMS) = (u = max(x, (), d); log(sum(exp(x .- u))) .+ u)
@@ -127,19 +127,19 @@ println("Benchmark results on Base methods:")
 @bench_reduc1 oldperf "mean" 10 mean a2
 @bench_reduc1 oldperf "max" 10 _max a2
 @bench_reduc1 oldperf "min" 10 _min a2
-@bench_reduc1 oldperf "asum" 10 _asum a2
-@bench_reduc1 oldperf "amax" 10 _amax a2
-@bench_reduc1 oldperf "amin" 10 _amin a2
-@bench_reduc1 oldperf "sqsum" 10 _sqsum a2
+@bench_reduc1 oldperf "sumabs" 10 _sumabs a2
+@bench_reduc1 oldperf "maxabs" 10 _maxabs a2
+@bench_reduc1 oldperf "minabs" 10 _minabs a2
+@bench_reduc1 oldperf "sumsq" 10 _sumsq a2
 
 @bench_reduc2 oldperf "dot" 10 _dot a2 b2
-@bench_reduc2 oldperf "adiffsum" 10 _adiffsum a2 b2
-@bench_reduc2 oldperf "adiffmax" 10 _adiffmax a2 b2
-@bench_reduc2 oldperf "adiffmin" 10 _adiffmin a2 b2
-@bench_reduc2 oldperf "sqdiffsum" 10 _sqdiffsum a2 b2
+@bench_reduc2 oldperf "sumabsdiff" 10 _sumabsdiff a2 b2
+@bench_reduc2 oldperf "maxabsdiff" 10 _maxabsdiff a2 b2
+@bench_reduc2 oldperf "minabsdiff" 10 _minabsdiff a2 b2
+@bench_reduc2 oldperf "sumsqdiff" 10 _sumsqdiff a2 b2
 
 @bench_reduc1 oldperf "entropy" 10 _entropy b2
-@bench_reduc2 oldperf "sum_xlogy" 10 _sum_xlogy b2 b2
+@bench_reduc2 oldperf "sumxlogy" 10 _sumxlogy b2 b2
 @bench_reduc1 oldperf "var" 10 var a2
 @bench_reduc1 oldperf "std" 10 std a2
 @bench_reduc1 oldperf "logsumexp" 10 _logsumexp a2
@@ -168,19 +168,19 @@ println("Benchmark results in New methods:")
 @bench_reduc1 newperf "mean" 10 mean a2
 @bench_reduc1 newperf "max" 10 new_max a2
 @bench_reduc1 newperf "min" 10 new_min a2
-@bench_reduc1 newperf "asum" 10 asum a2
-@bench_reduc1 newperf "amax" 10 amax a2
-@bench_reduc1 newperf "amin" 10 amin a2
-@bench_reduc1 newperf "sqsum" 10 sqsum a2
+@bench_reduc1 newperf "sumabs" 10 sumabs a2
+@bench_reduc1 newperf "maxabs" 10 maxabs a2
+@bench_reduc1 newperf "minabs" 10 minabs a2
+@bench_reduc1 newperf "sumsq" 10 sumsq a2
 
 @bench_reduc2 newperf "dot" 10 dot a2 b2
-@bench_reduc2 newperf "adiffsum" 10 adiffsum a2 b2
-@bench_reduc2 newperf "adiffmax" 10 adiffmax a2 b2
-@bench_reduc2 newperf "adiffmin" 10 adiffmin a2 b2
-@bench_reduc2 newperf "sqdiffsum" 10 sqdiffsum a2 b2
+@bench_reduc2 newperf "sumabsdiff" 10 sumabsdiff a2 b2
+@bench_reduc2 newperf "maxabsdiff" 10 maxabsdiff a2 b2
+@bench_reduc2 newperf "minabsdiff" 10 minabsdiff a2 b2
+@bench_reduc2 newperf "sumsqdiff" 10 sumsqdiff a2 b2
 
 @bench_reduc1 newperf "entropy" 10 entropy b2
-@bench_reduc2 newperf "sum_xlogy" 10 sum_xlogy b2 b2
+@bench_reduc2 newperf "sumxlogy" 10 sumxlogy b2 b2
 @bench_reduc1 newperf "var" 10 var a2
 @bench_reduc1 newperf "std" 10 std a2
 @bench_reduc1 newperf "logsumexp" 10 logsumexp a2

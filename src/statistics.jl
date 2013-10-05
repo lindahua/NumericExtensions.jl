@@ -200,9 +200,9 @@ std!{R<:FloatingPoint, T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, 
 #
 ###################
 
-entropy{T<:Real}(x::ContiguousArray{T}) = - sum_xlogx(x)
-entropy{T<:Real}(x::ContiguousArray{T}, dims::DimSpec) = negate!(sum_xlogx(x, dims))
-entropy!{T<:Real}(dst::ContiguousArray{T}, x::ContiguousArray{T}, dims::DimSpec) = negate!(sum_xlogx!(dst, x, dims))
+entropy{T<:Real}(x::ContiguousArray{T}) = - sumxlogx(x)
+entropy{T<:Real}(x::ContiguousArray{T}, dims::DimSpec) = negate!(sumxlogx(x, dims))
+entropy!{T<:Real}(dst::ContiguousArray{T}, x::ContiguousArray{T}, dims::DimSpec) = negate!(sumxlogx!(dst, x, dims))
 
 
 ###################
@@ -214,7 +214,7 @@ entropy!{T<:Real}(dst::ContiguousArray{T}, x::ContiguousArray{T}, dims::DimSpec)
 function logsumexp{T<:Real}(x::ContiguousArray{T})
 	@check_nonempty("logsumexp")
 	u = max(x)
-	log(sum_fdiff(Exp(), x, u)) + u
+	log(sumfdiff(Exp(), x, u)) + u
 end
 
 function logsumexp!{R<:FloatingPoint, T<:Real}(dst::ContiguousArray{R}, x::ContiguousVector{T}, dim::Int)
