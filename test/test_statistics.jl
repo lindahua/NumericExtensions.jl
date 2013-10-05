@@ -77,6 +77,27 @@ r = zeros(size(x2, 2)); mean!(r, abs(x2), 1)
 r = zeros(size(x2, 2)); mean!(r, abs2(x2), 1) 
 @test_approx_eq r vec(meansq(x2, 1))
 
+@test_approx_eq mean(Multiply(), x, y) safe_mean(x .* y)
+@test_approx_eq mean(Multiply(), x1, y1, 1) safe_mean(x1 .* y1, 1)
+@test_approx_eq mean(Multiply(), x2, y2, 1) safe_mean(x2 .* y2, 1)
+@test_approx_eq mean(Multiply(), x2, y2, 2) safe_mean(x2 .* y2, 2)
+@test_approx_eq mean(Multiply(), x3, y3, 1) safe_mean(x3 .* y3, 1)
+@test_approx_eq mean(Multiply(), x3, y3, 2) safe_mean(x3 .* y3, 2)
+@test_approx_eq mean(Multiply(), x3, y3, 3) safe_mean(x3 .* y3, 3)
+@test_approx_eq mean(Multiply(), x3, y3, (1, 2)) safe_mean(x3 .* y3, (1, 2))
+@test_approx_eq mean(Multiply(), x3, y3, (1, 3)) safe_mean(x3 .* y3, (1, 3))
+@test_approx_eq mean(Multiply(), x3, y3, (2, 3)) safe_mean(x3 .* y3, (2, 3))
+
+@test_approx_eq mean(FMA(), x, y, z) safe_mean(x + y .* z)
+@test_approx_eq mean(FMA(), x1, y1, z1, 1) safe_mean(x1 + y1 .* z1, 1)
+@test_approx_eq mean(FMA(), x2, y2, z2, 1) safe_mean(x2 + y2 .* z2, 1)
+@test_approx_eq mean(FMA(), x2, y2, z2, 2) safe_mean(x2 + y2 .* z2, 2)
+@test_approx_eq mean(FMA(), x3, y3, z3, 1) safe_mean(x3 + y3 .* z3, 1)
+@test_approx_eq mean(FMA(), x3, y3, z3, 2) safe_mean(x3 + y3 .* z3, 2)
+@test_approx_eq mean(FMA(), x3, y3, z3, 3) safe_mean(x3 + y3 .* z3, 3)
+@test_approx_eq mean(FMA(), x3, y3, z3, (1, 2)) safe_mean(x3 + y3 .* z3, (1, 2))
+@test_approx_eq mean(FMA(), x3, y3, z3, (1, 3)) safe_mean(x3 + y3 .* z3, (1, 3))
+@test_approx_eq mean(FMA(), x3, y3, z3, (2, 3)) safe_mean(x3 + y3 .* z3, (2, 3))
 
 # varm
 
