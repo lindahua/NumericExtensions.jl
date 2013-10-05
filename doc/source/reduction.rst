@@ -85,7 +85,7 @@ The package additionally provides ``reduce!``, ``mapreduce!``, and ``mapdiff_red
 Basic reduction functions
 ---------------------------
 
-The package extends/specializes ``sum``, ``max``, and ``min``, and additionally provides ``sum!``, ``max!``, and ``min!``, as follows
+The package extends/specializes ``sum``, ``mean``, ``max``, and ``min``, and additionally provides ``sum!``, ``mean!``, ``max!``, and ``min!``, as follows
 
 The funtion ``sum`` and its variant forms:
 
@@ -106,9 +106,32 @@ The funtion ``sum`` and its variant forms:
     sum!(dst, f2, x1, x2, dims)
     sum!(dst, f3, x1, x2, x3, dims)
 
-    sum_fdiff(f2, x, y)     # compute sum of f2(x - y)
-    sum_fdiff(f2, x, y, dims)
-    sum_fdiff!(dst, f2, x, y, dims)
+    sumfdiff(f2, x, y)     # compute sum of f2(x - y)
+    sumfdiff(f2, x, y, dims)
+    sumfdiff!(dst, f2, x, y, dims)
+
+The funtion ``mean`` and its variant forms:
+
+.. code-block:: julia 
+
+    mean(x)
+    mean(f1, x)            # compute mean of f1(x)
+    mean(f2, x1, x2)       # compute mean of f2(x1, x2)
+    mean(f3, x1, x2, x3)   # compute mean of f3(x1, x2, x3)
+
+    mean(x, dims)
+    mean(f1, x, dims)
+    mean(f2, x1, x2, dims)
+    mean(f3, x1, x2, x3, dims)
+
+    mean!(dst, x, dims)    # write results to dst
+    mean!(dst, f1, x1, dims)
+    mean!(dst, f2, x1, x2, dims)
+    mean!(dst, f3, x1, x2, x3, dims)
+
+    meanfdiff(f2, x, y)     # compute mean of f2(x - y)
+    meanfdiff(f2, x, y, dims)
+    meanfdiff!(dst, f2, x, y, dims)    
 
 
 The function ``max`` and its variants:
@@ -130,9 +153,9 @@ The function ``max`` and its variants:
     max!(dst, f2, x1, x2, dims)
     max!(dst, f3, x1, x2, x3, dims)
 
-    max_fdiff(f2, x, y)     # compute maximum of f2(x - y)
-    max_fdiff(f2, x, y, dims)
-    max_fdiff!(dst, f2, x, y, dims)
+    maxfdiff(f2, x, y)     # compute maximum of f2(x - y)
+    maxfdiff(f2, x, y, dims)
+    maxfdiff!(dst, f2, x, y, dims)
 
 The function ``min`` and its variants
 
@@ -153,9 +176,9 @@ The function ``min`` and its variants
     min!(dst, f2, x1, x2, dims)
     min!(dst, f3, x1, x2, x3, dims)
 
-    min_fdiff(f2, x, y)     # compute minimum of f2(x - y)
-    min_fdiff(f2, x, y, dims)
-    min_fdiff!(dst, f2, x, y, dims)
+    minfdiff(f2, x, y)     # compute minimum of f2(x - y)
+    minfdiff(f2, x, y, dims)
+    minfdiff!(dst, f2, x, y, dims)
 
 **Note:** when computing maximum/minimum along specific dimension, we use ``max(x, (), dims)`` and ``min(x, (), dims)`` instead of ``max(x, dims)`` and ``min(x, dims)`` to avoid ambiguities that would otherwise occur.
 
@@ -167,10 +190,6 @@ In addition to these basic reduction functions, we also define a set of derived 
 
 .. code-block:: julia
 
-    mean(x)
-    mean(x, dims)
-    mean!(dst, x, dims)
-
     var(x)
     var(x, dim)
     var!(dst, x, dim)
@@ -179,41 +198,41 @@ In addition to these basic reduction functions, we also define a set of derived 
     std(x, dim)
     std!(dst, x, dim)
 
-    asum(x)  # == sum(abs(x))
-    asum(x, dims)
-    asum!(dst, x, dims)
+    sumabs(x)  # == sum(abs(x))
+    sumabs(x, dims)
+    sumabs!(dst, x, dims)
 
-    amax(x)   # == max(abs(x))
-    amax(x, dims)
-    amax!(dst, x, dims)
+    maxabs(x)   # == max(abs(x))
+    maxabs(x, dims)
+    maxabs!(dst, x, dims)
 
-    amin(x)   # == min(abs(x))
-    amin(x, dims)
-    amin!(dst, x, dims)
+    minabs(x)   # == min(abs(x))
+    minabs(x, dims)
+    minabs!(dst, x, dims)
 
-    sqsum(x)  # == sum(abs2(x))
-    sqsum(x, dims)
-    sqsum!(dst, x, dims)
+    sumsq(x)  # == sum(abs2(x))
+    sumsq(x, dims)
+    sumsq!(dst, x, dims)
 
     dot(x, y)  # == sum(x .* y)
     dot(x, y, dims)
     dot!(dst, x, y, dims)
 
-    adiffsum(x, y)   # == sum(abs(x - y))
-    adiffsum(x, y, dims)
-    adiffsum!(dst, x, y, dims)
+    sumabsdiff(x, y)   # == sum(abs(x - y))
+    sumabsdiff(x, y, dims)
+    sumabsdiff!(dst, x, y, dims)
 
-    adiffmax(x, y)   # == max(abs(x - y))
-    adiffmax(x, y, dims)
-    adiffmax!(dst, x, y, dims)
+    maxabsdiff(x, y)   # == max(abs(x - y))
+    maxabsdiff(x, y, dims)
+    maxabsdiff!(dst, x, y, dims)
 
-    adiffmin(x, y)   # == min(abs(x - y))
-    adiffmin(x, y, dims)
-    adiffmin!(dst, x, y, dims)
+    minabsdiff(x, y)   # == min(abs(x - y))
+    minabsdiff(x, y, dims)
+    minabsdiff!(dst, x, y, dims)
 
-    sqdiffsum(x, y)  # == sum(abs2(x - y))
-    sqdiffsum(x, y, dims)
-    sqdiffsum!(dst, x, y, dims)
+    sumsqdiff(x, y)  # == sum(abs2(x - y))
+    sumsqdiff(x, y, dims)
+    sumsqdiff!(dst, x, y, dims)
 
 Although this is quite a large set of functions, the actual code is quite concise, as most of such functions are generated through macros (see ``src/reduce.jl``)
 
@@ -221,15 +240,15 @@ In addition to the common reduction functions, this package also provides a set 
 
 .. code-block:: julia
 
-    sum_xlogx(x)  # == sum(xlogx(x)) with xlog(x) = x > 0 ? x * log(x) : 0
-    sum_xlogx(x, dims)
-    sum_xlogx!(dst, x, dims)
+    sumxlogx(x)  # == sum(xlogx(x)) with xlog(x) = x > 0 ? x * log(x) : 0
+    sumxlogx(x, dims)
+    sumxlogx!(dst, x, dims)
 
-    sum_xlogy(x, y)  # == sum(xlog(x,y)) with xlogy(x,y) = x > 0 ? x * log(y) : 0
-    sum_xlogy(x, y, dims)
-    sum_xlogy!(dst, x, y, dims)
+    sumxlogy(x, y)  # == sum(xlog(x,y)) with xlogy(x,y) = x > 0 ? x * log(y) : 0
+    sumxlogy(x, y, dims)
+    sumxlogy!(dst, x, y, dims)
 
-    entropy(x)   # == - sum_xlogx(x)
+    entropy(x)   # == - sumxlogx(x)
     entropy(x, dims)
     entropy!(dst, x, dims)
 
@@ -259,7 +278,7 @@ Computation of weighted sum as below is common in practice.
     \sum_{i=1}^n w_i f(x_i - y_i)
 
 
-*NumericExtensions.jl* directly supports such computation via ``wsum`` and ``wsum_fdiff``:
+*NumericExtensions.jl* directly supports such computation via ``wsum`` and ``wsumfdiff``:
 
 .. code-block:: julia
 
@@ -267,7 +286,7 @@ Computation of weighted sum as below is common in practice.
     wsum(w, f1, x1)            # weighted sum of f1(x1) with weights w
     wsum(w, f2, x1, x2)        # weighted sum of f2(x1, x2) with weights w
     wsum(w, f3, x1, x2, x3)    # weighted sum of f3(x1, x2, x3) with weights w
-    wsum_fdiff(w, f2, x, y)    # weighted sum of f2(x - y) with weights w
+    wsumfdiff(w, f2, x, y)    # weighted sum of f2(x - y) with weights w
 
 These functions also support computing the weighted sums along a specific dimension:
 
@@ -285,28 +304,28 @@ These functions also support computing the weighted sums along a specific dimens
     wsum(w, f3, x1, x2, x3, dim)
     wsum!(dst, w, f3, x1, x2, x3, dim)
 
-    wsum_fdiff(w, f2, x, y, dim)
-    wsum_fdiff!(dst, w, f2, x, y, dim)
+    wsumfdiff(w, f2, x, y, dim)
+    wsumfdiff!(dst, w, f2, x, y, dim)
 
-Furthermore, ``wasum``, ``wadiffsum``, ``wsqsum``, ``wsqdiffsum`` are provided to compute weighted sum of absolute values / squares to simplify common use:
+Furthermore, ``wsumabs``, ``wsumabsdiff``, ``wsumsq``, ``wsumsqdiff`` are provided to compute weighted sum of absolute values / squares to simplify common use:
 
 .. code-block:: julia
 
-    wasum(w, x)              # weighted sum of abs(x)
-    wasum(w, x, dim)
-    wasum!(dst, w, x, dim)
+    wsumabs(w, x)              # weighted sum of abs(x)
+    wsumabs(w, x, dim)
+    wsumabs!(dst, w, x, dim)
 
-    wadiffsum(w, x, y)       # weighted sum of abs(x - y)
-    wadiffsum(w, x, y, dim)
-    wadiffsum!(dst, w, x, y, dim)
+    wsumabsdiff(w, x, y)       # weighted sum of abs(x - y)
+    wsumabsdiff(w, x, y, dim)
+    wsumabsdiff!(dst, w, x, y, dim)
 
-    wsqsum(w, x)             # weighted sum of abs2(x)
-    wsqsum(w, x, dim)
-    wsqsum!(dst, w, x, dim) 
+    wsumsq(w, x)             # weighted sum of abs2(x)
+    wsumsq(w, x, dim)
+    wsumsq!(dst, w, x, dim) 
 
-    wsqdiffsum(w, x, y)      # weighted sum of abs2(x - y)
-    wsqdiffsum(w, x, y, dim)
-    wsqdiffsum!(dst, w, x, y, dim)
+    wsumsqdiff(w, x, y)      # weighted sum of abs2(x - y)
+    wsumsqdiff(w, x, y, dim)
+    wsumsqdiff!(dst, w, x, y, dim)
 
 
 Performance
@@ -323,6 +342,6 @@ The reduction and map-reduction functions are carefully optimized. In particular
 Generally, many of the reduction functions in this package can achieve *3x - 10x* speed up as compared to the typical Julia expression.
 
 We observe further speed up for certain functions:
-* full reduction with ``asum``, ``sqsum``, and ``dot`` utilize BLAS level 1 routines, and they achieve *10x* to *30x* speed up.
+* full reduction with ``sumabs``, ``sumsq``, and ``dot`` utilize BLAS level 1 routines, and they achieve *10x* to *30x* speed up.
 * For ``var`` and ``std``, we devise dedicated procedures, where computational steps are very carefully scheduled such that most computation is conducted in a single pass. This results in about *25x* speedup.
 
