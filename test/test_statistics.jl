@@ -13,11 +13,13 @@ q = rand(3, 4)
 
 x1 = randn(6)
 y1 = randn(6)
+z1 = randn(6)
 p1 = rand(6)
 q1 = rand(6)
 
 x2 = randn(5, 6)
 y2 = randn(5, 6)
+z2 = randn(5, 6)
 p2 = rand(5, 6)
 q2 = rand(5, 6)
 
@@ -59,7 +61,7 @@ r = zeros(size(x2, 2)); mean!(r, x2, 1)
 @test_approx_eq meanabs(x3, (1, 3)) safe_mean(abs(x3), (1, 3))
 @test_approx_eq meanabs(x3, (2, 3)) safe_mean(abs(x3), (2, 3))
 
-r = zeros(size(x2, 2)); mean!(r, abs(x2), 1) 
+r = zeros(size(x2, 2)); meanabs!(r, x2, 1) 
 @test_approx_eq r vec(meanabs(x2, 1))
 
 @test_approx_eq mean(Abs2(), x) safe_mean(abs2(x))
@@ -74,7 +76,7 @@ r = zeros(size(x2, 2)); mean!(r, abs(x2), 1)
 @test_approx_eq meansq(x3, (1, 3)) safe_mean(abs2(x3), (1, 3))
 @test_approx_eq meansq(x3, (2, 3)) safe_mean(abs2(x3), (2, 3))
 
-r = zeros(size(x2, 2)); mean!(r, abs2(x2), 1) 
+r = zeros(size(x2, 2)); meansq!(r, x2, 1) 
 @test_approx_eq r vec(meansq(x2, 1))
 
 @test_approx_eq mean(Multiply(), x, y) safe_mean(x .* y)
@@ -88,6 +90,9 @@ r = zeros(size(x2, 2)); mean!(r, abs2(x2), 1)
 @test_approx_eq mean(Multiply(), x3, y3, (1, 3)) safe_mean(x3 .* y3, (1, 3))
 @test_approx_eq mean(Multiply(), x3, y3, (2, 3)) safe_mean(x3 .* y3, (2, 3))
 
+r = zeros(size(x2, 2)); mean!(r, Multiply(), x2, y2, 1) 
+@test_approx_eq r vec(mean(x2 .* y2, 1))
+
 @test_approx_eq mean(FMA(), x, y, z) safe_mean(x + y .* z)
 @test_approx_eq mean(FMA(), x1, y1, z1, 1) safe_mean(x1 + y1 .* z1, 1)
 @test_approx_eq mean(FMA(), x2, y2, z2, 1) safe_mean(x2 + y2 .* z2, 1)
@@ -98,6 +103,40 @@ r = zeros(size(x2, 2)); mean!(r, abs2(x2), 1)
 @test_approx_eq mean(FMA(), x3, y3, z3, (1, 2)) safe_mean(x3 + y3 .* z3, (1, 2))
 @test_approx_eq mean(FMA(), x3, y3, z3, (1, 3)) safe_mean(x3 + y3 .* z3, (1, 3))
 @test_approx_eq mean(FMA(), x3, y3, z3, (2, 3)) safe_mean(x3 + y3 .* z3, (2, 3))
+
+r = zeros(size(x2, 2)); mean!(r, FMA(), x2, y2, z2, 1) 
+@test_approx_eq r vec(mean(x2 + y2 .* z2, 1))
+
+# meanfdiff
+
+@test_approx_eq meanabsdiff(x, y) safe_mean(abs(x - y))
+@test_approx_eq meanabsdiff(x1, y1, 1) safe_mean(abs(x1 - y1), 1)
+@test_approx_eq meanabsdiff(x2, y2, 1) safe_mean(abs(x2 - y2), 1)
+@test_approx_eq meanabsdiff(x2, y2, 2) safe_mean(abs(x2 - y2), 2)
+@test_approx_eq meanabsdiff(x3, y3, 1) safe_mean(abs(x3 - y3), 1)
+@test_approx_eq meanabsdiff(x3, y3, 2) safe_mean(abs(x3 - y3), 2)
+@test_approx_eq meanabsdiff(x3, y3, 3) safe_mean(abs(x3 - y3), 3)
+@test_approx_eq meanabsdiff(x3, y3, (1, 2)) safe_mean(abs(x3 - y3), (1, 2))
+@test_approx_eq meanabsdiff(x3, y3, (1, 3)) safe_mean(abs(x3 - y3), (1, 3))
+@test_approx_eq meanabsdiff(x3, y3, (2, 3)) safe_mean(abs(x3 - y3), (2, 3))
+
+r = zeros(size(x2, 2)); meanabsdiff!(r, x2, y2, 1) 
+@test_approx_eq r vec(meanabsdiff(x2, y2, 1))
+
+@test_approx_eq meansqdiff(x, y) safe_mean(abs2(x - y))
+@test_approx_eq meansqdiff(x1, y1, 1) safe_mean(abs2(x1 - y1), 1)
+@test_approx_eq meansqdiff(x2, y2, 1) safe_mean(abs2(x2 - y2), 1)
+@test_approx_eq meansqdiff(x2, y2, 2) safe_mean(abs2(x2 - y2), 2)
+@test_approx_eq meansqdiff(x3, y3, 1) safe_mean(abs2(x3 - y3), 1)
+@test_approx_eq meansqdiff(x3, y3, 2) safe_mean(abs2(x3 - y3), 2)
+@test_approx_eq meansqdiff(x3, y3, 3) safe_mean(abs2(x3 - y3), 3)
+@test_approx_eq meansqdiff(x3, y3, (1, 2)) safe_mean(abs2(x3 - y3), (1, 2))
+@test_approx_eq meansqdiff(x3, y3, (1, 3)) safe_mean(abs2(x3 - y3), (1, 3))
+@test_approx_eq meansqdiff(x3, y3, (2, 3)) safe_mean(abs2(x3 - y3), (2, 3))
+
+r = zeros(size(x2, 2)); meansqdiff!(r, x2, y2, 1) 
+@test_approx_eq r vec(meansqdiff(x2, y2, 1))
+
 
 # varm
 

@@ -13,11 +13,12 @@
 mean{T<:Real}(x::ContiguousArray{T}) = sum(x) / length(x)
 mean(f::UnaryFunctor, x::ContiguousArray) = sum(f, x) / length(x)
 mean(f::BinaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber) = sum(f, x1, x2) / prod(map_shape(x1, x2))
+meanfdiff(f::UnaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber) = sumfdiff(f, x1, x2) / prod(map_shape(x1, x2))
+
 
 function mean(f::TernaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber, x3::ArrayOrNumber)
 	sum(f, x1, x2, x3) / prod(map_shape(x1, x2, x3))
 end
-
 
 function mean{T<:Real}(x::ContiguousArray{T}, dims::DimSpec)
 	r = to_fparray(sum(x, dims))
@@ -43,6 +44,13 @@ function mean(f::TernaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber, x3::Array
 	multiply!(r, c)
 end
 
+function meanfdiff(f::UnaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber, dims::DimSpec)
+	r = to_fparray(sumfdiff(f, x1, x2, dims))
+	c = convert(eltype(r), inv(_reduc_dim_length(map_shape(x1, x2), dims)))
+	multiply!(r, c)
+end
+
+
 function mean!{R<:Real,T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, dims::DimSpec)
 	c = convert(R, inv(_reduc_dim_length(x, dims)))
 	multiply!(sum!(dst, x, dims), c)
@@ -65,15 +73,29 @@ function mean!{R<:Real}(dst::ContiguousArray{R}, f::TernaryFunctor,
 	multiply!(sum!(dst, f, x1, x2, x3, dims), c)
 end
 
+function meanfdiff!{R<:Real}(dst::ContiguousArray{R}, f::UnaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber, dims::DimSpec)
+	c = convert(R, inv(_reduc_dim_length(map_shape(x1, x2), dims)))
+	multiply!(sumfdiff!(dst, f, x1, x2, dims), c)
+end
+
+
 # specific functions
 
 meanabs{T<:Real}(x::ContiguousArray{T}) = sumabs(x) / length(x)
 meanabs{T<:Real}(x::ContiguousArray{T}, dims::DimSpec) = mean(Abs(), x, dims)
-meanabs!{R<:Real,T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, dims::DimSpec) = mean!(dst, Abs(), dims)
+meanabs!{R<:Real,T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, dims::DimSpec) = mean!(dst, Abs(), x, dims)
 
 meansq{T<:Real}(x::ContiguousArray{T}) = sumsq(x) / length(x)
 meansq{T<:Real}(x::ContiguousArray{T}, dims::DimSpec) = mean(Abs2(), x, dims)
-meansq!{R<:Real,T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, dims::DimSpec) = mean!(dst, Abs2(), dims)
+meansq!{R<:Real,T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, dims::DimSpec) = mean!(dst, Abs2(), x, dims)
+
+meanabsdiff(x::ArrayOrNumber, y::ArrayOrNumber) = meanfdiff(Abs(), x, y)
+meanabsdiff(x::ArrayOrNumber, y::ArrayOrNumber, dims::DimSpec) = meanfdiff(Abs(), x, y, dims)
+meanabsdiff!(dst::ContiguousArray, x::ArrayOrNumber, y::ArrayOrNumber, dims::DimSpec) = meanfdiff!(dst, Abs(), x, y, dims)
+
+meansqdiff(x::ArrayOrNumber, y::ArrayOrNumber) = meanfdiff(Abs2(), x, y)
+meansqdiff(x::ArrayOrNumber, y::ArrayOrNumber, dims::DimSpec) = meanfdiff(Abs2(), x, y, dims)
+meansqdiff!(dst::ContiguousArray, x::ArrayOrNumber, y::ArrayOrNumber, dims::DimSpec) = meanfdiff!(dst, Abs2(), x, y, dims)
 
 
 ###################

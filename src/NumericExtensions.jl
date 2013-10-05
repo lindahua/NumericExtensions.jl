@@ -81,6 +81,7 @@ module NumericExtensions
 
 		# statistics
 		mean!, meanabs, meanabs!, meansq, meansq!,
+		meanfdiff, meanfdiff!, meanabsdiff, meanabsdiff!, meansqdiff, meansqdiff!,
 		var!, varm!, std!, stdm!, entropy, entropy!,
 		logsumexp, logsumexp!, softmax, softmax!,
 
