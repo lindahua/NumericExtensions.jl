@@ -250,6 +250,7 @@ end
 
 
 _reduc_dim_length(x::AbstractArray, dim::Int) = 1 <= dim <= ndims(x) ? size(x, dim) : 1
+_reduc_dim_length(siz::NTuple, dim::Int) = 1 <= dim <= length(x) ? siz[dim] : 1
 
 function _reduc_dim_length(x::AbstractArray, dims::(Int, Int))
 	nd = ndims(x)
@@ -262,14 +263,13 @@ function _reduc_dim_length(x::AbstractArray, dims::(Int, Int))
 	s
 end
 
-function _reduc_dim_length(x::AbstractArray, dims::NTuple{Int})
-	s::Int = 1
-	nd = ndims(x)
-	for i in dims
-		d = dims[i]
-		if 1 <= d <= nd
-			s *= size(x, d)
-		end
+function _reduc_dim_length(siz::NTuple, dims::(Int, Int))
+	nd = length(siz)
+	d1 = dims[1]
+	s::Int = (1 <= d1 <= nd ? siz[d1] : 1)
+	d2 = dims[2]
+	if 1 <= d2 <= nd 
+		s *= siz[d2]
 	end
 	s
 end

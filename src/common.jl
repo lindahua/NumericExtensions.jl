@@ -6,6 +6,14 @@ macro check_argdims(cond)
 	end)  
 end
 
+macro check_nonempty(funname)
+	quote
+		if isempty(x)
+			error("$($funname) of empty collection undefined")
+		end
+	end
+end
+
 # shape inference for mapping
 
 map_shape(x1::AbstractArray) = size(x1)

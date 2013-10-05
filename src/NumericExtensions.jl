@@ -80,7 +80,8 @@ module NumericExtensions
 		cumsum!, cummax!, cummin!,
 
 		# statistics
-		mean!, var!, varm!, std!, stdm!, entropy, entropy!,
+		mean!, meanabs, meanabs!, meansq, meansq!,
+		var!, varm!, std!, stdm!, entropy, entropy!,
 		logsumexp, logsumexp!, softmax, softmax!,
 
 		# weightsum

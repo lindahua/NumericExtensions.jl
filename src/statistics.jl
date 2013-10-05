@@ -1,36 +1,80 @@
 # Reduction functions related to statistics
 
+# auxiliary
+
+
+
 ###################
 #
 #  Mean
 #
 ###################
 
-macro check_nonempty(funname)
-	quote
-		if isempty(x)
-			error("$($funname) of empty collection undefined")
-		end
-	end
+mean{T<:Real}(x::ContiguousArray{T}) = sum(x) / length(x)
+mean(f::UnaryFunctor, x::ContiguousArray) = sum(f, x) / length(x)
+mean(f::BinaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber) = sum(f, x1, x2) / prod(map_shape(x1, x2))
+
+function mean(f::TernaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber, x3::ArrayOrNumber)
+	sum(f, x1, x2, x3) / prod(map_shape(x1, x2, x3))
 end
 
-function mean{T<:Real}(x::ContiguousArray{T})
-	@check_nonempty("mean")
-	sum(x) / length(x)
-end
 
 function mean{T<:Real}(x::ContiguousArray{T}, dims::DimSpec)
-	@check_nonempty("mean")
 	r = to_fparray(sum(x, dims))
 	c = convert(eltype(r), inv(_reduc_dim_length(x, dims)))
 	multiply!(r, c)
 end
 
+function mean(f::UnaryFunctor, x::ContiguousArray, dims::DimSpec)
+	r = to_fparray(sum(f, x, dims))
+	c = convert(eltype(r), inv(_reduc_dim_length(x, dims)))
+	multiply!(r, c)
+end
+
+function mean(f::BinaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber, dims::DimSpec)
+	r = to_fparray(sum(f, x1, x2, dims))
+	c = convert(eltype(r), inv(_reduc_dim_length(map_shape(x1, x2), dims)))
+	multiply!(r, c)
+end
+
+function mean(f::TernaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber, x3::ArrayOrNumber, dims::DimSpec)
+	r = to_fparray(sum(f, x1, x2, x3, dims))
+	c = convert(eltype(r), inv(_reduc_dim_length(map_shape(x1, x2, x3), dims)))
+	multiply!(r, c)
+end
+
 function mean!{R<:Real,T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, dims::DimSpec)
-	@check_nonempty("mean")
 	c = convert(R, inv(_reduc_dim_length(x, dims)))
 	multiply!(sum!(dst, x, dims), c)
 end
+
+function mean!{R<:Real}(dst::ContiguousArray{R}, f::UnaryFunctor, x::ContiguousArray, dims::DimSpec)
+	c = convert(R, inv(_reduc_dim_length(x, dims)))
+	multiply!(sum!(dst, f, x, dims), c)
+end
+
+function mean!{R<:Real}(dst::ContiguousArray{R}, f::BinaryFunctor, x1::ArrayOrNumber, x2::ArrayOrNumber, dims::DimSpec)
+	c = convert(R, inv(_reduc_dim_length(map_shape(x1, x2), dims)))
+	multiply!(sum!(dst, f, x1, x2, dims), c)
+end
+
+function mean!{R<:Real}(dst::ContiguousArray{R}, f::TernaryFunctor, 
+	x1::ArrayOrNumber, x2::ArrayOrNumber, x3::ArrayOrNumber, dims::DimSpec)
+
+	c = convert(R, inv(_reduc_dim_length(map_shape(x1, x2, x3), dims)))
+	multiply!(sum!(dst, f, x1, x2, x3, dims), c)
+end
+
+# specific functions
+
+meanabs{T<:Real}(x::ContiguousArray{T}) = sumabs(x) / length(x)
+meanabs{T<:Real}(x::ContiguousArray{T}, dims::DimSpec) = mean(Abs(), x, dims)
+meanabs!{R<:Real,T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, dims::DimSpec) = mean!(dst, Abs(), dims)
+
+meansq{T<:Real}(x::ContiguousArray{T}) = sumsq(x) / length(x)
+meansq{T<:Real}(x::ContiguousArray{T}, dims::DimSpec) = mean(Abs2(), x, dims)
+meansq!{R<:Real,T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, dims::DimSpec) = mean!(dst, Abs2(), dims)
+
 
 ###################
 #

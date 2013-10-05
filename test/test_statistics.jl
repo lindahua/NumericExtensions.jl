@@ -47,6 +47,37 @@ safe_mean(x, d::(Int, Int)) = sum(x, d) / (size(x, d[1]) * size(x, d[2]))
 r = zeros(size(x2, 2)); mean!(r, x2, 1) 
 @test_approx_eq r vec(mean(x2, 1))
 
+@test_approx_eq mean(Abs(), x) safe_mean(abs(x))
+@test_approx_eq meanabs(x) safe_mean(abs(x))
+@test_approx_eq meanabs(x1, 1) safe_mean(abs(x1), 1) 
+@test_approx_eq meanabs(x2, 1) safe_mean(abs(x2), 1)
+@test_approx_eq meanabs(x2, 2) safe_mean(abs(x2), 2)
+@test_approx_eq meanabs(x3, 1) safe_mean(abs(x3), 1)
+@test_approx_eq meanabs(x3, 2) safe_mean(abs(x3), 2)
+@test_approx_eq meanabs(x3, 3) safe_mean(abs(x3), 3)
+@test_approx_eq meanabs(x3, (1, 2)) safe_mean(abs(x3), (1, 2))
+@test_approx_eq meanabs(x3, (1, 3)) safe_mean(abs(x3), (1, 3))
+@test_approx_eq meanabs(x3, (2, 3)) safe_mean(abs(x3), (2, 3))
+
+r = zeros(size(x2, 2)); mean!(r, abs(x2), 1) 
+@test_approx_eq r vec(meanabs(x2, 1))
+
+@test_approx_eq mean(Abs2(), x) safe_mean(abs2(x))
+@test_approx_eq meansq(x) safe_mean(abs2(x))
+@test_approx_eq meansq(x1, 1) safe_mean(abs2(x1), 1) 
+@test_approx_eq meansq(x2, 1) safe_mean(abs2(x2), 1)
+@test_approx_eq meansq(x2, 2) safe_mean(abs2(x2), 2)
+@test_approx_eq meansq(x3, 1) safe_mean(abs2(x3), 1)
+@test_approx_eq meansq(x3, 2) safe_mean(abs2(x3), 2)
+@test_approx_eq meansq(x3, 3) safe_mean(abs2(x3), 3)
+@test_approx_eq meansq(x3, (1, 2)) safe_mean(abs2(x3), (1, 2))
+@test_approx_eq meansq(x3, (1, 3)) safe_mean(abs2(x3), (1, 3))
+@test_approx_eq meansq(x3, (2, 3)) safe_mean(abs2(x3), (2, 3))
+
+r = zeros(size(x2, 2)); mean!(r, abs2(x2), 1) 
+@test_approx_eq r vec(meansq(x2, 1))
+
+
 # varm
 
 safe_varm(x, u) = sum(abs2(x - u)) / (length(x) - 1)
