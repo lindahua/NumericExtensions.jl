@@ -202,6 +202,10 @@ In addition to these basic reduction functions, we also define a set of derived 
     sumabs(x, dims)
     sumabs!(dst, x, dims)
 
+    meanabs(x)   # == mean(abs(x))
+    meanabs(x, dims)
+    meanabs!(dst, x, dims)
+
     maxabs(x)   # == max(abs(x))
     maxabs(x, dims)
     maxabs!(dst, x, dims)
@@ -214,6 +218,10 @@ In addition to these basic reduction functions, we also define a set of derived 
     sumsq(x, dims)
     sumsq!(dst, x, dims)
 
+    meansq(x)  # == mean(abs2(x))
+    meansq(x, dims)
+    meansq!(dst, x, dims)
+
     dot(x, y)  # == sum(x .* y)
     dot(x, y, dims)
     dot!(dst, x, y, dims)
@@ -221,6 +229,10 @@ In addition to these basic reduction functions, we also define a set of derived 
     sumabsdiff(x, y)   # == sum(abs(x - y))
     sumabsdiff(x, y, dims)
     sumabsdiff!(dst, x, y, dims)
+
+    meanabsdiff(x, y)   # == mean(abs(x - y))
+    meanabsdiff(x, y, dims)
+    meanabsdiff!(dst, x, y, dims)    
 
     maxabsdiff(x, y)   # == max(abs(x - y))
     maxabsdiff(x, y, dims)
@@ -233,6 +245,11 @@ In addition to these basic reduction functions, we also define a set of derived 
     sumsqdiff(x, y)  # == sum(abs2(x - y))
     sumsqdiff(x, y, dims)
     sumsqdiff!(dst, x, y, dims)
+
+    meansqdiff(x, y)  # == mean(abs2(x - y))
+    meansqdiff(x, y, dims)
+    meansqdiff!(dst, x, y, dims)
+
 
 Although this is quite a large set of functions, the actual code is quite concise, as most of such functions are generated through macros (see ``src/reduce.jl``)
 
