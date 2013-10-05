@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Reduction &mdash; NumericExtensions.jl 0.2.12 documentation</title>
+    <title>Reduction &mdash; NumericExtensions.jl 0.2.15 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.2.12',
+        VERSION:     '0.2.15',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="NumericExtensions.jl 0.2.12 documentation" href="index.html" />
+    <link rel="top" title="NumericExtensions.jl 0.2.15 documentation" href="index.html" />
     <link rel="next" title="Vector Norms and Normalization" href="norms.html" />
     <link rel="prev" title="Vector Broadcasting" href="vbroadcast.html" /> 
   </head>
@@ -42,7 +42,7 @@
         <li class="right" >
           <a href="vbroadcast.html" title="Vector Broadcasting"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">NumericExtensions.jl 0.2.12 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NumericExtensions.jl 0.2.15 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -159,7 +159,7 @@ The general usage of these extended methods is summarized below:</p>
 </div>
 <div class="section" id="basic-reduction-functions">
 <h2>Basic reduction functions<a class="headerlink" href="#basic-reduction-functions" title="Permalink to this headline">¶</a></h2>
-<p>The package extends/specializes <tt class="docutils literal"><span class="pre">sum</span></tt>, <tt class="docutils literal"><span class="pre">max</span></tt>, and <tt class="docutils literal"><span class="pre">min</span></tt>, and additionally provides <tt class="docutils literal"><span class="pre">sum!</span></tt>, <tt class="docutils literal"><span class="pre">max!</span></tt>, and <tt class="docutils literal"><span class="pre">min!</span></tt>, as follows</p>
+<p>The package extends/specializes <tt class="docutils literal"><span class="pre">sum</span></tt>, <tt class="docutils literal"><span class="pre">mean</span></tt>, <tt class="docutils literal"><span class="pre">max</span></tt>, and <tt class="docutils literal"><span class="pre">min</span></tt>, and additionally provides <tt class="docutils literal"><span class="pre">sum!</span></tt>, <tt class="docutils literal"><span class="pre">mean!</span></tt>, <tt class="docutils literal"><span class="pre">max!</span></tt>, and <tt class="docutils literal"><span class="pre">min!</span></tt>, as follows</p>
 <p>The funtion <tt class="docutils literal"><span class="pre">sum</span></tt> and its variant forms:</p>
 <div class="highlight-julia"><div class="highlight"><pre><span class="n">sum</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 <span class="n">sum</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>            <span class="c"># compute sum of f1(x)</span>
@@ -176,9 +176,30 @@ The general usage of these extended methods is summarized below:</p>
 <span class="n">sum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
 <span class="n">sum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">x3</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
 
-<span class="n">sum_fdiff</span><span class="p">(</span><span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>     <span class="c"># compute sum of f2(x - y)</span>
-<span class="n">sum_fdiff</span><span class="p">(</span><span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
-<span class="n">sum_fdiff</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">sumfdiff</span><span class="p">(</span><span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>     <span class="c"># compute sum of f2(x - y)</span>
+<span class="n">sumfdiff</span><span class="p">(</span><span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">sumfdiff</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The funtion <tt class="docutils literal"><span class="pre">mean</span></tt> and its variant forms:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="n">mean</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">mean</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>            <span class="c"># compute mean of f1(x)</span>
+<span class="n">mean</span><span class="p">(</span><span class="n">f2</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>       <span class="c"># compute mean of f2(x1, x2)</span>
+<span class="n">mean</span><span class="p">(</span><span class="n">f3</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">x3</span><span class="p">)</span>   <span class="c"># compute mean of f3(x1, x2, x3)</span>
+
+<span class="n">mean</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">mean</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">mean</span><span class="p">(</span><span class="n">f2</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">mean</span><span class="p">(</span><span class="n">f3</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">x3</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+
+<span class="n">mean</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>    <span class="c"># write results to dst</span>
+<span class="n">mean</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">f1</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">mean</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">mean</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">x3</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+
+<span class="n">meanfdiff</span><span class="p">(</span><span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>     <span class="c"># compute mean of f2(x - y)</span>
+<span class="n">meanfdiff</span><span class="p">(</span><span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">meanfdiff</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The function <tt class="docutils literal"><span class="pre">max</span></tt> and its variants:</p>
@@ -197,9 +218,9 @@ The general usage of these extended methods is summarized below:</p>
 <span class="n">max</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
 <span class="n">max</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">x3</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
 
-<span class="n">max_fdiff</span><span class="p">(</span><span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>     <span class="c"># compute maximum of f2(x - y)</span>
-<span class="n">max_fdiff</span><span class="p">(</span><span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
-<span class="n">max_fdiff</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">maxfdiff</span><span class="p">(</span><span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>     <span class="c"># compute maximum of f2(x - y)</span>
+<span class="n">maxfdiff</span><span class="p">(</span><span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">maxfdiff</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The function <tt class="docutils literal"><span class="pre">min</span></tt> and its variants</p>
@@ -218,9 +239,9 @@ The general usage of these extended methods is summarized below:</p>
 <span class="n">min</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
 <span class="n">min</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">x3</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
 
-<span class="n">min_fdiff</span><span class="p">(</span><span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>     <span class="c"># compute minimum of f2(x - y)</span>
-<span class="n">min_fdiff</span><span class="p">(</span><span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
-<span class="n">min_fdiff</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">minfdiff</span><span class="p">(</span><span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>     <span class="c"># compute minimum of f2(x - y)</span>
+<span class="n">minfdiff</span><span class="p">(</span><span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">minfdiff</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
 </pre></div>
 </div>
 <p><strong>Note:</strong> when computing maximum/minimum along specific dimension, we use <tt class="docutils literal"><span class="pre">max(x,</span> <span class="pre">(),</span> <span class="pre">dims)</span></tt> and <tt class="docutils literal"><span class="pre">min(x,</span> <span class="pre">(),</span> <span class="pre">dims)</span></tt> instead of <tt class="docutils literal"><span class="pre">max(x,</span> <span class="pre">dims)</span></tt> and <tt class="docutils literal"><span class="pre">min(x,</span> <span class="pre">dims)</span></tt> to avoid ambiguities that would otherwise occur.</p>
@@ -228,11 +249,7 @@ The general usage of these extended methods is summarized below:</p>
 <div class="section" id="derived-reduction-functions">
 <h2>Derived reduction functions<a class="headerlink" href="#derived-reduction-functions" title="Permalink to this headline">¶</a></h2>
 <p>In addition to these basic reduction functions, we also define a set of derived reduction functions, as follows:</p>
-<div class="highlight-julia"><div class="highlight"><pre><span class="n">mean</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="n">mean</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
-<span class="n">mean</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
-
-<span class="n">var</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<div class="highlight-julia"><div class="highlight"><pre><span class="n">var</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 <span class="n">var</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
 <span class="n">var</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
 
@@ -240,54 +257,70 @@ The general usage of these extended methods is summarized below:</p>
 <span class="n">std</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
 <span class="n">std</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
 
-<span class="n">asum</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c"># == sum(abs(x))</span>
-<span class="n">asum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
-<span class="n">asum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">sumabs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c"># == sum(abs(x))</span>
+<span class="n">sumabs</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">sumabs</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
 
-<span class="n">amax</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>   <span class="c"># == max(abs(x))</span>
-<span class="n">amax</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
-<span class="n">amax</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">meanabs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>   <span class="c"># == mean(abs(x))</span>
+<span class="n">meanabs</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">meanabs</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
 
-<span class="n">amin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>   <span class="c"># == min(abs(x))</span>
-<span class="n">amin</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
-<span class="n">amin</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">maxabs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>   <span class="c"># == max(abs(x))</span>
+<span class="n">maxabs</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">maxabs</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
 
-<span class="n">sqsum</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c"># == sum(abs2(x))</span>
-<span class="n">sqsum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
-<span class="n">sqsum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">minabs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>   <span class="c"># == min(abs(x))</span>
+<span class="n">minabs</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">minabs</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+
+<span class="n">sumsq</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c"># == sum(abs2(x))</span>
+<span class="n">sumsq</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">sumsq</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+
+<span class="n">meansq</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c"># == mean(abs2(x))</span>
+<span class="n">meansq</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">meansq</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
 
 <span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>  <span class="c"># == sum(x .* y)</span>
 <span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
 <span class="n">dot</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
 
-<span class="n">adiffsum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>   <span class="c"># == sum(abs(x - y))</span>
-<span class="n">adiffsum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
-<span class="n">adiffsum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">sumabsdiff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>   <span class="c"># == sum(abs(x - y))</span>
+<span class="n">sumabsdiff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">sumabsdiff</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
 
-<span class="n">adiffmax</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>   <span class="c"># == max(abs(x - y))</span>
-<span class="n">adiffmax</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
-<span class="n">adiffmax</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">meanabsdiff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>   <span class="c"># == mean(abs(x - y))</span>
+<span class="n">meanabsdiff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">meanabsdiff</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
 
-<span class="n">adiffmin</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>   <span class="c"># == min(abs(x - y))</span>
-<span class="n">adiffmin</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
-<span class="n">adiffmin</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">maxabsdiff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>   <span class="c"># == max(abs(x - y))</span>
+<span class="n">maxabsdiff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">maxabsdiff</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
 
-<span class="n">sqdiffsum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>  <span class="c"># == sum(abs2(x - y))</span>
-<span class="n">sqdiffsum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
-<span class="n">sqdiffsum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">minabsdiff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>   <span class="c"># == min(abs(x - y))</span>
+<span class="n">minabsdiff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">minabsdiff</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+
+<span class="n">sumsqdiff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>  <span class="c"># == sum(abs2(x - y))</span>
+<span class="n">sumsqdiff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">sumsqdiff</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+
+<span class="n">meansqdiff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>  <span class="c"># == mean(abs2(x - y))</span>
+<span class="n">meansqdiff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">meansqdiff</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Although this is quite a large set of functions, the actual code is quite concise, as most of such functions are generated through macros (see <tt class="docutils literal"><span class="pre">src/reduce.jl</span></tt>)</p>
 <p>In addition to the common reduction functions, this package also provides a set of statistics functions that are particularly useful in probabilistic or information theoretical computation, as follows</p>
-<div class="highlight-julia"><div class="highlight"><pre><span class="n">sum_xlogx</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c"># == sum(xlogx(x)) with xlog(x) = x &gt; 0 ? x * log(x) : 0</span>
-<span class="n">sum_xlogx</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
-<span class="n">sum_xlogx</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<div class="highlight-julia"><div class="highlight"><pre><span class="n">sumxlogx</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c"># == sum(xlogx(x)) with xlog(x) = x &gt; 0 ? x * log(x) : 0</span>
+<span class="n">sumxlogx</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">sumxlogx</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
 
-<span class="n">sum_xlogy</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>  <span class="c"># == sum(xlog(x,y)) with xlogy(x,y) = x &gt; 0 ? x * log(y) : 0</span>
-<span class="n">sum_xlogy</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
-<span class="n">sum_xlogy</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">sumxlogy</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>  <span class="c"># == sum(xlog(x,y)) with xlogy(x,y) = x &gt; 0 ? x * log(y) : 0</span>
+<span class="n">sumxlogy</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+<span class="n">sumxlogy</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
 
-<span class="n">entropy</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>   <span class="c"># == - sum_xlogx(x)</span>
+<span class="n">entropy</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>   <span class="c"># == - sumxlogx(x)</span>
 <span class="n">entropy</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
 <span class="n">entropy</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
 
@@ -312,12 +345,12 @@ The general usage of these extended methods is summarized below:</p>
 \sum_{i=1}^n w_i f(x_i, \ldots)
 
 \sum_{i=1}^n w_i f(x_i - y_i)"/></p>
-</div><p><em>NumericExtensions.jl</em> directly supports such computation via <tt class="docutils literal"><span class="pre">wsum</span></tt> and <tt class="docutils literal"><span class="pre">wsum_fdiff</span></tt>:</p>
+</div><p><em>NumericExtensions.jl</em> directly supports such computation via <tt class="docutils literal"><span class="pre">wsum</span></tt> and <tt class="docutils literal"><span class="pre">wsumfdiff</span></tt>:</p>
 <div class="highlight-julia"><div class="highlight"><pre><span class="n">wsum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>                 <span class="c"># weighted sum of x with weights w</span>
 <span class="n">wsum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">f1</span><span class="p">,</span> <span class="n">x1</span><span class="p">)</span>            <span class="c"># weighted sum of f1(x1) with weights w</span>
 <span class="n">wsum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>        <span class="c"># weighted sum of f2(x1, x2) with weights w</span>
 <span class="n">wsum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">x3</span><span class="p">)</span>    <span class="c"># weighted sum of f3(x1, x2, x3) with weights w</span>
-<span class="n">wsum_fdiff</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>    <span class="c"># weighted sum of f2(x - y) with weights w</span>
+<span class="n">wsumfdiff</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>    <span class="c"># weighted sum of f2(x - y) with weights w</span>
 </pre></div>
 </div>
 <p>These functions also support computing the weighted sums along a specific dimension:</p>
@@ -333,26 +366,26 @@ The general usage of these extended methods is summarized below:</p>
 <span class="n">wsum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">x3</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
 <span class="n">wsum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">x3</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
 
-<span class="n">wsum_fdiff</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
-<span class="n">wsum_fdiff</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">wsumfdiff</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">wsumfdiff</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Furthermore, <tt class="docutils literal"><span class="pre">wasum</span></tt>, <tt class="docutils literal"><span class="pre">wadiffsum</span></tt>, <tt class="docutils literal"><span class="pre">wsqsum</span></tt>, <tt class="docutils literal"><span class="pre">wsqdiffsum</span></tt> are provided to compute weighted sum of absolute values / squares to simplify common use:</p>
-<div class="highlight-julia"><div class="highlight"><pre><span class="n">wasum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>              <span class="c"># weighted sum of abs(x)</span>
-<span class="n">wasum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
-<span class="n">wasum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<p>Furthermore, <tt class="docutils literal"><span class="pre">wsumabs</span></tt>, <tt class="docutils literal"><span class="pre">wsumabsdiff</span></tt>, <tt class="docutils literal"><span class="pre">wsumsq</span></tt>, <tt class="docutils literal"><span class="pre">wsumsqdiff</span></tt> are provided to compute weighted sum of absolute values / squares to simplify common use:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="n">wsumabs</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>              <span class="c"># weighted sum of abs(x)</span>
+<span class="n">wsumabs</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">wsumabs</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
 
-<span class="n">wadiffsum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>       <span class="c"># weighted sum of abs(x - y)</span>
-<span class="n">wadiffsum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
-<span class="n">wadiffsum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">wsumabsdiff</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>       <span class="c"># weighted sum of abs(x - y)</span>
+<span class="n">wsumabsdiff</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">wsumabsdiff</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
 
-<span class="n">wsqsum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>             <span class="c"># weighted sum of abs2(x)</span>
-<span class="n">wsqsum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
-<span class="n">wsqsum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">wsumsq</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>             <span class="c"># weighted sum of abs2(x)</span>
+<span class="n">wsumsq</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">wsumsq</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
 
-<span class="n">wsqdiffsum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>      <span class="c"># weighted sum of abs2(x - y)</span>
-<span class="n">wsqdiffsum</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
-<span class="n">wsqdiffsum</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">wsumsqdiff</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>      <span class="c"># weighted sum of abs2(x - y)</span>
+<span class="n">wsumsqdiff</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">wsumsqdiff</span><span class="o">!</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -368,7 +401,7 @@ The general usage of these extended methods is summarized below:</p>
 </ul>
 <p>Generally, many of the reduction functions in this package can achieve <em>3x - 10x</em> speed up as compared to the typical Julia expression.</p>
 <p>We observe further speed up for certain functions:
-* full reduction with <tt class="docutils literal"><span class="pre">asum</span></tt>, <tt class="docutils literal"><span class="pre">sqsum</span></tt>, and <tt class="docutils literal"><span class="pre">dot</span></tt> utilize BLAS level 1 routines, and they achieve <em>10x</em> to <em>30x</em> speed up.
+* full reduction with <tt class="docutils literal"><span class="pre">sumabs</span></tt>, <tt class="docutils literal"><span class="pre">sumsq</span></tt>, and <tt class="docutils literal"><span class="pre">dot</span></tt> utilize BLAS level 1 routines, and they achieve <em>10x</em> to <em>30x</em> speed up.
 * For <tt class="docutils literal"><span class="pre">var</span></tt> and <tt class="docutils literal"><span class="pre">std</span></tt>, we devise dedicated procedures, where computational steps are very carefully scheduled such that most computation is conducted in a single pass. This results in about <em>25x</em> speedup.</p>
 </div>
 </div>
@@ -391,12 +424,12 @@ The general usage of these extended methods is summarized below:</p>
         <li class="right" >
           <a href="vbroadcast.html" title="Vector Broadcasting"
              >previous</a> |</li>
-        <li><a href="index.html">NumericExtensions.jl 0.2.12 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NumericExtensions.jl 0.2.15 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
         &copy; Copyright 2013, Dahua Lin.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
   </body>
 </html>
