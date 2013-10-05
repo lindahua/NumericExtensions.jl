@@ -114,9 +114,9 @@ p = rand(3, 4)
 q = rand(3, 4)
 
 @test_approx_eq sum(x) safe_sum(x)
-@test sum(x) == reduce(Add(), x) == reduce(Add(), 0., x)
-@test max(x) == reduce(Max(), x) == reduce(Max(), -Inf, x) == safe_max(x)
-@test min(x) == reduce(Min(), x) == reduce(Min(), Inf, x) == safe_min(x)
+@test sum(x) == reduce(Add(), x)
+@test max(x) == reduce(Max(), x) == safe_max(x)
+@test min(x) == reduce(Min(), x) == safe_min(x)
 
 @test sum(Bool[]) === 0
 @test sum([false]) === 0

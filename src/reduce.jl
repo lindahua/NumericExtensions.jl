@@ -1,13 +1,9 @@
 
 # auxiliary code-generation routines
 
-function reduc_paramlist{KType<:EwiseFunKernel}(kgen::Type{KType}, aty::Symbol; with_init::Bool=false)
+function reduc_paramlist{KType<:EwiseFunKernel}(kgen::Type{KType}, aty::Symbol)
 	plst = paramlist(kgen, aty)
-	if with_init
-		tuple(plst[1], :(op::BinaryFunctor), :(initval), plst[2:]...)
-	else
-		tuple(plst[1], :(op::BinaryFunctor), plst[2:]...)
-	end
+	tuple(plst[1], :(op::BinaryFunctor), plst[2:]...)
 end
 
 function reduc_arglist(ktype::Type{DirectKernel})
@@ -15,13 +11,9 @@ function reduc_arglist(ktype::Type{DirectKernel})
 	tuple(:op, alst...)
 end
 
-function reduc_paramlist(ktype::Type{DirectKernel}, aty::Symbol; with_init::Bool=false)
+function reduc_paramlist(ktype::Type{DirectKernel}, aty::Symbol)
 	plst = paramlist(ktype, aty)
-	if with_init
-		tuple(:(op::BinaryFunctor), :(initval), plst...)
-	else
-		tuple(:(op::BinaryFunctor), plst...)
-	end
+	tuple(:(op::BinaryFunctor), plst...)
 end
 
 function reduc_arglist{KType<:EwiseFunKernel}(ktype::Type{KType})
@@ -38,7 +30,6 @@ end
 
 function code_full_reduction{KType<:EwiseKernel}(fname::Symbol, ktype::Type{KType})
 	plst = reduc_paramlist(ktype, :ContiguousArray)
-	plst_winit = reduc_paramlist(ktype, :ContiguousArray; with_init=true)
 	ker_i = kernel(ktype, :i)
 	len = length_inference(ktype)
 	quote
@@ -47,15 +38,6 @@ function code_full_reduction{KType<:EwiseKernel}(fname::Symbol, ktype::Type{KTyp
 			i = 1
 			@inbounds v = $ker_i
 			for i in 2 : n
-				@inbounds v = evaluate(op, v, $ker_i)
-			end
-			v
-		end
-
-		function ($fname)($(plst_winit...))
-			n::Int = $len
-			v = initval
-			for i in 1 : n
 				@inbounds v = evaluate(op, v, $ker_i)
 			end
 			v
