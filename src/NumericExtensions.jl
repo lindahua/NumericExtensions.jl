@@ -90,6 +90,9 @@ module NumericExtensions
 		wsumabs, wsumabs!, wsumabsdiff, wsumabsdiff!,
 		wsumsq, wsumsq!, wsumsqdiff, wsumsqdiff!,
 
+		# utils
+		eachrepeat,
+
 		# pdmat
         AbstractPDMat, PDMat, PDiagMat, ScalMat, 
         dim, full, whiten, whiten!, unwhiten, unwhiten!, add_scal!, add_scal,
@@ -115,6 +118,8 @@ module NumericExtensions
 	include("scan.jl")
 	include("statistics.jl")
 	include("weightsum.jl")
+
+	include("utils.jl")
 
 	include("pdmat.jl")
 

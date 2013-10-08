@@ -8,6 +8,7 @@ tests = [ "functors",
 		  "norms",
 		  "statistics", 
 		  "wsum", 
+		  "utils",
 		  "pdmat"]
 
 for t in tests
