@@ -61,6 +61,40 @@ function eachrepeat{T}(x::AbstractMatrix{T}, rt::(Int, Int))
 end
 
 
+#################################################
+#
+#   Integer organization
+#
+#################################################
 
+function sortindexes!{I<:Integer, C<:Integer}(x::AbstractArray{I}, sinds::AbstractArray{I}, cnts::AbstractArray{C})
+	n = length(x)
+	k = length(cnts)
+
+	# count integers
+	fill!(cnts, zero(C))
+	for i = 1 : n
+		cnts[x[i]] += 1   # no @inbounds, as no guarantee of x[i] is actually in bound
+	end
+
+	# calculate offsets
+	offsets = Array(C, k)
+	offsets[1] = 0
+	for i = 2 : k
+		@inbounds offsets[i] = offsets[i-1] + cnts[i-1]
+	end
+
+	# write sorted indexes
+	for i = 1 : n
+		sinds[offsets[x[i]] += 1] = i
+	end
+end
+
+function sortindexes{I<:Integer}(x::AbstractArray{I}, k::Integer)
+	sinds = Array(I, length(x))
+	cnts = Array(Int, k)
+	sortindexes!(x, sinds, cnts)
+	return (sinds, cnts)
+end
 
 
