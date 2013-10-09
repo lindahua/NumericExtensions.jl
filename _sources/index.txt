@@ -28,6 +28,7 @@ Documentation of NumericExtensions.jl
     norms.rst
     scan.rst
     views.rst
+    utils.rst
     pdmat.rst
 
 
