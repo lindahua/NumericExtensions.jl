@@ -4,8 +4,6 @@
 
 Julia extensions to provide high performance computational support.
 
-**Note:** This package requires latest Julia version that provides the ``@inbounds`` macro.
-
 -------------------------------------
 
 Julia is a fantastic technical computing environment that allows you to write codes that are both performant and generic. However, as it is still at its early stage, some functions are not as performant as they can be and writing computational algorithms directly based on builtin functions may not give you the best performance. This package provides you with a variety of tools to address such issues.
