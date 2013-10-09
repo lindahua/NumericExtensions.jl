@@ -91,7 +91,7 @@ module NumericExtensions
 		wsumsq, wsumsq!, wsumsqdiff, wsumsqdiff!,
 
 		# utils
-		eachrepeat,
+		eachrepeat, sortindexes, groupindexes,
 
 		# pdmat
         AbstractPDMat, PDMat, PDiagMat, ScalMat, 

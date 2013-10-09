@@ -97,4 +97,20 @@ function sortindexes{I<:Integer}(x::AbstractArray{I}, k::Integer)
 	return (sinds, cnts)
 end
 
+sortindexes{I<:Integer}(x::AbstractArray{I}) = sortindexes(x, max(x))
+
+function groupindexes{I<:Integer}(x::AbstractArray{I}, k::Integer)
+	sinds::Vector{I}, cnts::Vector{Int} = sortindexes(x, k)
+	p = 0
+	grps = Array(Vector{Int}, k)
+	for i in 1 : k
+		ci = cnts[i]
+		grps[i] = sinds[p+1 : p+ci]
+		p += ci
+	end
+	grps	
+end
+
+groupindexes{I<:Integer}(x::AbstractArray{I}) = groupindexes(x, max(x))
+
 
