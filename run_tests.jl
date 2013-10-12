@@ -1,15 +1,14 @@
 # run all tests
 
-tests = [ "functors", 
-		  "views", 
-		  "map", 
-		  "vbroadcast", 
-		  "reduce", 
-		  "norms",
-		  "statistics", 
-		  "wsum", 
-		  "utils",
-		  "pdmat"]
+tests = [ "views", 
+		  "map" ]
+		  # "vbroadcast", 
+		  # "reduce", 
+		  # "norms",
+		  # "statistics", 
+		  # "wsum", 
+		  # "utils",
+		  # "pdmat"
 
 for t in tests
 	tf = joinpath("test", "test_$t.jl")
