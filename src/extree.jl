@@ -80,6 +80,4 @@ type ERef <: AbstractExpr
 	host::AbstractExpr    # host array expression
 	args::Vector{ERefArg}
 end
-isewise(ex::ERef) = true
-
 
