@@ -83,6 +83,7 @@ module NumericExtensions
 	include("common.jl")
 	include("unsafe_views.jl")
 	include("mathfuns.jl")
+	include("extree.jl")
 	
 	# include("codegen.jl")
 	# include("map.jl")

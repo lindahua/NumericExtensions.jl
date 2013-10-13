@@ -1,7 +1,8 @@
 # run all tests
 
 tests = [ "unsafe_views", 
-		  "mathfuns" ]
+		  "mathfuns",
+		  "extree" ]
 		  # "map"
 		  # "vbroadcast", 
 		  # "reduce", 

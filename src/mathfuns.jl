@@ -53,7 +53,3 @@ const BINARY_EWISE_FUNCTIONS = Set(
 # This functions are recognized as element-wise operation
 # only when one of the operands is a literal number
 const BINARY_SEWISE_FUNCTIONS = Set(:*, :/, :\, :^, :%)
-
-is_unary_ewise(f::Symbol) = (f in UNARY_EWISE_FUNCTIONS)
-is_binary_ewise(f::Symbol) = (f in BINARY_EWISE_FUNCTIONS)
-is_binary_sewise(f::Symbol) = (f in BINARY_SEWISE_FUNCTIONS)
