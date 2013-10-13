@@ -23,7 +23,7 @@ rcbrt(x::Real) = one(x) / cbrt(x)
 #
 #################################################
 
-const UNARY_EWISE_FUNCTIONS = Set(
+const UNARY_EWISE_FUNCTIONS = Set{Symbol}(
 	:+, :-, :~, 
 	:abs, :abs2, :sqr, :sqrt, :cbrt, :rcp, :rsqrt, :rcbrt,
 	:real, :imag, :conj, :angle, :sign, :signbit,
@@ -41,15 +41,23 @@ const UNARY_EWISE_FUNCTIONS = Set(
 	:airy, :airyai, :airyprime, :airyaiprime, :airybi, :airybiprime, 
 	:besselj0, :besselj1, :bessely0, :bessely1, :eta, :zeta)
 
-const BINARY_EWISE_FUNCTIONS = Set(
+const BINARY_EWISE_FUNCTIONS = Set{Symbol}(
 	:+, :-, :.+, :.-, :.*, :./, :.\, :.^, :.%, 
 	:(==), :(!=), :(<), :(>), :(<=), :(>=), :cmp,
 	:(.==), :(.!=), :(.<), :(.>), :(.<=), :(.>=),
-	:&, :|, :$, :div, :fld, :mod, :rem, 
+	:&, :|, :$, :div, :fld, :mod, :rem, :max, :min,
 	:atan2, :hypot, :frexp, :ldexp, :copysign, :flipsign,
 	:besselj, :bessely, :hankelh1, :hankelh2, :besseli, :besselk,
 	:beta, :lbeta)
 
 # This functions are recognized as element-wise operation
 # only when one of the operands is a literal number
-const BINARY_SEWISE_FUNCTIONS = Set(:*, :/, :\, :^, :%)
+const BINARY_SEWISE_FUNCTIONS = Set{Symbol}(:*, :/, :\, :^, :%)
+
+const UNARY_REDUC_FUNCTIONS = Set{Symbol}(
+	:sum, :mean, :prod, :max, :min, :maximum, :minimum, :var, :std, 
+	:sumabs, :meanabs, :maxabs, :minabs, :sumsq, :meansq)
+
+const BINARY_REDUC_FUNCTIONS = Set{Symbol}(
+	:sumabsdiff, :meanabsdiff, :maxabsdiff, :minabsdiff, :sumsqdiff, :meansqdiff)
+

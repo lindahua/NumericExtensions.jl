@@ -1,16 +1,32 @@
 module NumericExtensions
 
-	# import functions to be extended
+	import 
+		# size information
+		Base.size, Base.length, Base.ndims, Base.isempty,
 
-	import Base.add!, Base.show, Base.getindex, Base.setindex!
-	import Base.pointer, Base.size, Base.length, Base.copy, Base.similar
-	import Base.map, Base.map!, Base.reduce, Base.mapreduce
-	import Base.diagm
-	import Base.+, Base.*, Base.\, Base./
-	import Base.sum, Base.max, Base.min, Base.dot, Base.norm, Base.LinAlg.BLAS.asum
-	import Base.cumsum, Base.cummax, Base.cummin, Base.cumprod
-	import Base.mean, Base.var, Base.varm, Base.std, Base.stdm
-	import Base.logdet, Base.full, Base.inv, Base.diag
+		# iteration and indexing
+		Base.start, Base.next, Base.done, Base.getindex, Base.setindex!,
+
+		# common operations
+		Base.show, Base.add!, Base.copy, Base.similar, Base.pointer,
+
+		# higher-level map & reduction functions to be extended
+		Base.map, Base.map!, Base.reduce, Base.mapreduce,
+
+		# arithmetic functions
+		Base.+, Base.*, Base.\, Base./,
+
+		# reduction functions to be extended
+		Base.sum, Base.prod, Base.max, Base.min, Base.dot, 
+		Base.cumsum, Base.cummax, Base.cummin, Base.cumprod,
+		Base.norm, Base.LinAlg.BLAS.asum,
+
+		# statistics
+		Base.mean, Base.var, Base.varm, Base.std, Base.stdm,
+
+		# matrix related
+		Base.logdet, Base.full, Base.inv, Base.diag, Base.diagm
+
 
 	export 
 		# views
@@ -19,7 +35,10 @@ module NumericExtensions
 		unsafe_view,
 
 		# mathfuns
-		sqr, rcp, rsqrt, rcbrt
+		sqr, rcp, rsqrt, rcbrt,
+
+		# extree
+		extree
 
 		# # map
 		# map, map!, map1!, mapdiff, mapdiff!,
