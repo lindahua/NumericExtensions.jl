@@ -42,7 +42,7 @@ const UNARY_EWISE_FUNCTIONS = Set(
 	:besselj0, :besselj1, :bessely0, :bessely1, :eta, :zeta)
 
 const BINARY_EWISE_FUNCTIONS = Set(
-	:+, :-, :.+, :.-, :.*, :./, :.^, :.%, 
+	:+, :-, :.+, :.-, :.*, :./, :.\, :.^, :.%, 
 	:(==), :(!=), :(<), :(>), :(<=), :(>=), :cmp,
 	:(.==), :(.!=), :(.<), :(.>), :(.<=), :(.>=),
 	:&, :|, :$, :div, :fld, :mod, :rem, 
@@ -52,7 +52,7 @@ const BINARY_EWISE_FUNCTIONS = Set(
 
 # This functions are recognized as element-wise operation
 # only when one of the operands is a literal number
-const BINARY_SEWISE_FUNCTIONS = Set(:*, :^, :%)
+const BINARY_SEWISE_FUNCTIONS = Set(:*, :/, :\, :^, :%)
 
 is_unary_ewise(f::Symbol) = (f in UNARY_EWISE_FUNCTIONS)
 is_binary_ewise(f::Symbol) = (f in BINARY_EWISE_FUNCTIONS)
