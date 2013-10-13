@@ -16,7 +16,10 @@ module NumericExtensions
 		# views
 		AbstractUnsafeView, UnsafeVectorView, UnsafeMatrixView, UnsafeCubeView,
 		ContiguousArray, ContiguousVector, ContiguousMatrix, ContiguousCube,
-		unsafe_view
+		unsafe_view,
+
+		# mathfuns
+		sqr, rcp, rsqrt, rcbrt
 
 		# # map
 		# map, map!, map1!, mapdiff, mapdiff!,
@@ -78,7 +81,8 @@ module NumericExtensions
 	# codes
 
 	include("common.jl")
-	include("unsafe_view.jl")
+	include("unsafe_views.jl")
+	include("mathfuns.jl")
 	
 	# include("codegen.jl")
 	# include("map.jl")
