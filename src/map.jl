@@ -44,7 +44,7 @@ subtract!(x::ContiguousArray, y::ArrayOrNumber) = map1!(Subtract(), x, y)
 multiply!(x::ContiguousArray, y::ArrayOrNumber) = map1!(Multiply(), x, y)
 divide!(x::ContiguousArray, y::ArrayOrNumber) = map1!(Divide(), x, y)
 
-negate!(x::ContiguousArray) = map1!(Negate(), x)
+negate!(x::ContiguousArray) = map1!(NegateFun(), x)
 abs!(x::ContiguousArray) = map1!(Abs(), x)
 abs2!(x::ContiguousArray) = map1!(Abs2(), x)
 rcp!(x::ContiguousArray) = map!(Divide(), x, one(eltype(x)), x)

@@ -12,7 +12,7 @@ x = rand(3)
 # Test unary functors
 
 for e in [
-	(Negate, -),
+	(NegateFun, -),
 	(Abs, abs), (Abs2, abs2), (Sqrt, sqrt), (Cbrt, cbrt), 
 	(Floor, floor), (Ceil, ceil), (Round, round), (Trunc, trunc), 
 	(Exp, exp), (Exp2, exp2), (Exp10, exp10), (Expm1, expm1),
