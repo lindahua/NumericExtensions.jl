@@ -27,7 +27,7 @@ module NumericExtensions
 
 		Functor, UnaryFunctor, BinaryFunctor, TernaryFunctor,
 		result_type, evaluate,
-		Add, Subtract, Multiply, Divide, Negate, Max, Min,
+		Add, Subtract, Multiply, Divide, Negate, MaxFun, MinFun,
 		AbsFun, Abs2Fun, Sqrt, Cbrt, Pow, Hypot, FixAbsFunPow, FMA,
 		Floor, Ceil, Round, Trunc,
 		Exp, Exp2, Exp10, Expm1, 

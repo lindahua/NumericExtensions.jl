@@ -38,7 +38,7 @@ for e in [
     (:Add, :+), (:Subtract, :-), (:Multiply, :*), (:Divide, :/), (:Pow, :^), 
     (:Greater, :>), (:GreaterEqual, :>=), (:Less, :<), (:LessEqual, :<=), 
     (:Equal, :(==)), (:NotEqual, :(!=)),
-    (:Max, :max), (:Min, :min), (:Hypot, :hypot), (:Atan2, :atan2)]
+    (:MaxFun, :max), (:MinFun, :min), (:Hypot, :hypot), (:Atan2, :atan2)]
 
     @eval type $(e[1]) <: BinaryFunctor end
     @eval evaluate(::($(e[1])), x::Number, y::Number) = ($(e[2]))(x, y)
@@ -76,7 +76,7 @@ evaluate(op::FMA, a::Number, b::Number, c::Number) = a + b * c
 
 to_fptype{T<:Number}(x::Type{T}) = typeof(convert(FloatingPoint, zero(T)))
 
-for Op in [:Add, :Subtract, :Multiply, :Pow, :Max, :Min]
+for Op in [:Add, :Subtract, :Multiply, :Pow, :MaxFun, :MinFun]
     @eval result_type{T1<:Number, T2<:Number}(::($Op), ::Type{T1}, ::Type{T2}) = promote_type(T1, T2)
     @eval result_type{T<:Number}(::($Op), ::Type{T}, ::Type{T}) = T
 end

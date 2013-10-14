@@ -100,8 +100,8 @@ function safe_xreduce(op::BinaryFunctor, x::Array, s0, dims::(Int, Int))
 end
 
 safe_sum(x, dim::Union(Int, (Int, Int))) = safe_xreduce(Add(), x, zero(eltype(x)), dim)
-safe_max(x, dim::Union(Int, (Int, Int))) = safe_xreduce(Max(), x, typemin(eltype(x)), dim)
-safe_min(x, dim::Union(Int, (Int, Int))) = safe_xreduce(Min(), x, typemax(eltype(x)), dim)
+safe_max(x, dim::Union(Int, (Int, Int))) = safe_xreduce(MaxFun(), x, typemin(eltype(x)), dim)
+safe_min(x, dim::Union(Int, (Int, Int))) = safe_xreduce(MinFun(), x, typemax(eltype(x)), dim)
 
 
 
@@ -115,8 +115,8 @@ q = rand(3, 4)
 
 @test_approx_eq sum(x) safe_sum(x)
 @test sum(x) == reduce(Add(), x)
-@test max(x) == reduce(Max(), x) == safe_max(x)
-@test min(x) == reduce(Min(), x) == safe_min(x)
+@test max(x) == reduce(MaxFun(), x) == safe_max(x)
+@test min(x) == reduce(MinFun(), x) == safe_min(x)
 
 @test sum(Bool[]) === 0
 @test sum([false]) === 0

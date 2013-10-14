@@ -80,10 +80,10 @@ inv_map(a::Array) = map(Divide(), 1.0, a)
 pow_map(a::Array, b::Array) = map(Pow(), a, b)
 @bench_map2("pow", 10, .^, pow_map)
 
-max_map(a::Array, b::Array) = map(Max(), a, b)
+max_map(a::Array, b::Array) = map(MaxFun(), a, b)
 @bench_map2("max", 10, max, max_map)
 
-min_map(a::Array, b::Array) = map(Min(), a, b)
+min_map(a::Array, b::Array) = map(MinFun(), a, b)
 @bench_map2("min", 10, min, min_map)
 
 abs_map(a::Array) = map(AbsFun(), a)

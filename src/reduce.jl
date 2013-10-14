@@ -362,17 +362,17 @@ function sum_range{T<:Number}(x::AbstractArray{T}, rg::Range1)
 end
 
 
-max{T<:Real}(x::ContiguousArray{T}) = isempty(x) ? empty_notallowed(T) : reduce(Max(), x)
-max{T<:Real}(x::ContiguousArray{T}, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(Max(), x, dims)
-max!{R<:Real, T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, ::(), dims::DimSpec) = reduce!(dst, Max(), x, dims) 
+max{T<:Real}(x::ContiguousArray{T}) = isempty(x) ? empty_notallowed(T) : reduce(MaxFun(), x)
+max{T<:Real}(x::ContiguousArray{T}, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(MaxFun(), x, dims)
+max!{R<:Real, T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, ::(), dims::DimSpec) = reduce!(dst, MaxFun(), x, dims) 
 
-min{T<:Real}(x::ContiguousArray{T}) = isempty(x) ? empty_notallowed(T) : reduce(Min(), x)
-min{T<:Real}(x::ContiguousArray{T}, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(Min(), x, dims)
-min!{R<:Real, T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, ::(), dims::DimSpec) = reduce!(dst, Min(), x, dims) 
+min{T<:Real}(x::ContiguousArray{T}) = isempty(x) ? empty_notallowed(T) : reduce(MinFun(), x)
+min{T<:Real}(x::ContiguousArray{T}, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(MinFun(), x, dims)
+min!{R<:Real, T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, ::(), dims::DimSpec) = reduce!(dst, MinFun(), x, dims) 
 
 @basic_mapreduction sum Add() zero 
-@basic_mapreduction max Max() empty_notallowed
-@basic_mapreduction min Min() empty_notallowed
+@basic_mapreduction max MaxFun() empty_notallowed
+@basic_mapreduction min MinFun() empty_notallowed
 
 #################################################
 #
