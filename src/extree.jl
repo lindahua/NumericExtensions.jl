@@ -206,16 +206,11 @@ end
 
 const end_sym = symbol("end")
 
-function erangearg!(ctx::ExprContext, a)
-	if isa(a, Number)
-		return EConst(a)
-	elseif isa(a, Symbol)
-		return (a == end_sym || a == :(:)) ? EEnd() : EVar(a)
-	else
-		_a = extree!(ctx, a)
-		return isa(_a, ERangeArg) ? _a : lift_expr!(ctx, _a)
-	end
-end
+# For range expression
+
+erangearg!(ctx::ExprContext, a::Number) = EConst(a)
+erangearg!(ctx::ExprContext, a::Symbol) = (a == end_sym || a == :(:)) ? EEnd() : EVar(a)
+erangearg!(ctx::ExprContext, a::Expr) = (_a = extree!(ctx, a); isa(_a, ERangeArg) ? _a : lift_expr!(ctx, _a))
 
 function extree_for_range!(ctx::ExprContext, x::Expr)
 	nargs = length(x.args)
@@ -223,22 +218,25 @@ function extree_for_range!(ctx::ExprContext, x::Expr)
 	ERange(tuple([erangearg!(ctx, a) for a in x.args]...))
 end
 
-function erefarg!(ctx::ExprContext, a)
-	if isa(a, Number)
-		return EConst(a)
-	elseif isa(a, Symbol)
-		return a == :(:) ? EColon() : EVar(a)
-	else
-		_a = extree!(ctx, a)
-		return isa(_a, ERefArg) ? _a : lift_expr!(ctx, _a)
-	end
-end
+# For reference expression
+
+erefhost!(ctx::ExprContext, a::Number) = error("extree: using number as reference host is not supported.")
+erefhost!(ctx::ExprContext, a::Symbol) = EVar(a)
+erefhost!(ctx::ExprContext, a::Expr) = lift_expr!(ctx, extree!(ctx, a))
+
+erefarg!(ctx::ExprContext, a::Number) = EConst(a)
+erefarg!(ctx::ExprContext, a::Symbol) = a == :(:) ? EColon() : EVar(a)
+erefarg!(ctx::ExprContext, a::Expr) = (_a = extree!(ctx, a); isa(_a, ERefArg) ? _a : lift_expr!(ctx, _a))
 
 function extree_for_ref!(ctx::ExprContext, x::Expr)
-	nargs = length(x.args)
-	nargs >= 1 || error("extree: a ref expression must have at least one argument.")
-	ERef(tuple([erefarg!(ctx, a) for a in x.args]...))
+	nargs = length(x.args) - 1
+	nargs >= 1 || error("extree: empty reference is not supported.")
+	h = erefhost!(ctx, x.args[1])
+	args = tuple([erefarg!(ctx, a) for a in x.args[2:]]...)
+	ERef(h, args)
 end
+
+# For function call expression
 
 function extree_for_call!(ctx::ExprContext, x::Expr)
 	fsym = x.args[1]
@@ -247,7 +245,7 @@ function extree_for_call!(ctx::ExprContext, x::Expr)
 	nargs = length(x.args) - 1
 
 	if nargs > 0
-		_args = [extree_for_arg!(ctx, a) for a in x.args[2:end]]
+		_args = [extree_for_arg!(ctx, a) for a in x.args[2:]]
 		is_s2s = is_s2s_func(f, nargs)
 
 		if is_s2s && all([isa(a, EConst) for a in _args]) # constant propagation			

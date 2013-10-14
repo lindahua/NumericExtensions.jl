@@ -98,6 +98,31 @@ x = extree(:(a:2:))
 @test isa(x, ERange)
 @test x.args == (extree(:a), extree(2), EEnd())
 
+x = extree(:(a[1]))
+@test isa(x, ERef)
+@test x.arr == extree(:a)
+@test x.args == (extree(1),)
+
+x = extree(:(a[i]))
+@test isa(x, ERef)
+@test x.arr == extree(:a)
+@test x.args == (extree(:i),)
+
+x = extree(:(a[i1:i2, j, 1]))
+@test isa(x, ERef)
+@test x.arr == extree(:a)
+@test x.args == (extree(:(i1:i2)), extree(:j), extree(1))
+
+x = extree(:(a[:]))
+@test isa(x, ERef)
+@test x.arr == extree(:a)
+@test x.args == (EColon(),)
+
+x = extree(:(a[:,i,:]))
+@test isa(x, ERef)
+@test x.arr == extree(:a)
+@test x.args == (EColon(), EVar(:i), EColon())
+
 
 
 
