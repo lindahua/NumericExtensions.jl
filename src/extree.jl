@@ -296,7 +296,7 @@ function extree_for_call!(ctx::ExprContext, x::Expr)
 				argtup = tuple(_args...)
 
 				if is_reduc_call(f, argtup...)
-					return EReduc(f, argtup; isscalar=rs)
+					return EReduc(f, argtup)
 				elseif fsym == :(+) || is_map_call(f, argtup...)
 					return EMap(f, argtup; isscalar=rs)
 				else

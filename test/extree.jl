@@ -253,8 +253,7 @@ x = extree(:(x1 + x2 + x3 + x4 + x5))
 
 x = extree( :(sin(x + y)) )
 @test isa(x, EMap)
-@test x.fun == EFun(:sin)
-@test numargs(x) == 1
+@test x.fun == EFun(:sin) && numargs(x) == 1
 a1 = x.args[1]
 @test isa(a1, EMap)
 @test a1.fun == EFun(:+)
@@ -262,8 +261,7 @@ a1 = x.args[1]
 
 x = extree( :(x.^2 + y.^3 + z.^4) )
 @test isa(x, EMap)
-@test x.fun == EFun(:+)
-@test numargs(x) == 3
+@test x.fun == EFun(:+) && numargs(x) == 3
 @test !is_scalar_expr(x)
 a1, a2, a3 = x.args[1], x.args[2], x.args[3]
 @test isa(a1, EMap) && a1.fun == EFun(:.^) && a1.args == (EVar(:x),EConst(2))
@@ -272,8 +270,7 @@ a1, a2, a3 = x.args[1], x.args[2], x.args[3]
 
 x = extree( :(exp(x + a) .* atan2(abs(s), abs2(2.0))) )
 @test isa(x, EMap)
-@test x.fun == EFun(:.*)
-@test numargs(x) == 2
+@test x.fun == EFun(:.*) && numargs(x) == 2
 @test !is_scalar_expr(x)
 a1, a2 = x.args[1], x.args[2]
 @test isa(a1, EMap) && numargs(a1) == 1 && a1.fun == EFun(:exp)
@@ -295,4 +292,40 @@ a1, a2 = x.args[1], x.args[2]
 
 x = extree( :(2 + 3^2 + 4 * 5) )
 @test x == EConst(31)
+
+# reduction call
+
+x = extree( :(sum(x)) )
+@test isa(x, EReduc)
+@test x.fun == EFun(:sum) && numargs(x) == 1
+@test is_scalar_expr(x)
+@test x.args == ( EVar(:x), )
+
+x = extree( :(meansqdiff(x, 2.0)) )
+@test isa(x, EReduc)
+@test x.fun == EFun(:meansqdiff) && numargs(x) == 2
+@test is_scalar_expr(x)
+@test x.args == ( EVar(:x), EConst(2.0) )
+
+x = extree( :(sum(2.5)) )
+@test x == EConst(2.5)
+
+x = extree( :(sum(scalar(a))) )
+@test isa(x, EReduc)
+@test x.fun == EFun(:sum) && numargs(x) == 1
+@test is_scalar_expr(x)
+@test x.args == (EVar(:a, true),)
+
+x = extree( :(maxabsdiff(scalar(x), scalar(y))) )
+@test isa(x, EReduc)
+@test x.fun == EFun(:maxabsdiff) && numargs(x) == 2
+@test is_scalar_expr(x)
+@test x.args == (EVar(:x, true), EVar(:y, true))
+
+
+
+
+
+
+
 
