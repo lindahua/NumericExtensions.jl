@@ -48,16 +48,16 @@ negate!(x::ContiguousArray) = map1!(Negate(), x)
 abs!(x::ContiguousArray) = map1!(AbsFun(), x)
 abs2!(x::ContiguousArray) = map1!(Abs2Fun(), x)
 rcp!(x::ContiguousArray) = map!(Divide(), x, one(eltype(x)), x)
-sqrt!(x::ContiguousArray) = map1!(Sqrt(), x)
+sqrt!(x::ContiguousArray) = map1!(SqrtFun(), x)
 pow!(x::ContiguousArray, p::ArrayOrNumber) = map1!(Pow(), x, p)
 
-floor!(x::ContiguousArray) = map1!(Floor(), x)
-ceil!(x::ContiguousArray) = map1!(Ceil(), x)
-round!(x::ContiguousArray) = map1!(Round(), x)
-trunc!(x::ContiguousArray) = map1!(Trunc(), x)
+floor!(x::ContiguousArray) = map1!(FloorFun(), x)
+ceil!(x::ContiguousArray) = map1!(CeilFun(), x)
+round!(x::ContiguousArray) = map1!(RoundFun(), x)
+trunc!(x::ContiguousArray) = map1!(TruncFun(), x)
 
-exp!(x::ContiguousArray) = map1!(Exp(), x)
-log!(x::ContiguousArray) = map1!(Log(), x)
+exp!(x::ContiguousArray) = map1!(ExpFun(), x)
+log!(x::ContiguousArray) = map1!(LogFun(), x)
 
 # extensions
 

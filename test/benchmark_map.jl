@@ -92,13 +92,13 @@ abs_map(a::Array) = map(AbsFun(), a)
 abs2_map(a::Array) = map(Abs2Fun(), a)
 @bench_map1("abs2", 10, abs2, abs2_map)
 
-sqrt_map(a::Array) = map(Sqrt(), a)
+sqrt_map(a::Array) = map(SqrtFun(), a)
 @bench_map1("sqrt", 10, sqrt, sqrt_map)
 
-exp_map(a::Array) = map(Exp(), a)
+exp_map(a::Array) = map(ExpFun(), a)
 @bench_map1("exp", 10, exp, exp_map)
 
-log_map(a::Array) = map(Log(), a)
+log_map(a::Array) = map(LogFun(), a)
 @bench_map1("log", 10, log, log_map)
 
 ju_absdiff(a::Array, b::Array) = abs(a - b)

@@ -273,14 +273,14 @@ entropy!{T<:Real}(dst::ContiguousArray{T}, x::ContiguousArray{T}, dims::DimSpec)
 
 ###################
 #
-#  Logsumexp
+#  LogFunsumexp
 #
 ###################
 
 function logsumexp{T<:Real}(x::ContiguousArray{T})
 	@check_nonempty("logsumexp")
 	u = max(x)
-	log(sumfdiff(Exp(), x, u)) + u
+	log(sumfdiff(ExpFun(), x, u)) + u
 end
 
 function logsumexp!{R<:FloatingPoint, T<:Real}(dst::ContiguousArray{R}, x::ContiguousVector{T}, dim::Int)

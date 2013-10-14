@@ -102,7 +102,7 @@ In addition, this package also define some useful functions using compound funct
 Performance
 ------------
 
-For simple functions, such as ``x + y`` or ``exp(x)``, the performance of the map version such as ``map(Add(), x, y)`` and ``map(Exp(), x)`` is comparable to the Julia counter part. However, ``map`` can accelerate computation considerably in a variety of cases:
+For simple functions, such as ``x + y`` or ``exp(x)``, the performance of the map version such as ``map(Add(), x, y)`` and ``map(ExpFun(), x)`` is comparable to the Julia counter part. However, ``map`` can accelerate computation considerably in a variety of cases:
 
 * When the result storage has been allocated (e.g. in iterative updating algorithms) or you want inplace update, then ``map!`` or the pre-defined inplace computation function can be used to avoid unnecessary memory allocation/garbage collection, which can sometimes be the performance killer.
 

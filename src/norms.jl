@@ -23,7 +23,7 @@ function vnorm!(dst::ContiguousArray, x::ContiguousArray, p::Real, dims::DimSpec
 		throw(ArgumentError("p must be positive."))
 	end
 	p == 1 ? sumabs!(dst, x, dims) :
-	p == 2 ? map1!(Sqrt(), sumsq!(dst, x, dims)) :	
+	p == 2 ? map1!(SqrtFun(), sumsq!(dst, x, dims)) :	
 	isinf(p) ? maxabs!(dst, x, dims) :
 	map1!(FixAbsFunPow(inv(p)), sum!(dst, FixAbsFunPow(p), x, dims))
 end
@@ -54,7 +54,7 @@ function vnormdiff!(dst::ContiguousArray, x::ContiguousArray, y::ArrayOrNumber, 
 		throw(ArgumentError("p must be positive."))
 	end
 	p == 1 ? sumabsdiff!(dst, x, y, dims) :
-	p == 2 ? map1!(Sqrt(), sumsqdiff!(dst, x, y, dims)) :	
+	p == 2 ? map1!(SqrtFun(), sumsqdiff!(dst, x, y, dims)) :	
 	isinf(p) ? maxabsdiff!(dst, x, y, dims) :
 	map1!(FixAbsFunPow(inv(p)), sumfdiff!(dst, FixAbsFunPow(p), x, y, dims))
 end

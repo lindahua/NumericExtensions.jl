@@ -16,14 +16,14 @@ xlogy{T<:FloatingPoint}(x::T, y::T) = x > 0 ? x * log(y) : zero(T)
 # unary functors 
 
 for e in [
-    (:Negate, :-), (:AbsFun, :abs), (:Abs2Fun, :abs2), (:Sqrt, :sqrt), (:Cbrt, :cbrt),
-    (:Floor, :floor), (:Ceil, :ceil), (:Round, :round), (:Trunc, :trunc),
-    (:Exp, :exp), (:Exp2, :exp2), (:Exp10, :exp10), (:Expm1, :expm1),
-    (:Log, :log), (:Log2, :log2), (:Log10, :log10), (:Log1p, :log1p), 
-    (:Sin, :sin), (:Cos, :cos), (:Tan, :tan), 
-    (:Asin, :asin), (:Acos, :acos), (:Atan, :atan), 
-    (:Sinh, :sinh), (:Cosh, :cosh), (:Tanh, :tanh),
-    (:Asinh, :asinh), (:Acosh, :acosh), (:Atanh, :atanh), 
+    (:Negate, :-), (:AbsFun, :abs), (:Abs2Fun, :abs2), (:SqrtFun, :sqrt), (:CbrtFun, :cbrt),
+    (:FloorFun, :floor), (:CeilFun, :ceil), (:RoundFun, :round), (:TruncFun, :trunc),
+    (:ExpFun, :exp), (:Exp2Fun, :exp2), (:Exp10Fun, :exp10), (:Expm1Fun, :expm1),
+    (:LogFun, :log), (:Log2Fun, :log2), (:Log10Fun, :log10), (:Log1pFun, :log1p), 
+    (:SinFun, :sin), (:CosFun, :cos), (:TanFun, :tan), 
+    (:AsinFun, :asin), (:AcosFun, :acos), (:AtanFun, :atan), 
+    (:SinhFun, :sinh), (:CoshFun, :cosh), (:TanhFun, :tanh),
+    (:AsinhFun, :asinh), (:AcoshFun, :acosh), (:AtanhFun, :atanh), 
     (:Erf, :erf), (:Erfc, :erfc), 
     (:Gamma, :gamma), (:Lgamma, :lgamma), (:Digamma, :digamma), 
     (:Isfinite, :isfinite), (:Isnan, :isnan), (:Isinf, :isinf)]
@@ -50,14 +50,14 @@ end
 evaluate(op::FixAbsFunPow, x::Number) = abs(x) ^ op.p
 
 type Recip <: UnaryFunctor end
-type Logit <: UnaryFunctor end
-type Logistic <: UnaryFunctor end
+type LogFunit <: UnaryFunctor end
+type LogFunistic <: UnaryFunctor end
 type Xlogx <: UnaryFunctor end
 type Xlogy <: BinaryFunctor end
 
 evaluate{T<:FloatingPoint}(::Recip, x::T) = one(T) / x
-evaluate{T<:FloatingPoint}(::Logit, x::T) = log(x/(one(T)-x))
-evaluate{T<:FloatingPoint}(::Logistic, x::T) = one(T)/(one(T) + exp(-x))
+evaluate{T<:FloatingPoint}(::LogFunit, x::T) = log(x/(one(T)-x))
+evaluate{T<:FloatingPoint}(::LogFunistic, x::T) = one(T)/(one(T) + exp(-x))
 evaluate{T<:FloatingPoint}(::Xlogx, x::T) = x > 0 ? x * log(x) : zero(T)
 evaluate{T<:FloatingPoint}(::Xlogy, x::T, y::T) = x > 0 ? x * log(y) : zero(T)
 
@@ -90,15 +90,15 @@ for Op in [:Divide, :HypotFun, :Atan2Fun]
     @eval result_type{T<:FloatingPoint}(::$(Op), ::Type{T}, ::Type{T}) = T
 end
 
-for Op in [:Negate, :Floor, :Ceil, :Round, :Trunc]
+for Op in [:Negate, :FloorFun, :CeilFun, :RoundFun, :TruncFun]
     @eval result_type{T<:Number}(::$(Op), ::Type{T}) = T
 end
 
-for Op in [:Sqrt, :Cbrt, 
-    :Exp, :Exp2, :Exp10, :Expm1, 
-    :Log, :Log2, :Log10, :Log1p, 
-    :Sin, :Cos, :Tan, :Asin, :Acos, :Atan, 
-    :Sinh, :Cosh, :Tanh, :Asinh, :Acosh, :Atanh, 
+for Op in [:SqrtFun, :CbrtFun, 
+    :ExpFun, :Exp2Fun, :Exp10Fun, :Expm1Fun, 
+    :LogFun, :Log2Fun, :Log10Fun, :Log1pFun, 
+    :SinFun, :CosFun, :TanFun, :AsinFun, :AcosFun, :AtanFun, 
+    :SinhFun, :CoshFun, :TanhFun, :AsinhFun, :AcoshFun, :AtanhFun, 
     :Erf, :Erfc, :Gamma, :Lgamma, :Digamma]
 
     @eval result_type{T<:Number}(::$(Op), ::Type{T}) = to_fptype(T)
@@ -122,8 +122,8 @@ result_type{T1<:Number,T2<:Number,T3<:Number}(::FMA, ::Type{T1}, ::Type{T2}, ::T
 result_type{T<:Number}(::FMA, ::Type{T}, ::Type{T}, ::Type{T}) = T
 
 result_type{T<:FloatingPoint}(::Recip, ::Type{T}) = T
-result_type{T<:FloatingPoint}(::Logit, ::Type{T}) = T
-result_type{T<:FloatingPoint}(::Logistic, ::Type{T}, ::Type{T}) = T
+result_type{T<:FloatingPoint}(::LogFunit, ::Type{T}) = T
+result_type{T<:FloatingPoint}(::LogFunistic, ::Type{T}, ::Type{T}) = T
 result_type{T<:FloatingPoint}(::Xlogx, ::Type{T}) = T
 result_type{T<:FloatingPoint}(::Xlogy, ::Type{T}, ::Type{T}) = T
 

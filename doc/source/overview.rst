@@ -60,7 +60,7 @@ Main features of this package are highlighted below:
 * Vector broadcasting computation (supporting both inplace updating and writing results to new arrays).
 * Fast shared-memory views of arrays.
 
-Since many of the methods are extensions of base functions. Simply adding a statement ``using NumericExtensions`` is often enough for substantial performance improvement. Consider the following code snippet:
+SinFunce many of the methods are extensions of base functions. Simply adding a statement ``using NumericExtensions`` is often enough for substantial performance improvement. Consider the following code snippet:
 
 .. code-block:: julia
 
