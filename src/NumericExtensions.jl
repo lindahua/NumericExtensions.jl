@@ -1,129 +1,124 @@
 module NumericExtensions
 
-	# import functions to be extended
+	import 
+		# size information
+		Base.size, Base.length, Base.ndims, Base.isempty,
 
-	import Base.add!, Base.show, Base.getindex, Base.setindex!
-	import Base.pointer, Base.size, Base.length, Base.copy, Base.similar
-	import Base.map, Base.map!, Base.reduce, Base.mapreduce
-	import Base.diagm
-	import Base.+, Base.*, Base.\, Base./
-	import Base.sum, Base.max, Base.min, Base.dot, Base.norm, Base.LinAlg.BLAS.asum
-	import Base.cumsum, Base.cummax, Base.cummin, Base.cumprod
-	import Base.mean, Base.var, Base.varm, Base.std, Base.stdm
-	import Base.logdet, Base.full, Base.inv, Base.diag
+		# iteration and indexing
+		Base.start, Base.next, Base.done, Base.getindex, Base.setindex!,
 
-	# import of useful BLAS & LAPACK routines
-	
-    import Base.LinAlg.BLAS.axpy!, Base.LinAlg.BLAS.nrm2
-    import Base.LinAlg.BLAS.gemv!, Base.LinAlg.BLAS.gemv
-    import Base.LinAlg.BLAS.gemm!, Base.LinAlg.BLAS.gemm    
-    import Base.LinAlg.BLAS.trmv!, Base.LinAlg.BLAS.trmv
-    import Base.LinAlg.BLAS.trmm!, Base.LinAlg.BLAS.trmm
-    import Base.LinAlg.LAPACK.trtrs! 
+		# common operations
+		Base.show, Base.add!, Base.copy, Base.similar, Base.pointer,
+
+		# higher-level map & reduction functions to be extended
+		Base.map, Base.map!, Base.reduce, Base.mapreduce,
+
+		# arithmetic functions
+		Base.+, Base.*, Base.\, Base./,
+
+		# reduction functions to be extended
+		Base.sum, Base.prod, Base.max, Base.min, Base.dot, 
+		Base.cumsum, Base.cummax, Base.cummin, Base.cumprod,
+		Base.norm, Base.LinAlg.BLAS.asum,
+
+		# statistics
+		Base.mean, Base.var, Base.varm, Base.std, Base.stdm,
+
+		# matrix related
+		Base.logdet, Base.full, Base.inv, Base.diag, Base.diagm
+
 
 	export 
-		# functors
-		to_fparray,
-
-		Functor, UnaryFunctor, BinaryFunctor, TernaryFunctor,
-		result_type, evaluate,
-		Add, Subtract, Multiply, Divide, Negate, Max, Min,
-		Abs, Abs2, Sqrt, Cbrt, Pow, Hypot, FixAbsPow, FMA,
-		Floor, Ceil, Round, Trunc,
-		Exp, Exp2, Exp10, Expm1, 
-		Log, Log2, Log10, Log1p,
-		Sin, Cos, Tan, Asin, Acos, Atan, Atan2,
-		Sinh, Cosh, Tanh, Asinh, Acosh, Atanh, 
-		Erf, Erfc, Gamma, Lgamma, Digamma, 
-		Greater, GreaterEqual, Less, LessEqual, Equal, NotEqual,
-		Isfinite, Isnan, Isinf,
-
-		Recip,
-		logit, logistic, xlogx, xlogy, Logit, Logistic, Xlogx, Xlogy,
-
 		# views
 		AbstractUnsafeView, UnsafeVectorView, UnsafeMatrixView, UnsafeCubeView,
 		ContiguousArray, ContiguousVector, ContiguousMatrix, ContiguousCube,
 		unsafe_view,
 
-		# map
-		map, map!, map1!, mapdiff, mapdiff!,
+		# mathfuns
+		sqr, rcp, rsqrt, rcbrt,
 
-		add!, subtract!, multiply!, divide!, negate!, rcp!, 
-		sqrt!, abs!, abs2!, pow!, exp!, log!,
-		floor!, ceil!, round!, trunc!,
+		# extree
+		extree
 
-		absdiff, sqrdiff, fma, fma!,
+		# # map
+		# map, map!, map1!, mapdiff, mapdiff!,
 
-		# vbroadcast
-		vbroadcast, vbroadcast!, vbroadcast1!,
-		badd, badd!, bsubtract, bsubtract!, bmultiply, bmultiply!, bdivide, bdivide!,
+		# add!, subtract!, multiply!, divide!, negate!, rcp!, 
+		# sqrt!, abs!, abs2!, pow!, exp!, log!,
+		# floor!, ceil!, round!, trunc!,
 
-		# diagop
-		add_diag!, add_diag, set_diag!, set_diag,
+		# absdiff, sqrdiff, fma, fma!,
 
-		# reduce
-		reduce!, mapreduce!, mapdiff_reduce, mapdiff_reduce!,
-		sum!, sumfdiff, sumfdiff!,
-		max!, maxfdiff, maxfdiff!,
-		min!, minfdiff, minfdiff!,
-		sumabs, sumabs!, maxabs, maxabs!, minabs, minabs!, sumsq, sumsq!, asum,
-		dot!, sumabsdiff, sumabsdiff!, sumsqdiff, sumsqdiff!,
-		maxabsdiff, maxabsdiff!, minabsdiff, minabsdiff!,  
-		sumxlogx, sumxlogx!, sumxlogy, sumxlogy!, 
+		# # vbroadcast
+		# vbroadcast, vbroadcast!, vbroadcast1!,
+		# badd, badd!, bsubtract, bsubtract!, bmultiply, bmultiply!, bdivide, bdivide!,
 
-		# norms
-		vnorm, vnorm!, vnormdiff, vnormdiff!, normalize, normalize!,
+		# # diagop
+		# add_diag!, add_diag, set_diag!, set_diag,
 
-		# scan
-		scan, scan!, mapscan, mapscan!, 
-		cumsum!, cummax!, cummin!,
+		# # reduce
+		# reduce!, mapreduce!, mapdiff_reduce, mapdiff_reduce!,
+		# sum!, sumfdiff, sumfdiff!,
+		# max!, maxfdiff, maxfdiff!,
+		# min!, minfdiff, minfdiff!,
+		# sumabs, sumabs!, maxabs, maxabs!, minabs, minabs!, sumsq, sumsq!, asum,
+		# dot!, sumabsdiff, sumabsdiff!, sumsqdiff, sumsqdiff!,
+		# maxabsdiff, maxabsdiff!, minabsdiff, minabsdiff!,  
+		# sumxlogx, sumxlogx!, sumxlogy, sumxlogy!, 
 
-		# statistics
-		mean!, meanabs, meanabs!, meansq, meansq!,
-		meanfdiff, meanfdiff!, meanabsdiff, meanabsdiff!, meansqdiff, meansqdiff!,
-		var!, varm!, std!, stdm!, entropy, entropy!,
-		logsumexp, logsumexp!, softmax, softmax!,
+		# # norms
+		# vnorm, vnorm!, vnormdiff, vnormdiff!, normalize, normalize!,
 
-		# weightsum
-		wsum, wsum!, wsumfdiff, wsumfdiff!,
-		wsumabs, wsumabs!, wsumabsdiff, wsumabsdiff!,
-		wsumsq, wsumsq!, wsumsqdiff, wsumsqdiff!,
+		# # scan
+		# scan, scan!, mapscan, mapscan!, 
+		# cumsum!, cummax!, cummin!,
 
-		# utils
-		eachrepeat, sortindexes, groupindexes,
+		# # statistics
+		# mean!, meanabs, meanabs!, meansq, meansq!,
+		# meanfdiff, meanfdiff!, meanabsdiff, meanabsdiff!, meansqdiff, meansqdiff!,
+		# var!, varm!, std!, stdm!, entropy, entropy!,
+		# logsumexp, logsumexp!, softmax, softmax!,
 
-		# pdmat
-        AbstractPDMat, PDMat, PDiagMat, ScalMat, 
-        dim, full, whiten, whiten!, unwhiten, unwhiten!, add_scal!, add_scal,
-        quad, quad!, invquad, invquad!, X_A_Xt, Xt_A_X, X_invA_Xt, Xt_invA_X,
-        unwhiten_winv!, unwhiten_winv,
+		# # weightsum
+		# wsum, wsum!, wsumfdiff, wsumfdiff!,
+		# wsumabs, wsumabs!, wsumabsdiff, wsumabsdiff!,
+		# wsumsq, wsumsq!, wsumsqdiff, wsumsqdiff!,
 
-		# benchmark
-		BenchmarkTable, nrows, ncolumns, add_row!
+		# # utils
+		# eachrepeat, sortindexes, groupindexes,
+
+		# # pdmat
+  #       AbstractPDMat, PDMat, PDiagMat, ScalMat, 
+  #       dim, full, whiten, whiten!, unwhiten, unwhiten!, add_scal!, add_scal,
+  #       quad, quad!, invquad, invquad!, X_A_Xt, Xt_A_X, X_invA_Xt, Xt_invA_X,
+  #       unwhiten_winv!, unwhiten_winv,
+
+		# # benchmark
+		# BenchmarkTable, nrows, ncolumns, add_row!
 
 
 	# codes
 
 	include("common.jl")
-	include("functors.jl")
-	include("unsafe_view.jl")
+	include("unsafe_views.jl")
+	include("mathfuns.jl")
+	include("extree.jl")
 	
-	include("codegen.jl")
-	include("map.jl")
-	include("vbroadcast.jl")
-	include("diagop.jl")
-	include("reduce.jl")
-	include("norms.jl")
-	include("scan.jl")
-	include("statistics.jl")
-	include("weightsum.jl")
+	# include("codegen.jl")
+	# include("map.jl")
+	# include("vbroadcast.jl")
+	# include("diagop.jl")
+	# include("reduce.jl")
+	# include("norms.jl")
+	# include("scan.jl")
+	# include("statistics.jl")
+	# include("weightsum.jl")
 
-	include("utils.jl")
+	# include("utils.jl")
 
-	include("pdmat.jl")
+	# include("pdmat.jl")
 
-	include("benchmark.jl")
+	# include("benchmark.jl")
 
-	include("deprecates.jl")
+	# include("deprecates.jl")
 end

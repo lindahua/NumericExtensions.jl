@@ -1,30 +1,12 @@
 # map operations to elements
 
-# code generators
+#################################################
+#
+#   Generic macros for map-code generation
+#
+#################################################
 
-function code_map_function{KType<:EwiseFunKernel}(fname!::Symbol, ktype::Type{KType})
-	plst = paramlist(ktype, :ContiguousArray)
-	ker = kernel(ktype, :i)
-	quote
-		function ($fname!)($(plst[1]), dst::ContiguousArray, $(plst[2:]...))
-			for i in 1 : length(dst)
-				@inbounds dst[i] = $ker
-			end
-			dst
-		end
-	end
-end
 
-macro map_function(fname, ktype)
-	esc(code_map_function(fname, eval(ktype)))
-end
-
-# generic map functions
-
-@map_function map! UnaryFunKernel
-@map_function map! BinaryFunKernel
-@map_function mapdiff! DiffFunKernel
-@map_function map! TernaryFunKernel
 
 map1!(f::Functor, x1, xr...) = map!(f, x1, x1, xr...)
 
