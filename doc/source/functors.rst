@@ -83,19 +83,19 @@ Pre-defined functors
 
 *NumericExtensions.jl* has defined a series of functors as listed below:
 
-* Arithmetic functors: ``Add``, ``Subtract``, ``Multiply``, ``Divide``, ``Negate``, ``Abs``
-* Max and Min functors: ``Max``, ``Min``
-* Rounding functors: ``Floor``, ``Ceil``, ``Round``, ``Trunc``
-* Power functors: ``Pow``, ``Sqrt``, ``Cbrt``, ``Abs2``, ``Hypot``
-* Exp and log functors: ``Exp``, ``Exp2``, ``Exp10``, ``Log``, ``Log2``, ``Log10``, ``Expm1``, ``Log1p``
-* Trigonometric functors: ``Sin``, ``Cos``, ``Tan``, ``Asin``, ``Acos``, ``Atan``, ``Atan2``
-* Hyperbolic functors: ``Sinh``, ``Cosh``, ``Tanh``, ``Asinh``, ``Acosh``, ``Atanh``
-* Error functors: ``Erf``, ``Erfc``
-* Gamma functors: ``Gamma``, ``Lgamma``, ``Digamma``
+* Arithmetic functors: ``Add``, ``Subtract``, ``Multiply``, ``Divide``, ``Negate``, ``AbsFun``
+* MaxFun and MinFun functors: ``MaxFun``, ``MinFun``
+* RoundFuning functors: ``FloorFun``, ``CeilFun``, ``RoundFun``, ``TruncFun``
+* Power functors: ``Pow``, ``SqrtFun``, ``CbrtFun``, ``Abs2Fun``, ``HypotFun``
+* ExpFun and log functors: ``ExpFun``, ``Exp2Fun``, ``Exp10Fun``, ``LogFun``, ``Log2Fun``, ``Log10Fun``, ``Expm1Fun``, ``Log1pFun``
+* Trigonometric functors: ``SinFun``, ``CosFun``, ``TanFun``, ``AsinFun``, ``AcosFun``, ``AtanFun``, ``Atan2Fun``
+* Hyperbolic functors: ``SinhFun``, ``CoshFun``, ``TanhFun``, ``AsinhFun``, ``AcoshFun``, ``AtanhFun``
+* Error functors: ``ErfFun``, ``ErfcFun``
+* GammaFun functors: ``GammaFun``, ``LgammaFun``, ``DigammaFun``
 * Comparison functors: ``Greater``, ``GreaterEqual``, ``Less``, ``LessEqual``, ``Equal``, ``NotEqual``
-* Number class functors: ``Isfinite``, ``Isinf``, ``Isnan``
+* Number class functors: ``IsfiniteFun``, ``IsinfFun``, ``IsnanFun``
 * Fused multiply and add: ``FMA`` (i.e. ``(a, b, c) -> a + b * c``)
-* Others: ``Logit``, ``Logistic``, ``Xlogx``, ``Xlogy``
+* Others: ``LogitFun``, ``LogisticFun``, ``XlogxFun``, ``XlogyFun``
 
 Except for several functors that corresponding to operators, most functors are named using the capitalized version of the corresponding math function. Therefore, you don't have to look up this list to find the names. The collection of pre-defined functors will be extended in future. Please refer to ``src/functors.jl`` for the most updated list.
 

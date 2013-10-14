@@ -5,10 +5,10 @@ using Base.Test
 x = [1., 2., 3.]
 y = [6., 5., 4.]
 
-@test map(Abs2(), x) == abs2(x)
+@test map(Abs2Fun(), x) == abs2(x)
 
 r = copy(x)
-map1!(Abs2(), r)
+map1!(Abs2Fun(), r)
 @test r == abs2(x)
 
 @test map(Add(), x, y) == x + y
@@ -16,9 +16,9 @@ map1!(Abs2(), r)
 @test map(Subtract(), x, 1) == x - 1
 @test map(Subtract(), 1, x) == 1 - x
 
-@test mapdiff(Abs2(), x, y) == abs2(x - y)
-@test mapdiff(Abs2(), 1., y) == abs2(1 - y)
-@test mapdiff(Abs2(), x, 1.) == abs2(x - 1)
+@test mapdiff(Abs2Fun(), x, y) == abs2(x - y)
+@test mapdiff(Abs2Fun(), 1., y) == abs2(1 - y)
+@test mapdiff(Abs2Fun(), x, 1.) == abs2(x - 1)
 
 r = copy(x)
 map1!(Add(), r, y)
@@ -29,7 +29,7 @@ map1!(Add(), r, 1)
 @test r == x + 1
 
 r = copy(x)
-mapdiff!(Abs2(), r, x, y)
+mapdiff!(Abs2Fun(), r, x, y)
 @test r == abs2(x - y)
 
 

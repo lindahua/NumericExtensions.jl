@@ -175,19 +175,19 @@ end
 
 # Convenience functions
 
-wsumabs(w::ContiguousArray, x::ContiguousArray) = wsum(w, Abs(), x)
-wsumabs!(dst::ContiguousArray, w::ContiguousArray, x::ContiguousArray, dim::Int) = wsum!(dst, w, Abs(), x, dim) 
-wsumabs(w::ContiguousArray, x::ContiguousArray, dim::Int) = wsum(w, Abs(), x, dim)
+wsumabs(w::ContiguousArray, x::ContiguousArray) = wsum(w, AbsFun(), x)
+wsumabs!(dst::ContiguousArray, w::ContiguousArray, x::ContiguousArray, dim::Int) = wsum!(dst, w, AbsFun(), x, dim) 
+wsumabs(w::ContiguousArray, x::ContiguousArray, dim::Int) = wsum(w, AbsFun(), x, dim)
 
-wsumabsdiff(w::ContiguousArray, x::ContiguousArray, y::ArrayOrNumber) = wsumfdiff(w, Abs(), x, y)
-wsumabsdiff!(dst::ContiguousArray, w::ContiguousArray, x::ContiguousArray, y::ArrayOrNumber, dim::Int) = wsumfdiff!(dst, w, Abs(), x, y, dim) 
-wsumabsdiff(w::ContiguousArray, x::ContiguousArray, y::ArrayOrNumber, dim::Int) = wsumfdiff(w, Abs(), x, y, dim)
+wsumabsdiff(w::ContiguousArray, x::ContiguousArray, y::ArrayOrNumber) = wsumfdiff(w, AbsFun(), x, y)
+wsumabsdiff!(dst::ContiguousArray, w::ContiguousArray, x::ContiguousArray, y::ArrayOrNumber, dim::Int) = wsumfdiff!(dst, w, AbsFun(), x, y, dim) 
+wsumabsdiff(w::ContiguousArray, x::ContiguousArray, y::ArrayOrNumber, dim::Int) = wsumfdiff(w, AbsFun(), x, y, dim)
 
-wsumsq(w::ContiguousArray, x::ContiguousArray) = wsum(w, Abs2(), x)
-wsumsq!(dst::ContiguousArray, w::ContiguousArray, x::ContiguousArray, dim::Int) = wsum!(dst, w, Abs2(), x, dim) 
-wsumsq(w::ContiguousArray, x::ContiguousArray, dim::Int) = wsum(w, Abs2(), x, dim)
+wsumsq(w::ContiguousArray, x::ContiguousArray) = wsum(w, Abs2Fun(), x)
+wsumsq!(dst::ContiguousArray, w::ContiguousArray, x::ContiguousArray, dim::Int) = wsum!(dst, w, Abs2Fun(), x, dim) 
+wsumsq(w::ContiguousArray, x::ContiguousArray, dim::Int) = wsum(w, Abs2Fun(), x, dim)
 
-wsumsqdiff(w::ContiguousArray, x::ContiguousArray, y::ArrayOrNumber) = wsumfdiff(w, Abs2(), x, y)
-wsumsqdiff!(dst::ContiguousArray, w::ContiguousArray, x::ContiguousArray, y::ArrayOrNumber, dim::Int) = wsumfdiff!(dst, w, Abs2(), x, y, dim) 
-wsumsqdiff(w::ContiguousArray, x::ContiguousArray, y::ArrayOrNumber, dim::Int) = wsumfdiff(w, Abs2(), x, y, dim)
+wsumsqdiff(w::ContiguousArray, x::ContiguousArray, y::ArrayOrNumber) = wsumfdiff(w, Abs2Fun(), x, y)
+wsumsqdiff!(dst::ContiguousArray, w::ContiguousArray, x::ContiguousArray, y::ArrayOrNumber, dim::Int) = wsumfdiff!(dst, w, Abs2Fun(), x, y, dim) 
+wsumsqdiff(w::ContiguousArray, x::ContiguousArray, y::ArrayOrNumber, dim::Int) = wsumfdiff(w, Abs2Fun(), x, y, dim)
 

@@ -9,24 +9,31 @@ typealias TernaryFunctor Functor{3}
 # additional functions
 
 logit{T<:FloatingPoint}(x::T) = log(x/(one(T)-x))
-logistic{T<:FloatingPoint}(x::T) = one(T)/(one(T) + exp(-x))
 xlogx{T<:FloatingPoint}(x::T) = x > 0 ? x * log(x) : zero(T)
 xlogy{T<:FloatingPoint}(x::T, y::T) = x > 0 ? x * log(y) : zero(T)
+
+relu{T<:FloatingPoint}(x::T) = max(zero(T), x)
+
+logistic{T<:FloatingPoint}(x::T) = one(T)/(one(T) + exp(-x))
+invlogistic{T<:FloatingPoint}(y::T) = -log(one(T) / y - one(T))
+
+softplus{T<:FloatingPoint}(x::T) = log(one(T) + exp(x))
+invsoftplus{T<:FloatingPoint}(y::T) = log(exp(y) - one(T))
 
 # unary functors 
 
 for e in [
-    (:Negate, :-), (:Abs, :abs), (:Abs2, :abs2), (:Sqrt, :sqrt), (:Cbrt, :cbrt),
-    (:Floor, :floor), (:Ceil, :ceil), (:Round, :round), (:Trunc, :trunc),
-    (:Exp, :exp), (:Exp2, :exp2), (:Exp10, :exp10), (:Expm1, :expm1),
-    (:Log, :log), (:Log2, :log2), (:Log10, :log10), (:Log1p, :log1p), 
-    (:Sin, :sin), (:Cos, :cos), (:Tan, :tan), 
-    (:Asin, :asin), (:Acos, :acos), (:Atan, :atan), 
-    (:Sinh, :sinh), (:Cosh, :cosh), (:Tanh, :tanh),
-    (:Asinh, :asinh), (:Acosh, :acosh), (:Atanh, :atanh), 
-    (:Erf, :erf), (:Erfc, :erfc), 
-    (:Gamma, :gamma), (:Lgamma, :lgamma), (:Digamma, :digamma), 
-    (:Isfinite, :isfinite), (:Isnan, :isnan), (:Isinf, :isinf)]
+    (:Negate, :-), (:AbsFun, :abs), (:Abs2Fun, :abs2), (:SqrtFun, :sqrt), (:CbrtFun, :cbrt),
+    (:FloorFun, :floor), (:CeilFun, :ceil), (:RoundFun, :round), (:TruncFun, :trunc),
+    (:ExpFun, :exp), (:Exp2Fun, :exp2), (:Exp10Fun, :exp10), (:Expm1Fun, :expm1),
+    (:LogFun, :log), (:Log2Fun, :log2), (:Log10Fun, :log10), (:Log1pFun, :log1p), 
+    (:SinFun, :sin), (:CosFun, :cos), (:TanFun, :tan), 
+    (:AsinFun, :asin), (:AcosFun, :acos), (:AtanFun, :atan), 
+    (:SinhFun, :sinh), (:CoshFun, :cosh), (:TanhFun, :tanh),
+    (:AsinhFun, :asinh), (:AcoshFun, :acosh), (:AtanhFun, :atanh), 
+    (:ErfFun, :erf), (:ErfcFun, :erfc), 
+    (:GammaFun, :gamma), (:LgammaFun, :lgamma), (:DigammaFun, :digamma), 
+    (:IsfiniteFun, :isfinite), (:IsnanFun, :isnan), (:IsinfFun, :isinf)]
 
     @eval type $(e[1]) <: UnaryFunctor end
     @eval evaluate(::($(e[1])), x::Number) = ($(e[2]))(x)
@@ -38,7 +45,7 @@ for e in [
     (:Add, :+), (:Subtract, :-), (:Multiply, :*), (:Divide, :/), (:Pow, :^), 
     (:Greater, :>), (:GreaterEqual, :>=), (:Less, :<), (:LessEqual, :<=), 
     (:Equal, :(==)), (:NotEqual, :(!=)),
-    (:Max, :max), (:Min, :min), (:Hypot, :hypot), (:Atan2, :atan2)]
+    (:MaxFun, :max), (:MinFun, :min), (:HypotFun, :hypot), (:Atan2Fun, :atan2)]
 
     @eval type $(e[1]) <: BinaryFunctor end
     @eval evaluate(::($(e[1])), x::Number, y::Number) = ($(e[2]))(x, y)
@@ -50,16 +57,18 @@ end
 evaluate(op::FixAbsPow, x::Number) = abs(x) ^ op.p
 
 type Recip <: UnaryFunctor end
-type Logit <: UnaryFunctor end
-type Logistic <: UnaryFunctor end
-type Xlogx <: UnaryFunctor end
-type Xlogy <: BinaryFunctor end
+type LogitFun <: UnaryFunctor end
+type LogisticFun <: UnaryFunctor end
+type XlogxFun <: UnaryFunctor end
+type XlogyFun <: BinaryFunctor end
+
+const RecipFun = Recip
 
 evaluate{T<:FloatingPoint}(::Recip, x::T) = one(T) / x
-evaluate{T<:FloatingPoint}(::Logit, x::T) = log(x/(one(T)-x))
-evaluate{T<:FloatingPoint}(::Logistic, x::T) = one(T)/(one(T) + exp(-x))
-evaluate{T<:FloatingPoint}(::Xlogx, x::T) = x > 0 ? x * log(x) : zero(T)
-evaluate{T<:FloatingPoint}(::Xlogy, x::T, y::T) = x > 0 ? x * log(y) : zero(T)
+evaluate{T<:FloatingPoint}(::LogitFun, x::T) = log(x/(one(T)-x))
+evaluate{T<:FloatingPoint}(::LogisticFun, x::T) = one(T)/(one(T) + exp(-x))
+evaluate{T<:FloatingPoint}(::XlogxFun, x::T) = x > 0 ? x * log(x) : zero(T)
+evaluate{T<:FloatingPoint}(::XlogyFun, x::T, y::T) = x > 0 ? x * log(y) : zero(T)
 
 # ternary functors
 
@@ -76,7 +85,7 @@ evaluate(op::FMA, a::Number, b::Number, c::Number) = a + b * c
 
 to_fptype{T<:Number}(x::Type{T}) = typeof(convert(FloatingPoint, zero(T)))
 
-for Op in [:Add, :Subtract, :Multiply, :Pow, :Max, :Min]
+for Op in [:Add, :Subtract, :Multiply, :Pow, :MaxFun, :MinFun]
     @eval result_type{T1<:Number, T2<:Number}(::($Op), ::Type{T1}, ::Type{T2}) = promote_type(T1, T2)
     @eval result_type{T<:Number}(::($Op), ::Type{T}, ::Type{T}) = T
 end
@@ -84,22 +93,22 @@ end
 result_type(::Add, ::Type{Bool}, ::Type{Bool}) = Int
 result_type(::Subtract, ::Type{Bool}, ::Type{Bool}) = Int
 
-for Op in [:Divide, :Hypot, :Atan2]
+for Op in [:Divide, :HypotFun, :Atan2Fun]
     @eval result_type{T1<:Number, T2<:Number}(::$(Op), ::Type{T1}, ::Type{T2}) = to_fptype(promote_type(T1, T2))
     @eval result_type{T<:Number}(::$(Op), ::Type{T}, ::Type{T}) = to_fptype(T)
     @eval result_type{T<:FloatingPoint}(::$(Op), ::Type{T}, ::Type{T}) = T
 end
 
-for Op in [:Negate, :Floor, :Ceil, :Round, :Trunc]
+for Op in [:Negate, :FloorFun, :CeilFun, :RoundFun, :TruncFun]
     @eval result_type{T<:Number}(::$(Op), ::Type{T}) = T
 end
 
-for Op in [:Sqrt, :Cbrt, 
-    :Exp, :Exp2, :Exp10, :Expm1, 
-    :Log, :Log2, :Log10, :Log1p, 
-    :Sin, :Cos, :Tan, :Asin, :Acos, :Atan, 
-    :Sinh, :Cosh, :Tanh, :Asinh, :Acosh, :Atanh, 
-    :Erf, :Erfc, :Gamma, :Lgamma, :Digamma]
+for Op in [:SqrtFun, :CbrtFun, 
+    :ExpFun, :Exp2Fun, :Exp10Fun, :Expm1Fun, 
+    :LogFun, :Log2Fun, :Log10Fun, :Log1pFun, 
+    :SinFun, :CosFun, :TanFun, :AsinFun, :AcosFun, :AtanFun, 
+    :SinhFun, :CoshFun, :TanhFun, :AsinhFun, :AcoshFun, :AtanhFun, 
+    :ErfFun, :ErfcFun, :GammaFun, :LgammaFun, :DigammaFun]
 
     @eval result_type{T<:Number}(::$(Op), ::Type{T}) = to_fptype(T)
 end
@@ -108,24 +117,24 @@ for Op in [:Greater, :GreaterEqual, :Less, :LessEqual, :Equal, :NotEqual]
     @eval result_type{T1, T2}(::$(Op), ::Type{T1}, ::Type{T2}) = Bool
 end
 
-for Op in [:Isfinite, :Isnan, :Isinf]
+for Op in [:IsfiniteFun, :IsnanFun, :IsinfFun]
     @eval result_type{T<:Real}(::$(Op), ::Type{T}) = Bool
 end
 
-result_type{T<:Real}(::Abs, ::Type{T}) = T
-result_type{T<:Real}(::Abs, ::Type{Complex{T}}) = to_fptype(T)
-result_type{T<:Real}(::Abs2, ::Type{T}) = T
-result_type{T<:Real}(::Abs2, ::Type{Complex{T}}) = T
+result_type{T<:Real}(::AbsFun, ::Type{T}) = T
+result_type{T<:Real}(::AbsFun, ::Type{Complex{T}}) = to_fptype(T)
+result_type{T<:Real}(::Abs2Fun, ::Type{T}) = T
+result_type{T<:Real}(::Abs2Fun, ::Type{Complex{T}}) = T
 result_type{Tp<:Real, T<:Number}(::FixAbsPow{Tp}, ::Type{T}) = promote_type(Tp, T)
 
 result_type{T1<:Number,T2<:Number,T3<:Number}(::FMA, ::Type{T1}, ::Type{T2}, ::Type{T3}) = promote_type(T1, promote_type(T2, T3))
 result_type{T<:Number}(::FMA, ::Type{T}, ::Type{T}, ::Type{T}) = T
 
 result_type{T<:FloatingPoint}(::Recip, ::Type{T}) = T
-result_type{T<:FloatingPoint}(::Logit, ::Type{T}) = T
-result_type{T<:FloatingPoint}(::Logistic, ::Type{T}, ::Type{T}) = T
-result_type{T<:FloatingPoint}(::Xlogx, ::Type{T}) = T
-result_type{T<:FloatingPoint}(::Xlogy, ::Type{T}, ::Type{T}) = T
+result_type{T<:FloatingPoint}(::LogitFun, ::Type{T}) = T
+result_type{T<:FloatingPoint}(::LogisticFun, ::Type{T}, ::Type{T}) = T
+result_type{T<:FloatingPoint}(::XlogxFun, ::Type{T}) = T
+result_type{T<:FloatingPoint}(::XlogyFun, ::Type{T}, ::Type{T}) = T
 
 
 

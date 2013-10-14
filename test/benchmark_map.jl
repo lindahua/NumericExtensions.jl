@@ -80,25 +80,25 @@ inv_map(a::Array) = map(Divide(), 1.0, a)
 pow_map(a::Array, b::Array) = map(Pow(), a, b)
 @bench_map2("pow", 10, .^, pow_map)
 
-max_map(a::Array, b::Array) = map(Max(), a, b)
+max_map(a::Array, b::Array) = map(MaxFun(), a, b)
 @bench_map2("max", 10, max, max_map)
 
-min_map(a::Array, b::Array) = map(Min(), a, b)
+min_map(a::Array, b::Array) = map(MinFun(), a, b)
 @bench_map2("min", 10, min, min_map)
 
-abs_map(a::Array) = map(Abs(), a)
+abs_map(a::Array) = map(AbsFun(), a)
 @bench_map1("abs", 10, abs, abs_map)
 
-abs2_map(a::Array) = map(Abs2(), a)
+abs2_map(a::Array) = map(Abs2Fun(), a)
 @bench_map1("abs2", 10, abs2, abs2_map)
 
-sqrt_map(a::Array) = map(Sqrt(), a)
+sqrt_map(a::Array) = map(SqrtFun(), a)
 @bench_map1("sqrt", 10, sqrt, sqrt_map)
 
-exp_map(a::Array) = map(Exp(), a)
+exp_map(a::Array) = map(ExpFun(), a)
 @bench_map1("exp", 10, exp, exp_map)
 
-log_map(a::Array) = map(Log(), a)
+log_map(a::Array) = map(LogFun(), a)
 @bench_map1("log", 10, log, log_map)
 
 ju_absdiff(a::Array, b::Array) = abs(a - b)

@@ -362,17 +362,17 @@ function sum_range{T<:Number}(x::AbstractArray{T}, rg::Range1)
 end
 
 
-max{T<:Real}(x::ContiguousArray{T}) = isempty(x) ? empty_notallowed(T) : reduce(Max(), x)
-max{T<:Real}(x::ContiguousArray{T}, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(Max(), x, dims)
-max!{R<:Real, T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, ::(), dims::DimSpec) = reduce!(dst, Max(), x, dims) 
+max{T<:Real}(x::ContiguousArray{T}) = isempty(x) ? empty_notallowed(T) : reduce(MaxFun(), x)
+max{T<:Real}(x::ContiguousArray{T}, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(MaxFun(), x, dims)
+max!{R<:Real, T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, ::(), dims::DimSpec) = reduce!(dst, MaxFun(), x, dims) 
 
-min{T<:Real}(x::ContiguousArray{T}) = isempty(x) ? empty_notallowed(T) : reduce(Min(), x)
-min{T<:Real}(x::ContiguousArray{T}, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(Min(), x, dims)
-min!{R<:Real, T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, ::(), dims::DimSpec) = reduce!(dst, Min(), x, dims) 
+min{T<:Real}(x::ContiguousArray{T}) = isempty(x) ? empty_notallowed(T) : reduce(MinFun(), x)
+min{T<:Real}(x::ContiguousArray{T}, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(MinFun(), x, dims)
+min!{R<:Real, T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, ::(), dims::DimSpec) = reduce!(dst, MinFun(), x, dims) 
 
 @basic_mapreduction sum Add() zero 
-@basic_mapreduction max Max() empty_notallowed
-@basic_mapreduction min Min() empty_notallowed
+@basic_mapreduction max MaxFun() empty_notallowed
+@basic_mapreduction min MinFun() empty_notallowed
 
 #################################################
 #
@@ -415,17 +415,17 @@ end
 
 # specific function definitions
 
-@derived_reduction1 sumabs sum Abs()
-@derived_reduction1 maxabs max Abs()
-@derived_reduction1 minabs min Abs()
-@derived_reduction1 sumsq sum Abs2()
-@derived_reduction1 sumxlogx sum Xlogx()
+@derived_reduction1 sumabs sum AbsFun()
+@derived_reduction1 maxabs max AbsFun()
+@derived_reduction1 minabs min AbsFun()
+@derived_reduction1 sumsq sum Abs2Fun()
+@derived_reduction1 sumxlogx sum XlogxFun()
 
-@derived_reduction2 sumabsdiff sumfdiff Abs()
-@derived_reduction2 maxabsdiff maxfdiff Abs()
-@derived_reduction2 minabsdiff minfdiff Abs()
-@derived_reduction2 sumsqdiff sumfdiff Abs2()
-@derived_reduction2 sumxlogy sum Xlogy()
+@derived_reduction2 sumabsdiff sumfdiff AbsFun()
+@derived_reduction2 maxabsdiff maxfdiff AbsFun()
+@derived_reduction2 minabsdiff minfdiff AbsFun()
+@derived_reduction2 sumsqdiff sumfdiff Abs2Fun()
+@derived_reduction2 sumxlogy sum XlogyFun()
 
 # special treatment for dot for sqsum
 
