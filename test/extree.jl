@@ -147,6 +147,13 @@ x = extree(:(a[:,i,:]))
 @test x.args == (EColon(), EVar(:i), EColon())
 @test !is_scalar_expr(x)
 
+x = extree(:(scalar(a[i, j])))
+@test isa(x, ERef)
+@test x.arr == extree(:a)
+@test x.args == (EVar(:i), EVar(:j))
+@test is_scalar_expr(x)
+
+
 ## ECall
 
 # unary call
@@ -322,10 +329,24 @@ x = extree( :(maxabsdiff(scalar(x), scalar(y))) )
 @test is_scalar_expr(x)
 @test x.args == (EVar(:x, true), EVar(:y, true))
 
+# composition of ewise map, reduction, and reference
 
+x = extree( :(log(x[:,i])) )
+@test isa(x, EMap)
+@test x.fun == EFun(:log) && numargs(x) == 1
+@test x.args[1] == ERef( EVar(:x), (EColon(), EVar(:i)) )
+@test !is_scalar_expr(x)
 
+x = extree( :(b[:,1] + a[:]) )
+@test isa(x, EMap)
+@test x.fun == EFun(:+) && numargs(x) == 2
+@test x.args[1] == ERef( EVar(:b), (EColon(), EConst(1)) )
+@test x.args[2] == ERef( EVar(:a), (EColon(),) )
+@test !is_scalar_expr(x)
 
-
-
-
+x = extree( :(abs2(scalar(a[i, j]))) )
+@test isa(x, EMap)
+@test x.fun == EFun(:abs2) && numargs(x) == 1
+@test x.args[1] == ERef(EVar(:a), (EVar(:i), EVar(:j)); isscalar=true)
+@test is_scalar_expr(x)
 

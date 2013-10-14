@@ -19,8 +19,14 @@ is_scalar_expr(ex::AbstractExpr) = false
 
 immutable EGenericExpr <: AbstractExpr
 	expr::Expr
+	isscalar::Bool
+
+	EGenericExpr(x::Expr) = new(x, false)
+	EGenericExpr(x::Expr, isscalar::Bool) = new(x, isscalar)
 end
 
+is_scalar_expr(ex::EGenericExpr) = ex.isscalar
+tag_scalar(ex::EGenericExpr) = EGenericExpr(ex.expr, true)
 
 ##### Simple expressions
 
@@ -46,6 +52,7 @@ end
 
 EConst{T<:Number}(x::T) = EConst{T}(x)
 is_scalar_expr(ex::EConst) = true
+tag_scalar(ex::EConst) = ex
 show(io::IO, ex::EConst) = print(io, "EConst($(ex.value))")
 
 ## EVar
@@ -59,6 +66,7 @@ immutable EVar <: SimpleExpr
 end
 
 is_scalar_expr(ex::EVar) = ex.isscalar
+tag_scalar(ex::EVar) = EVar(ex.sym, true)
 show(io::IO, ex::EVar) = print(io, ex.isscalar ? "EVar($(ex.sym), scalar)" : "EVar($(ex.sym))")
 
 ## ERange
@@ -70,6 +78,8 @@ immutable ERange{Args<:(ERangeArg...,)} <: SimpleExpr
 	args::Args
 end
 ERange{Args<:(SimpleExpr...,)}(args::Args) = ERange{Args}(args)
+
+tag_scalar(ex::ERange) = error("Tagging a range expression as scalar is not allowed.")
 
 function show(io::IO, ex::ERange)
 	print(io, "ERange(")
@@ -91,6 +101,8 @@ is_binary_sewise(f::EFun) = (f.sym in BINARY_SEWISE_FUNCTIONS)
 is_unary_reduc(f::EFun) = (f.sym in UNARY_REDUC_FUNCTIONS)
 is_binary_reduc(f::EFun) = (f.sym in BINARY_REDUC_FUNCTIONS)
 
+## EMap
+
 type EMap{Args<:(AbstractExpr...,)} <: EwiseExpr
 	fun::EFun
 	args::Args
@@ -99,7 +111,10 @@ end
 
 EMap{Args<:(AbstractExpr...,)}(f::EFun, args::Args; isscalar=false) = EMap{Args}(f, args, isscalar)
 is_scalar_expr(ex::EMap) = ex.isscalar
+tag_scalar(ex::EMap) = EMap(ex.fun, ex.args; isscalar=true) 
 show(io::IO, ex::EMap) = show_ecall(io, "EMap", ex)
+
+## EReduc
 
 type EReduc{Args<:(AbstractExpr...,)} <: AbstractExpr
 	fun::EFun
@@ -108,7 +123,10 @@ end
 
 EReduc{Args<:(AbstractExpr...,)}(f::EFun, args::Args) = EReduc{Args}(f, args)
 is_scalar_expr(ex::EReduc) = true
+tag_scalar(ex::EReduc) = ex
 show(io::IO, ex::EReduc) = show_ecall(io, "EReduc", ex)
+
+## EGenericCall
 
 type EGenericCall{Args<:(AbstractExpr...,)} <: AbstractExpr
 	fun::EFun
@@ -118,6 +136,7 @@ end
 
 EGenericCall{Args<:(AbstractExpr...,)}(f::EFun, args::Args; isscalar=false) = EGenericCall{Args}(f, args, isscalar)
 is_scalar_expr(ex::EGenericCall) = ex.isscalar
+tag_scalar(ex::EGenericCall) = EGenericCall(ex.fun, ex.args; isscalar=true)
 show(io::IO, ex::EGenericCall) = show_ecall(io, "EGenericCall", ex)
 
 # Note: other kind of function call expressions should 
@@ -149,9 +168,12 @@ typealias ERefArg Union(SimpleExpr, EColon)
 immutable ERef{Args<:(ERefArg...,)} <: EwiseExpr
 	arr::EVar    # the host array
 	args::Args
+	isscalar::Bool
 end
 
-ERef{Args<:(ERefArg...,)}(h::EVar, args::Args) = ERef{Args}(h, args)
+ERef{Args<:(ERefArg...,)}(h::EVar, args::Args; isscalar=false) = ERef{Args}(h, args, isscalar)
+is_scalar_expr(ex::ERef) = ex.isscalar
+tag_scalar(ex::ERef) = ERef(ex.arr, ex.args; isscalar=true)
 
 function show(io::IO, ex::ERef)
 	print(io, "ERef(")
@@ -159,6 +181,9 @@ function show(io::IO, ex::ERef)
 	print(io, "[")
 	print(io, join([string(a) for a in ex.args], ", "))
 	print(io, "]")
+	if ex.isscalar
+		print(io, " scalar")
+	end
 	print(io, ")")
 end
 
@@ -170,6 +195,7 @@ type EAssignment{Lhs<:Union(EVar,ERef),Rhs<:AbstractExpr} <: AbstractExpr
 end
 
 EAssignment{Lhs<:Union(EVar,ERef),Rhs<:AbstractExpr}(l::Lhs, r::Rhs) = EAssignment{Lhs,Rhs}(l,r)
+tag_scalar(ex::EAssignment) = error("Tagging an assignment expression as scalar is now allowed.")
 
 function show(io::IO, ex::EAssignment)
 	print(io, "EAssignment(")
@@ -188,6 +214,8 @@ type EBlock <: AbstractExpr
 	EBlock() = new(Array(AbstractExpr, 0))
 	EBlock(a::Vector{AbstractExpr}) = new(a)
 end
+
+tag_scalar(ex::EBlock) = error("Tagging a block expression as scalar is now allowed.")
 
 function show(io::IO, ex::EBlock)
 	println(io, "EBlock (")
@@ -209,11 +237,12 @@ typealias ExprContext Vector{EAssignment}
 expr_context() = EAssignment[]
 make_blockexpr(ctx::ExprContext, ex::AbstractExpr) = EBlock(AbstractExpr[ctx..., ex])
 
-function lift_expr!(ctx::ExprContext, ex::AbstractExpr)
-	tmpvar = EVar(gensym("_tmp"), is_scalar_expr(ex))
+function lift_expr!(ctx::ExprContext, ex::AbstractExpr, isscalar::Bool)
+	tmpvar = EVar(gensym("_tmp"), isscalar)
 	push!(ctx, EAssignment(tmpvar, ex))
 	return tmpvar
 end
+lift_expr!(ctx::ExprContext, ex::AbstractExpr) = lift_expr!(ctx, ex, is_scalar_expr(ex))
 
 scalar(x::Number) = x
 scalar(x) = error("Input argument is not a scalar.")
@@ -320,15 +349,7 @@ function extree_for_call!(ctx::ExprContext, x::Expr)
 		# tagging an expression as scalar expression
 
 		nargs == 1 || error("extree: scalar function must have one argument.")
-		a = x.args[2]
-
-		if isa(a, Number)
-			return EConst(a)
-		elseif isa(a, Symbol)
-			return EVar(a, true)
-		else
-			return lift_expr!(ctx, extree!(ctx, a))
-		end
+		return tag_scalar(extree!(ctx, x.args[2]))
 
 	else  ## ordinary function
 		f = EFun(fsym)
