@@ -87,7 +87,7 @@ is_scalar_expr(ex::EMapCall) = ex.isscalar
 
 type EReducCall{Args<:(AbstractExpr...,)} <: AbstractExpr
 	fun::EFun
-	args::Vector{AbstractExpr}
+	args::Args
 end
 
 EReducCall{Args<:(AbstractExpr...,)}(f::EFun, args::Args) = EReducCall{Args}(f, args)
@@ -95,7 +95,7 @@ is_scalar_expr(ex::EReducCall) = true
 
 type EGenericCall{Args<:(AbstractExpr...,)} <: AbstractExpr
 	fun::EFun
-	args::Vector{AbstractExpr}
+	args::Args
 	isscalar::Bool
 end
 
@@ -136,8 +136,8 @@ EAssignment{Lhs<:Union(EVar,ERef),Rhs<:AbstractExpr}(l::Lhs, r::Rhs) = EAssignme
 type EBlock <: AbstractExpr
 	exprs::Vector{AbstractExpr}
 
-	BlockExpr() = new(Array(AbstractExpr, 0))
-	BlockExpr(a::Vector{AbstractExpr}) = new(a)
+	EBlock() = new(Array(AbstractExpr, 0))
+	EBlock(a::Vector{AbstractExpr}) = new(a)
 end
 
 
@@ -149,10 +149,10 @@ end
 
 typealias ExprContext Vector{EAssignment}
 expr_context() = EAssignment[]
-make_blockexpr(ctx::ExprContext, ex::AbstractExpr) = Expr(:block, ctx..., ex)
+make_blockexpr(ctx::ExprContext, ex::AbstractExpr) = EBlock(AbstractExpr[ctx..., ex])
 
 function lift_expr!(ctx::ExprContext, ex::AbstractExpr)
-	tmpvar = EVar(gensym("_tmp"))
+	tmpvar = EVar(gensym("_tmp"), is_scalar_expr(ex))
 	push!(ctx, EAssignment(tmpvar, ex))
 	return tmpvar
 end
@@ -200,8 +200,9 @@ end
 # applied to n scalar arguments.
 
 function is_s2s_func(f::EFun, n::Int)
+	(f.sym == :+ || f.sym == :*) ? true :
 	n == 1 ? (is_unary_ewise(f) || is_unary_reduc(f)) :
-	n == 2 ? (return is_binary_ewise(f) || is_binary_reduc(f)) : false
+	n == 2 ? (return is_binary_ewise(f) || is_binary_sewise(f) || is_binary_reduc(f)) : false
 end
 
 const end_sym = symbol("end")
@@ -238,47 +239,80 @@ end
 
 # For function call expression
 
+is_map_call(f::EFun, args::AbstractExpr...) = false
+is_map_call(f::EFun, a1::AbstractExpr) = is_unary_ewise(f)
+
+function is_map_call(f::EFun, a1::AbstractExpr, a2::AbstractExpr)
+	is_binary_ewise(f) ? true :
+	is_binary_sewise(f) ? (is_scalar_expr(a1) || is_scalar_expr(a2)) : false
+end
+
+is_reduc_call(f::EFun, args::AbstractExpr...) = false
+is_reduc_call(f::EFun, a1::AbstractExpr) = is_unary_reduc(f)
+is_reduc_call(f::EFun, a1::AbstractExpr, a2::AbstractExpr) = is_binary_reduc(f)
+
+
 function extree_for_call!(ctx::ExprContext, x::Expr)
 	fsym = x.args[1]
 	isa(fsym, Symbol) || error("extree: the function name must be a symbol.")
-	f = EFun(fsym)
 	nargs = length(x.args) - 1
 
-	if nargs > 0
-		_args = [extree_for_arg!(ctx, a) for a in x.args[2:]]
-		is_s2s = is_s2s_func(f, nargs)
+	if fsym == :(scalar)  # the scalar function 		
+		# scalar function is used for the special purpose of 
+		# tagging an expression as scalar expression
 
-		if is_s2s && all([isa(a, EConst) for a in _args]) # constant propagation			
-			return EConst(eval_const(f, _args))
+		nargs == 1 || error("extree: scalar function must have one argument.")
+		a = x.args[2]
 
-		else 
-			rs = is_s2s && all([is_scalar_expr(a) for a in _args])
-			argtup = tuple(_args...)
-
-			if is_reduc_call(f, argtup)
-				return EReducCall(f, argtup; isscalar=rs)
-			elseif is_ewise_call(f, argtup)
-				return EMapCall(f, argtup; isscalar=rs)
-			else
-				return EGenericCall(f, argtup; isscalar=rs)
-			end
+		if isa(a, Number)
+			return EConst(a)
+		elseif isa(a, Symbol)
+			return EVar(a, true)
+		else
+			return lift_expr!(ctx, extree!(ctx, a))
 		end
-	else
-		return EGenericCall(f, ())
+
+	else  ## ordinary function
+		f = EFun(fsym)
+		
+		if nargs > 0
+			_args = [extree!(ctx, a) for a in x.args[2:]]
+			is_s2s = is_s2s_func(f, nargs)
+
+			if is_s2s && all([isa(a, EConst) for a in _args]) # constant propagation			
+				return EConst(eval_const(f, _args...))
+
+			else 
+				all_scalar_args = all([is_scalar_expr(a) for a in _args])
+				if is_s2s && !all_scalar_args
+					for i = 1 : nargs
+						a = _args[i]
+						if is_scalar_expr(a) && !(isa(a, EConst) || isa(a, EVar))
+							_args[i] = lift_expr!(ctx, a)
+						end
+					end
+				end
+				rs = is_s2s && all_scalar_args
+				argtup = tuple(_args...)
+
+				if is_reduc_call(f, argtup...)
+					return EReducCall(f, argtup; isscalar=rs)
+				elseif fsym == :(+) || is_map_call(f, argtup...)
+					return EMapCall(f, argtup; isscalar=rs)
+				else
+					return EGenericCall(f, argtup; isscalar=rs)
+				end
+			end
+		else
+			return EGenericCall(f, ())
+		end		
 	end
+
 end
 
+# eval_const 
 
-## should_be_lifted(a) returns whether a should be lifted to the context 
-## when a is an argument of an host expression.
-
-should_be_lifted(ex::AbstractExpr) = true
-should_be_lifted(ex::EwiseExpr) = !is_scalar_expr(ex)
-should_be_lifted(ex::EConst) = false
-should_be_lifted(ex::EVar) = false
-
-function extree_for_arg!(ctx::ExprContext, x::Expr)
-	ex = extree!(ctx, x)
-	should_be_lifted(ex) ? lift_expr!(ctx, ex) : ex
-end
+eval_const(f::EFun, a1::EConst) = eval(Expr(:call, f.sym, a1.value))
+eval_const(f::EFun, a1::EConst, a2::EConst) = eval(Expr(:call, f.sym, a1.value, a2.value))
+eval_const(f::EFun, a1::EConst, a2::EConst, a3::EConst) = eval(Expr(:call, f.sym, a1.value, a2.value, a3.value))
 
