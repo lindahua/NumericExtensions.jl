@@ -83,7 +83,7 @@ Pre-defined functors
 
 *NumericExtensions.jl* has defined a series of functors as listed below:
 
-* Arithmetic functors: ``Add``, ``Subtract``, ``Multiply``, ``Divide``, ``NegateFun``, ``AbsFun``
+* Arithmetic functors: ``Add``, ``Subtract``, ``Multiply``, ``Divide``, ``Negate``, ``AbsFun``
 * Max and Min functors: ``Max``, ``Min``
 * Rounding functors: ``Floor``, ``Ceil``, ``Round``, ``Trunc``
 * Power functors: ``Pow``, ``Sqrt``, ``Cbrt``, ``Abs2Fun``, ``Hypot``

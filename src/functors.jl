@@ -16,7 +16,7 @@ xlogy{T<:FloatingPoint}(x::T, y::T) = x > 0 ? x * log(y) : zero(T)
 # unary functors 
 
 for e in [
-    (:NegateFun, :-), (:AbsFun, :abs), (:Abs2Fun, :abs2), (:Sqrt, :sqrt), (:Cbrt, :cbrt),
+    (:Negate, :-), (:AbsFun, :abs), (:Abs2Fun, :abs2), (:Sqrt, :sqrt), (:Cbrt, :cbrt),
     (:Floor, :floor), (:Ceil, :ceil), (:Round, :round), (:Trunc, :trunc),
     (:Exp, :exp), (:Exp2, :exp2), (:Exp10, :exp10), (:Expm1, :expm1),
     (:Log, :log), (:Log2, :log2), (:Log10, :log10), (:Log1p, :log1p), 
@@ -90,7 +90,7 @@ for Op in [:Divide, :Hypot, :Atan2]
     @eval result_type{T<:FloatingPoint}(::$(Op), ::Type{T}, ::Type{T}) = T
 end
 
-for Op in [:NegateFun, :Floor, :Ceil, :Round, :Trunc]
+for Op in [:Negate, :Floor, :Ceil, :Round, :Trunc]
     @eval result_type{T<:Number}(::$(Op), ::Type{T}) = T
 end
 
