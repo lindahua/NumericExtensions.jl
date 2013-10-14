@@ -13,14 +13,14 @@ x = rand(3)
 
 for e in [
 	(Negate, -),
-	(Abs, abs), (Abs2, abs2), (Sqrt, sqrt), (Cbrt, cbrt), 
-	(Floor, floor), (Ceil, ceil), (Round, round), (Trunc, trunc), 
-	(Exp, exp), (Exp2, exp2), (Exp10, exp10), (Expm1, expm1),
-	(Log, log), (Log2, log2), (Log10, log10), (Log1p, log1p),
-	(Sin, sin), (Cos, cos), (Tan, tan), (Asin, asin), (Acos, acos), (Atan, atan),
-	(Sinh, sinh), (Cosh, cosh), (Tanh, tanh), (Asinh, asinh), (Acosh, acosh), (Atanh, atanh), 
-	(Erf, erf), (Erfc, erfc), (Gamma, gamma), (Lgamma, lgamma), (Digamma, digamma), 
-	(Isfinite, isfinite), (Isinf, isinf), (Isnan, isnan)]
+	(AbsFun, abs), (Abs2Fun, abs2), (SqrtFun, sqrt), (CbrtFun, cbrt), 
+	(FloorFun, floor), (CeilFun, ceil), (RoundFun, round), (TruncFun, trunc), 
+	(ExpFun, exp), (Exp2Fun, exp2), (Exp10Fun, exp10), (Expm1Fun, expm1),
+	(LogFun, log), (Log2Fun, log2), (Log10Fun, log10), (Log1pFun, log1p),
+	(SinFun, sin), (CosFun, cos), (TanFun, tan), (AsinFun, asin), (AcosFun, acos), (AtanFun, atan),
+	(SinhFun, sinh), (CoshFun, cosh), (TanhFun, tanh), (AsinhFun, asinh), (AcoshFun, acosh), (AtanhFun, atanh), 
+	(ErfFun, erf), (ErfcFun, erfc), (GammaFun, gamma), (LgammaFun, lgamma), (DigammaFun, digamma), 
+	(IsfiniteFun, isfinite), (IsinfFun, isinf), (IsnanFun, isnan)]
 
 	T = e[1]
 	f = e[2]
@@ -40,10 +40,10 @@ for e in [
 	(Multiply, *), 
 	(Divide, /), 
 	(Pow, ^), 
-	(Max, max),
-	(Min, min),
-	(Hypot, hypot),
-	(Atan2, atan2),
+	(MaxFun, max),
+	(MinFun, min),
+	(HypotFun, hypot),
+	(Atan2Fun, atan2),
 	(Greater, >), 
 	(GreaterEqual, >=),
 	(Less, <), 

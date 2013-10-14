@@ -82,20 +82,20 @@ end
 # specific functions
 
 meanabs{T<:Real}(x::ContiguousArray{T}) = sumabs(x) / length(x)
-meanabs{T<:Real}(x::ContiguousArray{T}, dims::DimSpec) = mean(Abs(), x, dims)
-meanabs!{R<:Real,T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, dims::DimSpec) = mean!(dst, Abs(), x, dims)
+meanabs{T<:Real}(x::ContiguousArray{T}, dims::DimSpec) = mean(AbsFun(), x, dims)
+meanabs!{R<:Real,T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, dims::DimSpec) = mean!(dst, AbsFun(), x, dims)
 
 meansq{T<:Real}(x::ContiguousArray{T}) = sumsq(x) / length(x)
-meansq{T<:Real}(x::ContiguousArray{T}, dims::DimSpec) = mean(Abs2(), x, dims)
-meansq!{R<:Real,T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, dims::DimSpec) = mean!(dst, Abs2(), x, dims)
+meansq{T<:Real}(x::ContiguousArray{T}, dims::DimSpec) = mean(Abs2Fun(), x, dims)
+meansq!{R<:Real,T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, dims::DimSpec) = mean!(dst, Abs2Fun(), x, dims)
 
-meanabsdiff(x::ArrayOrNumber, y::ArrayOrNumber) = meanfdiff(Abs(), x, y)
-meanabsdiff(x::ArrayOrNumber, y::ArrayOrNumber, dims::DimSpec) = meanfdiff(Abs(), x, y, dims)
-meanabsdiff!(dst::ContiguousArray, x::ArrayOrNumber, y::ArrayOrNumber, dims::DimSpec) = meanfdiff!(dst, Abs(), x, y, dims)
+meanabsdiff(x::ArrayOrNumber, y::ArrayOrNumber) = meanfdiff(AbsFun(), x, y)
+meanabsdiff(x::ArrayOrNumber, y::ArrayOrNumber, dims::DimSpec) = meanfdiff(AbsFun(), x, y, dims)
+meanabsdiff!(dst::ContiguousArray, x::ArrayOrNumber, y::ArrayOrNumber, dims::DimSpec) = meanfdiff!(dst, AbsFun(), x, y, dims)
 
-meansqdiff(x::ArrayOrNumber, y::ArrayOrNumber) = meanfdiff(Abs2(), x, y)
-meansqdiff(x::ArrayOrNumber, y::ArrayOrNumber, dims::DimSpec) = meanfdiff(Abs2(), x, y, dims)
-meansqdiff!(dst::ContiguousArray, x::ArrayOrNumber, y::ArrayOrNumber, dims::DimSpec) = meanfdiff!(dst, Abs2(), x, y, dims)
+meansqdiff(x::ArrayOrNumber, y::ArrayOrNumber) = meanfdiff(Abs2Fun(), x, y)
+meansqdiff(x::ArrayOrNumber, y::ArrayOrNumber, dims::DimSpec) = meanfdiff(Abs2Fun(), x, y, dims)
+meansqdiff!(dst::ContiguousArray, x::ArrayOrNumber, y::ArrayOrNumber, dims::DimSpec) = meanfdiff!(dst, Abs2Fun(), x, y, dims)
 
 
 ###################
@@ -273,14 +273,14 @@ entropy!{T<:Real}(dst::ContiguousArray{T}, x::ContiguousArray{T}, dims::DimSpec)
 
 ###################
 #
-#  Logsumexp
+#  LogFunsumexp
 #
 ###################
 
 function logsumexp{T<:Real}(x::ContiguousArray{T})
 	@check_nonempty("logsumexp")
 	u = max(x)
-	log(sumfdiff(Exp(), x, u)) + u
+	log(sumfdiff(ExpFun(), x, u)) + u
 end
 
 function logsumexp!{R<:FloatingPoint, T<:Real}(dst::ContiguousArray{R}, x::ContiguousVector{T}, dim::Int)

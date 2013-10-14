@@ -83,7 +83,7 @@ For some common scanning operations, we provide specific functions to simplify t
 	cumsum!(r, f2, x, y)
 	cumsum!(r, f3, x, y, z)
 
-	# cummax uses Max() as scanning operator
+	# cummax uses MaxFun() as scanning operator
 
 	cummax(x)
 	cummax!(r, x)
@@ -97,7 +97,7 @@ For some common scanning operations, we provide specific functions to simplify t
 	cummax!(r, f2, x, y)
 	cummax!(r, f3, x, y, z)
 
-	# cummin uses Min() as scanning operator
+	# cummin uses MinFun() as scanning operator
 
 	cummin(x)
 	cummin!(r, x)
