@@ -217,6 +217,6 @@ macro cumfuns(fname, op)
 end
 
 @cumfuns cumsum Add()
-@cumfuns cummax Max()
-@cumfuns cummin Min()
+@cumfuns cummax MaxFun()
+@cumfuns cummin MinFun()
 

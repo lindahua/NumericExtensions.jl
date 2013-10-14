@@ -26,7 +26,7 @@ Here, ``map`` creates and returns the resultant array, while ``map!`` writes res
 
 .. code-block:: julia
 	
-	map(Abs(), x)            # returns abs(x)
+	map(AbsFun(), x)            # returns abs(x)
 	map(FMA(), x, y, z)      # returns x + y .* z
 	map!(Add(), dst, x, 2)   # writes x + 2 to dst
 
@@ -57,8 +57,8 @@ Note that ``mapdiff`` and ``mapdiff!`` uses an efficient implementation, which c
 .. code-block:: julia
 
 	map1!(Mul(), x, 2)       # multiply x by 2 (inplace)
-	mapdiff(Abs2(), x, y)    # compute squared differences between x and y
-	mapdiff(Abs(), x, 1)     # compute |x - 1|
+	mapdiff(Abs2Fun(), x, y)    # compute squared differences between x and y
+	mapdiff(AbsFun(), x, 1)     # compute |x - 1|
 
 
 Pre-defined mapping functions
@@ -102,7 +102,7 @@ In addition, this package also define some useful functions using compound funct
 Performance
 ------------
 
-For simple functions, such as ``x + y`` or ``exp(x)``, the performance of the map version such as ``map(Add(), x, y)`` and ``map(Exp(), x)`` is comparable to the Julia counter part. However, ``map`` can accelerate computation considerably in a variety of cases:
+For simple functions, such as ``x + y`` or ``exp(x)``, the performance of the map version such as ``map(Add(), x, y)`` and ``map(ExpFun(), x)`` is comparable to the Julia counter part. However, ``map`` can accelerate computation considerably in a variety of cases:
 
 * When the result storage has been allocated (e.g. in iterative updating algorithms) or you want inplace update, then ``map!`` or the pre-defined inplace computation function can be used to avoid unnecessary memory allocation/garbage collection, which can sometimes be the performance killer.
 

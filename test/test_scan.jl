@@ -80,12 +80,12 @@ cumsum!(dst, x1)
 @test_approx_eq cummax(x1) safe_scan(x1, max)
 @test_approx_eq cummin(x1) safe_scan(x1, min)
 
-@test_approx_eq cumsum(Abs2(), x1) safe_scan(abs2(x1), +)
+@test_approx_eq cumsum(Abs2Fun(), x1) safe_scan(abs2(x1), +)
 @test_approx_eq cumsum(Multiply(), x1, y1) safe_scan(x1 .* y1, +)
 @test_approx_eq cumsum(FMA(), x1, y1, z1) safe_scan(x1 + y1 .* z1, +)
 
 dst = zeros(size(x1))
-cumsum!(dst, Abs2(), x1) 
+cumsum!(dst, Abs2Fun(), x1) 
 @test_approx_eq dst safe_scan(abs2(x1), +)
 
 # scan along dimensions
@@ -122,12 +122,12 @@ cumsum!(dst, Abs2(), x1)
 @test_approx_eq cummin(x3, 2) safe_scan(x3, min, 2)
 @test_approx_eq cummin(x3, 3) safe_scan(x3, min, 3)
 
-@test_approx_eq cumsum(Abs2(), x1, 1) safe_scan(abs2(x1), +, 1)
-@test_approx_eq cumsum(Abs2(), x2, 1) safe_scan(abs2(x2), +, 1)
-@test_approx_eq cumsum(Abs2(), x2, 2) safe_scan(abs2(x2), +, 2)
-@test_approx_eq cumsum(Abs2(), x3, 1) safe_scan(abs2(x3), +, 1)
-@test_approx_eq cumsum(Abs2(), x3, 2) safe_scan(abs2(x3), +, 2)
-@test_approx_eq cumsum(Abs2(), x3, 3) safe_scan(abs2(x3), +, 3)
+@test_approx_eq cumsum(Abs2Fun(), x1, 1) safe_scan(abs2(x1), +, 1)
+@test_approx_eq cumsum(Abs2Fun(), x2, 1) safe_scan(abs2(x2), +, 1)
+@test_approx_eq cumsum(Abs2Fun(), x2, 2) safe_scan(abs2(x2), +, 2)
+@test_approx_eq cumsum(Abs2Fun(), x3, 1) safe_scan(abs2(x3), +, 1)
+@test_approx_eq cumsum(Abs2Fun(), x3, 2) safe_scan(abs2(x3), +, 2)
+@test_approx_eq cumsum(Abs2Fun(), x3, 3) safe_scan(abs2(x3), +, 3)
 
 @test_approx_eq cumsum(Multiply(), x1, y1, 1) safe_scan(x1 .* y1, +, 1)
 @test_approx_eq cumsum(Multiply(), x2, y2, 1) safe_scan(x2 .* y2, +, 1)
@@ -155,6 +155,6 @@ x3c = copy(x3); cumsum!(x3c, 3)
 @test_approx_eq x3c cumsum(x3, 3)
 
 dst = similar(x2)
-cumsum!(dst, Abs2(), x2, 1)
+cumsum!(dst, Abs2Fun(), x2, 1)
 @test_approx_eq dst cumsum(abs2(x2), 1)
 
