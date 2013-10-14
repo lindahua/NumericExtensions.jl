@@ -419,13 +419,13 @@ end
 @derived_reduction1 maxabs max AbsFun()
 @derived_reduction1 minabs min AbsFun()
 @derived_reduction1 sumsq sum Abs2Fun()
-@derived_reduction1 sumxlogx sum Xlogx()
+@derived_reduction1 sumxlogx sum XlogxFun()
 
 @derived_reduction2 sumabsdiff sumfdiff AbsFun()
 @derived_reduction2 maxabsdiff maxfdiff AbsFun()
 @derived_reduction2 minabsdiff minfdiff AbsFun()
 @derived_reduction2 sumsqdiff sumfdiff Abs2Fun()
-@derived_reduction2 sumxlogy sum Xlogy()
+@derived_reduction2 sumxlogy sum XlogyFun()
 
 # special treatment for dot for sqsum
 

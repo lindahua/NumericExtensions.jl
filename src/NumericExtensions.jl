@@ -28,7 +28,7 @@ module NumericExtensions
 		Functor, UnaryFunctor, BinaryFunctor, TernaryFunctor,
 		result_type, evaluate,
 		Add, Subtract, Multiply, Divide, Negate, MaxFun, MinFun,
-		AbsFun, Abs2Fun, SqrtFun, CbrtFun, Pow, HypotFun, FixAbsFunPow, FMA,
+		AbsFun, Abs2Fun, SqrtFun, CbrtFun, Pow, HypotFun, FixAbsPow, FMA,
 		FloorFun, CeilFun, RoundFun, TruncFun,
 		ExpFun, Exp2Fun, Exp10Fun, Expm1Fun, 
 		LogFun, Log2Fun, Log10Fun, Log1pFun,
@@ -36,10 +36,10 @@ module NumericExtensions
 		SinhFun, CoshFun, TanhFun, AsinhFun, AcoshFun, AtanhFun, 
 		ErfFun, ErfcFun, GammaFun, LgammaFun, DigammaFun, 
 		Greater, GreaterEqual, Less, LessEqual, Equal, NotEqual,
-		Isfinite, Isnan, Isinf,
+		IsfiniteFun, IsnanFun, IsinfFun,
 
 		Recip,
-		logit, logistic, xlogx, xlogy, LogFunit, LogFunistic, Xlogx, Xlogy,
+		logit, logistic, xlogx, xlogy, LogitFun, LogisticFun, XlogxFun, XlogyFun,
 
 		# views
 		AbstractUnsafeView, UnsafeVectorView, UnsafeMatrixView, UnsafeCubeView,

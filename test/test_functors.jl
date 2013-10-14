@@ -20,7 +20,7 @@ for e in [
 	(SinFun, sin), (CosFun, cos), (TanFun, tan), (AsinFun, asin), (AcosFun, acos), (AtanFun, atan),
 	(SinhFun, sinh), (CoshFun, cosh), (TanhFun, tanh), (AsinhFun, asinh), (AcoshFun, acosh), (AtanhFun, atanh), 
 	(ErfFun, erf), (ErfcFun, erfc), (GammaFun, gamma), (LgammaFun, lgamma), (DigammaFun, digamma), 
-	(Isfinite, isfinite), (Isinf, isinf), (Isnan, isnan)]
+	(IsfiniteFun, isfinite), (IsinfFun, isinf), (IsnanFun, isnan)]
 
 	T = e[1]
 	f = e[2]
