@@ -102,6 +102,7 @@ module NumericExtensions
 	include("common.jl")
 	include("unsafe_views.jl")
 	include("mathfuns.jl")
+	# include("functors.jl")
 	include("extree.jl")
 	
 	# include("codegen.jl")
