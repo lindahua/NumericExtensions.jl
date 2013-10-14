@@ -55,6 +55,8 @@ type LogisticFun <: UnaryFunctor end
 type XlogxFun <: UnaryFunctor end
 type XlogyFun <: BinaryFunctor end
 
+const RecipFun = Recip
+
 evaluate{T<:FloatingPoint}(::Recip, x::T) = one(T) / x
 evaluate{T<:FloatingPoint}(::LogitFun, x::T) = log(x/(one(T)-x))
 evaluate{T<:FloatingPoint}(::LogisticFun, x::T) = one(T)/(one(T) + exp(-x))
