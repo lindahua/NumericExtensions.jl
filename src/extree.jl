@@ -38,12 +38,17 @@ abstract SimpleExpr <: EwiseExpr
 
 typealias NumOrSym Union(Number,Symbol)
 
+## EConst
+
 immutable EConst{T<:Number} <: SimpleExpr
 	value::T
 end
 
 EConst{T<:Number}(x::T) = EConst{T}(x)
 is_scalar_expr(ex::EConst) = true
+show(io::IO, ex::EConst) = print(io, "EConst($(ex.value))")
+
+## EVar
 
 immutable EVar <: SimpleExpr
 	sym::Symbol
@@ -52,8 +57,11 @@ immutable EVar <: SimpleExpr
 	EVar(s::Symbol) = new(s, false)
 	EVar(s::Symbol, tf::Bool) = new(s, tf)	
 end
-is_scalar_expr(ex::EVar) = ex.isscalar
 
+is_scalar_expr(ex::EVar) = ex.isscalar
+show(io::IO, ex::EVar) = print(io, ex.isscalar ? "EVar($(ex.sym), scalar)" : "EVar($(ex.sym))")
+
+## ERange
 
 immutable EEnd end
 typealias ERangeArg Union(EConst,EVar,EEnd)
@@ -62,6 +70,13 @@ immutable ERange{Args<:(ERangeArg...,)} <: SimpleExpr
 	args::Args
 end
 ERange{Args<:(SimpleExpr...,)}(args::Args) = ERange{Args}(args)
+
+function show(io::IO, ex::ERange)
+	print(io, "ERange(")
+	print(io, join([string(a) for a in ex.args], ", "))
+	print(io, ")")
+end
+
 
 ##### Function calls
 
@@ -84,6 +99,7 @@ end
 
 EMap{Args<:(AbstractExpr...,)}(f::EFun, args::Args; isscalar=false) = EMap{Args}(f, args, isscalar)
 is_scalar_expr(ex::EMap) = ex.isscalar
+show(io::IO, ex::EMap) = show_ecall(io, "EMap", ex)
 
 type EReduc{Args<:(AbstractExpr...,)} <: AbstractExpr
 	fun::EFun
@@ -92,6 +108,7 @@ end
 
 EReduc{Args<:(AbstractExpr...,)}(f::EFun, args::Args) = EReduc{Args}(f, args)
 is_scalar_expr(ex::EReduc) = true
+show(io::IO, ex::EReduc) = show_ecall(io, "EReduc", ex)
 
 type EGenericCall{Args<:(AbstractExpr...,)} <: AbstractExpr
 	fun::EFun
@@ -101,12 +118,26 @@ end
 
 EGenericCall{Args<:(AbstractExpr...,)}(f::EFun, args::Args; isscalar=false) = EGenericCall{Args}(f, args, isscalar)
 is_scalar_expr(ex::EGenericCall) = ex.isscalar
+show(io::IO, ex::EGenericCall) = show_ecall(io, "EGenericCall", ex)
 
 # Note: other kind of function call expressions should 
 # be captured by EGenericExpr
 
 typealias ECall Union(EMap, EReduc, EGenericCall)
 numargs(ex::ECall) = length(ex.args)
+
+function show_ecall(io::IO, cname::ASCIIString, ex::ECall)
+	print(io, cname)
+	print(io, "(")
+	print(io, "$(ex.fun.sym)")
+	print(io, "(")
+	print(io, join([string(a) for a in ex.args], ", "))
+	print(io, ")")
+	if is_scalar_expr(ex)
+		print(io, " scalar")
+	end
+	print(io, ")")
+end
 
 
 ##### References
@@ -115,12 +146,21 @@ immutable EColon end
 
 typealias ERefArg Union(SimpleExpr, EColon)
 
-type ERef{Args<:(ERefArg...,)} <: EwiseExpr
+immutable ERef{Args<:(ERefArg...,)} <: EwiseExpr
 	arr::EVar    # the host array
 	args::Args
 end
 
 ERef{Args<:(ERefArg...,)}(h::EVar, args::Args) = ERef{Args}(h, args)
+
+function show(io::IO, ex::ERef)
+	print(io, "ERef(")
+	print(io, ex.arr)
+	print(io, "[")
+	print(io, join([string(a) for a in ex.args], ", "))
+	print(io, "]")
+	print(io, ")")
+end
 
 ##### Assignment expression
 
@@ -131,6 +171,15 @@ end
 
 EAssignment{Lhs<:Union(EVar,ERef),Rhs<:AbstractExpr}(l::Lhs, r::Rhs) = EAssignment{Lhs,Rhs}(l,r)
 
+function show(io::IO, ex::EAssignment)
+	print(io, "EAssignment(")
+	print(io, ex.lhs)
+	print(io, " <== ")
+	print(io, ex.rhs)
+	print(io, ")")
+end
+
+
 ##### Block Expression
 
 type EBlock <: AbstractExpr
@@ -138,6 +187,15 @@ type EBlock <: AbstractExpr
 
 	EBlock() = new(Array(AbstractExpr, 0))
 	EBlock(a::Vector{AbstractExpr}) = new(a)
+end
+
+function show(io::IO, ex::EBlock)
+	println(io, "EBlock (")
+	for ce in ex.exprs
+		print("  ")
+		println(io, ce)
+	end
+	println(io, ")")
 end
 
 
