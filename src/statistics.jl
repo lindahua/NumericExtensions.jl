@@ -279,7 +279,7 @@ entropy!{T<:Real}(dst::ContiguousArray{T}, x::ContiguousArray{T}, dims::DimSpec)
 
 function logsumexp{T<:Real}(x::ContiguousArray{T})
 	@check_nonempty("logsumexp")
-	u = max(x)
+	u = maximum(x)
 	log(sumfdiff(ExpFun(), x, u)) + u
 end
 
@@ -391,7 +391,7 @@ end
 
 function softmax!{T<:FloatingPoint}(dst::ContiguousArray{T}, x::ContiguousArray{T})
 	@check_nonempty("softmax")
-	u = max(x)
+	u = maximum(x)
 	s = dst[1] = exp(x[1] - u)
 	n = length(x)
 	for i in 2 : n

@@ -56,8 +56,8 @@ function Base.show(io::IO, tab::BenchmarkTable)
 	println(io, "BenchmarkTable: $(tab.name)")
 
 	# compute lengths
-	lr = max([length(x) for x in tab.rownames])
-	lc = max([length(x) for x in tab.colnames])
+	lr = maximum([length(x) for x in tab.rownames])
+	lc = maximum([length(x) for x in tab.colnames])
 	lc = max(lc, 8)
 
 	m = nrows(tab)

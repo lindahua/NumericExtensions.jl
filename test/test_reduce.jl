@@ -115,8 +115,8 @@ q = rand(3, 4)
 
 @test_approx_eq sum(x) safe_sum(x)
 @test sum(x) == reduce(Add(), x)
-@test max(x) == reduce(MaxFun(), x) == safe_max(x)
-@test min(x) == reduce(MinFun(), x) == safe_min(x)
+@test maximum(x) == reduce(MaxFun(), x) == safe_max(x)
+@test minimum(x) == reduce(MinFun(), x) == safe_min(x)
 
 @test sum(Bool[]) === 0
 @test sum([false]) === 0
@@ -264,45 +264,45 @@ a = [true true false; false true false]
 
 # max
 
-@test_approx_eq max(x1, (), 1) safe_max(x1, 1)
-@test_approx_eq max(x1, (), 2) safe_max(x1, 2)
-@test_approx_eq max(x2, (), 1) safe_max(x2, 1)
-@test_approx_eq max(x2, (), 2) safe_max(x2, 2)
-@test_approx_eq max(x2, (), 3) safe_max(x2, 3)
-@test_approx_eq max(x3, (), 1) safe_max(x3, 1)
-@test_approx_eq max(x3, (), 2) safe_max(x3, 2)
-@test_approx_eq max(x3, (), 3) safe_max(x3, 3)
-@test_approx_eq max(x3, (), 4) safe_max(x3, 4)
-@test_approx_eq max(x4, (), 1) safe_max(x4, 1)
-@test_approx_eq max(x4, (), 2) safe_max(x4, 2)
-@test_approx_eq max(x4, (), 3) safe_max(x4, 3)
-@test_approx_eq max(x4, (), 4) safe_max(x4, 4)
-@test_approx_eq max(x4, (), 5) safe_max(x4, 5)
+@test_approx_eq maximum(x1, 1) safe_max(x1, 1)
+@test_approx_eq maximum(x1, 2) safe_max(x1, 2)
+@test_approx_eq maximum(x2, 1) safe_max(x2, 1)
+@test_approx_eq maximum(x2, 2) safe_max(x2, 2)
+@test_approx_eq maximum(x2, 3) safe_max(x2, 3)
+@test_approx_eq maximum(x3, 1) safe_max(x3, 1)
+@test_approx_eq maximum(x3, 2) safe_max(x3, 2)
+@test_approx_eq maximum(x3, 3) safe_max(x3, 3)
+@test_approx_eq maximum(x3, 4) safe_max(x3, 4)
+@test_approx_eq maximum(x4, 1) safe_max(x4, 1)
+@test_approx_eq maximum(x4, 2) safe_max(x4, 2)
+@test_approx_eq maximum(x4, 3) safe_max(x4, 3)
+@test_approx_eq maximum(x4, 4) safe_max(x4, 4)
+@test_approx_eq maximum(x4, 5) safe_max(x4, 5)
 
-@test_approx_eq max(x3, (), (1, 2)) safe_max(x3, (1, 2))
-@test_approx_eq max(x3, (), (1, 3)) safe_max(x3, (1, 3))
-@test_approx_eq max(x3, (), (2, 3)) safe_max(x3, (2, 3))
+@test_approx_eq maximum(x3, (1, 2)) safe_max(x3, (1, 2))
+@test_approx_eq maximum(x3, (1, 3)) safe_max(x3, (1, 3))
+@test_approx_eq maximum(x3, (2, 3)) safe_max(x3, (2, 3))
 
 # min
 
-@test_approx_eq min(x1, (), 1) safe_min(x1, 1)
-@test_approx_eq min(x1, (), 2) safe_min(x1, 2)
-@test_approx_eq min(x2, (), 1) safe_min(x2, 1)
-@test_approx_eq min(x2, (), 2) safe_min(x2, 2)
-@test_approx_eq min(x2, (), 3) safe_min(x2, 3)
-@test_approx_eq min(x3, (), 1) safe_min(x3, 1)
-@test_approx_eq min(x3, (), 2) safe_min(x3, 2)
-@test_approx_eq min(x3, (), 3) safe_min(x3, 3)
-@test_approx_eq min(x3, (), 4) safe_min(x3, 4)
-@test_approx_eq min(x4, (), 1) safe_min(x4, 1)
-@test_approx_eq min(x4, (), 2) safe_min(x4, 2)
-@test_approx_eq min(x4, (), 3) safe_min(x4, 3)
-@test_approx_eq min(x4, (), 4) safe_min(x4, 4)
-@test_approx_eq min(x4, (), 5) safe_min(x4, 5)
+@test_approx_eq minimum(x1, 1) safe_min(x1, 1)
+@test_approx_eq minimum(x1, 2) safe_min(x1, 2)
+@test_approx_eq minimum(x2, 1) safe_min(x2, 1)
+@test_approx_eq minimum(x2, 2) safe_min(x2, 2)
+@test_approx_eq minimum(x2, 3) safe_min(x2, 3)
+@test_approx_eq minimum(x3, 1) safe_min(x3, 1)
+@test_approx_eq minimum(x3, 2) safe_min(x3, 2)
+@test_approx_eq minimum(x3, 3) safe_min(x3, 3)
+@test_approx_eq minimum(x3, 4) safe_min(x3, 4)
+@test_approx_eq minimum(x4, 1) safe_min(x4, 1)
+@test_approx_eq minimum(x4, 2) safe_min(x4, 2)
+@test_approx_eq minimum(x4, 3) safe_min(x4, 3)
+@test_approx_eq minimum(x4, 4) safe_min(x4, 4)
+@test_approx_eq minimum(x4, 5) safe_min(x4, 5)
 
-@test_approx_eq min(x3, (), (1, 2)) safe_min(x3, (1, 2))
-@test_approx_eq min(x3, (), (1, 3)) safe_min(x3, (1, 3))
-@test_approx_eq min(x3, (), (2, 3)) safe_min(x3, (2, 3))
+@test_approx_eq minimum(x3, (1, 2)) safe_min(x3, (1, 2))
+@test_approx_eq minimum(x3, (1, 3)) safe_min(x3, (1, 3))
+@test_approx_eq minimum(x3, (2, 3)) safe_min(x3, (2, 3))
 
 # mapreduce
 
@@ -346,21 +346,21 @@ r = zeros(6); sumabs!(r, x2, 1)
 
 # maxabs
 
-@test_approx_eq maxabs(x1, 1) max(abs(x1), (), 1)
-@test_approx_eq maxabs(x2, 1) max(abs(x2), (), 1)
-@test_approx_eq maxabs(x2, 2) max(abs(x2), (), 2)
-@test_approx_eq maxabs(x3, 1) max(abs(x3), (), 1)
-@test_approx_eq maxabs(x3, 2) max(abs(x3), (), 2)
-@test_approx_eq maxabs(x3, 3) max(abs(x3), (), 3)
+@test_approx_eq maxabs(x1, 1) maximum(abs(x1), 1)
+@test_approx_eq maxabs(x2, 1) maximum(abs(x2), 1)
+@test_approx_eq maxabs(x2, 2) maximum(abs(x2), 2)
+@test_approx_eq maxabs(x3, 1) maximum(abs(x3), 1)
+@test_approx_eq maxabs(x3, 2) maximum(abs(x3), 2)
+@test_approx_eq maxabs(x3, 3) maximum(abs(x3), 3)
 
 # minabs
 
-@test_approx_eq minabs(x1, 1) min(abs(x1), (), 1)
-@test_approx_eq minabs(x2, 1) min(abs(x2), (), 1)
-@test_approx_eq minabs(x2, 2) min(abs(x2), (), 2)
-@test_approx_eq minabs(x3, 1) min(abs(x3), (), 1)
-@test_approx_eq minabs(x3, 2) min(abs(x3), (), 2)
-@test_approx_eq minabs(x3, 3) min(abs(x3), (), 3)
+@test_approx_eq minabs(x1, 1) minimum(abs(x1), 1)
+@test_approx_eq minabs(x2, 1) minimum(abs(x2), 1)
+@test_approx_eq minabs(x2, 2) minimum(abs(x2), 2)
+@test_approx_eq minabs(x3, 1) minimum(abs(x3), 1)
+@test_approx_eq minabs(x3, 2) minimum(abs(x3), 2)
+@test_approx_eq minabs(x3, 3) minimum(abs(x3), 3)
 
 # sumsq
 
@@ -421,21 +421,21 @@ r = zeros(6); sumabsdiff!(r, x2, y2, 1)
 
 # vdiffmax
 
-@test_approx_eq maxabsdiff(x1, y1, 1) max(abs(x1 - y1), (), 1)
-@test_approx_eq maxabsdiff(x2, y2, 1) max(abs(x2 - y2), (), 1)
-@test_approx_eq maxabsdiff(x2, y2, 2) max(abs(x2 - y2), (), 2)
-@test_approx_eq maxabsdiff(x3, y3, 1) max(abs(x3 - y3), (), 1)
-@test_approx_eq maxabsdiff(x3, y3, 2) max(abs(x3 - y3), (), 2)
-@test_approx_eq maxabsdiff(x3, y3, 3) max(abs(x3 - y3), (), 3)
+@test_approx_eq maxabsdiff(x1, y1, 1) maximum(abs(x1 - y1), 1)
+@test_approx_eq maxabsdiff(x2, y2, 1) maximum(abs(x2 - y2), 1)
+@test_approx_eq maxabsdiff(x2, y2, 2) maximum(abs(x2 - y2), 2)
+@test_approx_eq maxabsdiff(x3, y3, 1) maximum(abs(x3 - y3), 1)
+@test_approx_eq maxabsdiff(x3, y3, 2) maximum(abs(x3 - y3), 2)
+@test_approx_eq maxabsdiff(x3, y3, 3) maximum(abs(x3 - y3), 3)
 
 # vdiffmin
 
-@test_approx_eq minabsdiff(x1, y1, 1) min(abs(x1 - y1), (), 1)
-@test_approx_eq minabsdiff(x2, y2, 1) min(abs(x2 - y2), (), 1)
-@test_approx_eq minabsdiff(x2, y2, 2) min(abs(x2 - y2), (), 2)
-@test_approx_eq minabsdiff(x3, y3, 1) min(abs(x3 - y3), (), 1)
-@test_approx_eq minabsdiff(x3, y3, 2) min(abs(x3 - y3), (), 2)
-@test_approx_eq minabsdiff(x3, y3, 3) min(abs(x3 - y3), (), 3)
+@test_approx_eq minabsdiff(x1, y1, 1) minimum(abs(x1 - y1), 1)
+@test_approx_eq minabsdiff(x2, y2, 1) minimum(abs(x2 - y2), 1)
+@test_approx_eq minabsdiff(x2, y2, 2) minimum(abs(x2 - y2), 2)
+@test_approx_eq minabsdiff(x3, y3, 1) minimum(abs(x3 - y3), 1)
+@test_approx_eq minabsdiff(x3, y3, 2) minimum(abs(x3 - y3), 2)
+@test_approx_eq minabsdiff(x3, y3, 3) minimum(abs(x3 - y3), 3)
 
 # sumsqdiff
 

@@ -7,7 +7,8 @@ module NumericExtensions
 	import Base.map, Base.map!, Base.reduce, Base.mapreduce
 	import Base.diagm
 	import Base.+, Base.*, Base.\, Base./
-	import Base.sum, Base.max, Base.min, Base.dot, Base.norm, Base.LinAlg.BLAS.asum
+	import Base.sum, Base.max, Base.min, Base.maximum, Base.minimum
+	import Base.dot, Base.norm, Base.LinAlg.BLAS.asum
 	import Base.cumsum, Base.cummax, Base.cummin, Base.cumprod
 	import Base.mean, Base.var, Base.varm, Base.std, Base.stdm
 	import Base.logdet, Base.full, Base.inv, Base.diag
