@@ -90,8 +90,8 @@ Pre-defined functors
 * ExpFun and log functors: ``ExpFun``, ``Exp2Fun``, ``Exp10Fun``, ``LogFun``, ``Log2Fun``, ``Log10Fun``, ``Expm1Fun``, ``Log1pFun``
 * Trigonometric functors: ``SinFun``, ``CosFun``, ``TanFun``, ``AsinFun``, ``AcosFun``, ``AtanFun``, ``Atan2Fun``
 * Hyperbolic functors: ``SinhFun``, ``CoshFun``, ``TanhFun``, ``AsinhFun``, ``AcoshFun``, ``AtanhFun``
-* Error functors: ``Erf``, ``Erfc``
-* Gamma functors: ``Gamma``, ``Lgamma``, ``Digamma``
+* Error functors: ``ErfFun``, ``ErfcFun``
+* GammaFun functors: ``GammaFun``, ``LgammaFun``, ``DigammaFun``
 * Comparison functors: ``Greater``, ``GreaterEqual``, ``Less``, ``LessEqual``, ``Equal``, ``NotEqual``
 * Number class functors: ``Isfinite``, ``Isinf``, ``Isnan``
 * Fused multiply and add: ``FMA`` (i.e. ``(a, b, c) -> a + b * c``)

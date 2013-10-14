@@ -24,8 +24,8 @@ for e in [
     (:AsinFun, :asin), (:AcosFun, :acos), (:AtanFun, :atan), 
     (:SinhFun, :sinh), (:CoshFun, :cosh), (:TanhFun, :tanh),
     (:AsinhFun, :asinh), (:AcoshFun, :acosh), (:AtanhFun, :atanh), 
-    (:Erf, :erf), (:Erfc, :erfc), 
-    (:Gamma, :gamma), (:Lgamma, :lgamma), (:Digamma, :digamma), 
+    (:ErfFun, :erf), (:ErfcFun, :erfc), 
+    (:GammaFun, :gamma), (:LgammaFun, :lgamma), (:DigammaFun, :digamma), 
     (:Isfinite, :isfinite), (:Isnan, :isnan), (:Isinf, :isinf)]
 
     @eval type $(e[1]) <: UnaryFunctor end
@@ -99,7 +99,7 @@ for Op in [:SqrtFun, :CbrtFun,
     :LogFun, :Log2Fun, :Log10Fun, :Log1pFun, 
     :SinFun, :CosFun, :TanFun, :AsinFun, :AcosFun, :AtanFun, 
     :SinhFun, :CoshFun, :TanhFun, :AsinhFun, :AcoshFun, :AtanhFun, 
-    :Erf, :Erfc, :Gamma, :Lgamma, :Digamma]
+    :ErfFun, :ErfcFun, :GammaFun, :LgammaFun, :DigammaFun]
 
     @eval result_type{T<:Number}(::$(Op), ::Type{T}) = to_fptype(T)
 end

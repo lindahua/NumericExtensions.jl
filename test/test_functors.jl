@@ -19,7 +19,7 @@ for e in [
 	(LogFun, log), (Log2Fun, log2), (Log10Fun, log10), (Log1pFun, log1p),
 	(SinFun, sin), (CosFun, cos), (TanFun, tan), (AsinFun, asin), (AcosFun, acos), (AtanFun, atan),
 	(SinhFun, sinh), (CoshFun, cosh), (TanhFun, tanh), (AsinhFun, asinh), (AcoshFun, acosh), (AtanhFun, atanh), 
-	(Erf, erf), (Erfc, erfc), (Gamma, gamma), (Lgamma, lgamma), (Digamma, digamma), 
+	(ErfFun, erf), (ErfcFun, erfc), (GammaFun, gamma), (LgammaFun, lgamma), (DigammaFun, digamma), 
 	(Isfinite, isfinite), (Isinf, isinf), (Isnan, isnan)]
 
 	T = e[1]

@@ -34,7 +34,7 @@ module NumericExtensions
 		LogFun, Log2Fun, Log10Fun, Log1pFun,
 		SinFun, CosFun, TanFun, AsinFun, AcosFun, AtanFun, Atan2Fun,
 		SinhFun, CoshFun, TanhFun, AsinhFun, AcoshFun, AtanhFun, 
-		Erf, Erfc, Gamma, Lgamma, Digamma, 
+		ErfFun, ErfcFun, GammaFun, LgammaFun, DigammaFun, 
 		Greater, GreaterEqual, Less, LessEqual, Equal, NotEqual,
 		Isfinite, Isnan, Isinf,
 
