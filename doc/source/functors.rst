@@ -86,9 +86,9 @@ Pre-defined functors
 * Arithmetic functors: ``Add``, ``Subtract``, ``Multiply``, ``Divide``, ``Negate``, ``AbsFun``
 * MaxFun and MinFun functors: ``MaxFun``, ``MinFun``
 * Rounding functors: ``Floor``, ``Ceil``, ``Round``, ``Trunc``
-* Power functors: ``Pow``, ``Sqrt``, ``Cbrt``, ``Abs2Fun``, ``Hypot``
+* Power functors: ``Pow``, ``Sqrt``, ``Cbrt``, ``Abs2Fun``, ``HypotFun``
 * Exp and log functors: ``Exp``, ``Exp2``, ``Exp10``, ``Log``, ``Log2``, ``Log10``, ``Expm1``, ``Log1p``
-* Trigonometric functors: ``Sin``, ``Cos``, ``Tan``, ``Asin``, ``Acos``, ``Atan``, ``Atan2``
+* Trigonometric functors: ``Sin``, ``Cos``, ``Tan``, ``Asin``, ``Acos``, ``Atan``, ``Atan2Fun``
 * Hyperbolic functors: ``Sinh``, ``Cosh``, ``Tanh``, ``Asinh``, ``Acosh``, ``Atanh``
 * Error functors: ``Erf``, ``Erfc``
 * Gamma functors: ``Gamma``, ``Lgamma``, ``Digamma``
