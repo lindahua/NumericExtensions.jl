@@ -76,22 +76,22 @@ is_binary_sewise(f::EFun) = (f.sym in BINARY_SEWISE_FUNCTIONS)
 is_unary_reduc(f::EFun) = (f.sym in UNARY_REDUC_FUNCTIONS)
 is_binary_reduc(f::EFun) = (f.sym in BINARY_REDUC_FUNCTIONS)
 
-type EMapCall{Args<:(AbstractExpr...,)} <: EwiseExpr
+type EMap{Args<:(AbstractExpr...,)} <: EwiseExpr
 	fun::EFun
 	args::Args
 	isscalar::Bool
 end
 
-EMapCall{Args<:(AbstractExpr...,)}(f::EFun, args::Args; isscalar=false) = EMapCall{Args}(f, args, isscalar)
-is_scalar_expr(ex::EMapCall) = ex.isscalar
+EMap{Args<:(AbstractExpr...,)}(f::EFun, args::Args; isscalar=false) = EMap{Args}(f, args, isscalar)
+is_scalar_expr(ex::EMap) = ex.isscalar
 
-type EReducCall{Args<:(AbstractExpr...,)} <: AbstractExpr
+type EReduc{Args<:(AbstractExpr...,)} <: AbstractExpr
 	fun::EFun
 	args::Args
 end
 
-EReducCall{Args<:(AbstractExpr...,)}(f::EFun, args::Args) = EReducCall{Args}(f, args)
-is_scalar_expr(ex::EReducCall) = true
+EReduc{Args<:(AbstractExpr...,)}(f::EFun, args::Args) = EReduc{Args}(f, args)
+is_scalar_expr(ex::EReduc) = true
 
 type EGenericCall{Args<:(AbstractExpr...,)} <: AbstractExpr
 	fun::EFun
@@ -105,7 +105,7 @@ is_scalar_expr(ex::EGenericCall) = ex.isscalar
 # Note: other kind of function call expressions should 
 # be captured by EGenericExpr
 
-typealias ECall Union(EMapCall, EReducCall, EGenericCall)
+typealias ECall Union(EMap, EReduc, EGenericCall)
 numargs(ex::ECall) = length(ex.args)
 
 
@@ -296,9 +296,9 @@ function extree_for_call!(ctx::ExprContext, x::Expr)
 				argtup = tuple(_args...)
 
 				if is_reduc_call(f, argtup...)
-					return EReducCall(f, argtup; isscalar=rs)
+					return EReduc(f, argtup; isscalar=rs)
 				elseif fsym == :(+) || is_map_call(f, argtup...)
-					return EMapCall(f, argtup; isscalar=rs)
+					return EMap(f, argtup; isscalar=rs)
 				else
 					return EGenericCall(f, argtup; isscalar=rs)
 				end
