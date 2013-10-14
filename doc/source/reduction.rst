@@ -27,9 +27,9 @@ The general usage of these extended methods is summarized below:
 
 .. code-block:: julia
 
-    mapreduce(Abs2(), Add(), x)           # compute the sum of squared of x (i.e. sum(abs2(x)))
+    mapreduce(Abs2Fun(), Add(), x)           # compute the sum of squared of x (i.e. sum(abs2(x)))
     mapreduce(Multiply(), Add(), x, y)    # compute the dot product between x, y
-    mapdiff_reduce(Abs2(), Max(), x, y)   # compute the maximum squared difference between x and y
+    mapdiff_reduce(Abs2Fun(), Max(), x, y)   # compute the maximum squared difference between x and y
 
 
 Reduction along dimensions
@@ -76,10 +76,10 @@ The package additionally provides ``reduce!``, ``mapreduce!``, and ``mapdiff_red
     reduce(Add(), x, (1, 2))   # sum each page of x
     reduce(Add(), x, (1, 3))   # sum along both the first and the third dimension
 
-    mapreduce(Abs(), Max(), x, 1)   # compute maximum absolute value along each column
+    mapreduce(AbsFun(), Max(), x, 1)   # compute maximum absolute value along each column
     mapreduce(Sqr(), Add(), x, 2)   # compute sum square along each row
 
-    mapdiff_reduce(Abs(), Min(), x, y, (1, 2))  # compute minimum absolute difference 
+    mapdiff_reduce(AbsFun(), Min(), x, y, (1, 2))  # compute minimum absolute difference 
                                                 # between x and y for each page
 
 Basic reduction functions

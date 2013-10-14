@@ -86,10 +86,10 @@ max_map(a::Array, b::Array) = map(Max(), a, b)
 min_map(a::Array, b::Array) = map(Min(), a, b)
 @bench_map2("min", 10, min, min_map)
 
-abs_map(a::Array) = map(Abs(), a)
+abs_map(a::Array) = map(AbsFun(), a)
 @bench_map1("abs", 10, abs, abs_map)
 
-abs2_map(a::Array) = map(Abs2(), a)
+abs2_map(a::Array) = map(Abs2Fun(), a)
 @bench_map1("abs2", 10, abs2, abs2_map)
 
 sqrt_map(a::Array) = map(Sqrt(), a)

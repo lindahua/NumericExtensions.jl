@@ -45,8 +45,8 @@ multiply!(x::ContiguousArray, y::ArrayOrNumber) = map1!(Multiply(), x, y)
 divide!(x::ContiguousArray, y::ArrayOrNumber) = map1!(Divide(), x, y)
 
 negate!(x::ContiguousArray) = map1!(NegateFun(), x)
-abs!(x::ContiguousArray) = map1!(Abs(), x)
-abs2!(x::ContiguousArray) = map1!(Abs2(), x)
+abs!(x::ContiguousArray) = map1!(AbsFun(), x)
+abs2!(x::ContiguousArray) = map1!(Abs2Fun(), x)
 rcp!(x::ContiguousArray) = map!(Divide(), x, one(eltype(x)), x)
 sqrt!(x::ContiguousArray) = map1!(Sqrt(), x)
 pow!(x::ContiguousArray, p::ArrayOrNumber) = map1!(Pow(), x, p)
@@ -61,8 +61,8 @@ log!(x::ContiguousArray) = map1!(Log(), x)
 
 # extensions
 
-absdiff(x::ContiguousArray, y::ContiguousArray) = mapdiff(Abs(), x, y)
-sqrdiff(x::ContiguousArray, y::ContiguousArray) = mapdiff(Abs2(), x, y)
+absdiff(x::ContiguousArray, y::ContiguousArray) = mapdiff(AbsFun(), x, y)
+sqrdiff(x::ContiguousArray, y::ContiguousArray) = mapdiff(Abs2Fun(), x, y)
 
 fma!(a::ContiguousArray, b::ContiguousArray, c::ArrayOrNumber) = map1!(FMA(), a, b, c)
 fma(a::ContiguousArray, b::ContiguousArray, c::ArrayOrNumber) = map(FMA(), a, b, c)

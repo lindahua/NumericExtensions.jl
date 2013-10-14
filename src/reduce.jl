@@ -415,16 +415,16 @@ end
 
 # specific function definitions
 
-@derived_reduction1 sumabs sum Abs()
-@derived_reduction1 maxabs max Abs()
-@derived_reduction1 minabs min Abs()
-@derived_reduction1 sumsq sum Abs2()
+@derived_reduction1 sumabs sum AbsFun()
+@derived_reduction1 maxabs max AbsFun()
+@derived_reduction1 minabs min AbsFun()
+@derived_reduction1 sumsq sum Abs2Fun()
 @derived_reduction1 sumxlogx sum Xlogx()
 
-@derived_reduction2 sumabsdiff sumfdiff Abs()
-@derived_reduction2 maxabsdiff maxfdiff Abs()
-@derived_reduction2 minabsdiff minfdiff Abs()
-@derived_reduction2 sumsqdiff sumfdiff Abs2()
+@derived_reduction2 sumabsdiff sumfdiff AbsFun()
+@derived_reduction2 maxabsdiff maxfdiff AbsFun()
+@derived_reduction2 minabsdiff minfdiff AbsFun()
+@derived_reduction2 sumsqdiff sumfdiff Abs2Fun()
 @derived_reduction2 sumxlogy sum Xlogy()
 
 # special treatment for dot for sqsum

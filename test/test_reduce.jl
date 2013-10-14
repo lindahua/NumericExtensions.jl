@@ -139,9 +139,9 @@ q = rand(3, 4)
 @test_approx_eq minabsdiff(x, 1.5) safe_min(abs(x - 1.5))
 @test_approx_eq sumsqdiff(x, 1.5) safe_sum(abs2(x - 1.5))
 
-@test_approx_eq mapreduce(Abs2(), Add(), x) safe_sum(abs2(x))
+@test_approx_eq mapreduce(Abs2Fun(), Add(), x) safe_sum(abs2(x))
 @test_approx_eq mapreduce(Multiply(), Add(), x, y) safe_sum(x .* y)
-@test_approx_eq mapdiff_reduce(Abs2(), Add(), 2.3, x) safe_sum(abs2(2.3 - x))
+@test_approx_eq mapdiff_reduce(Abs2Fun(), Add(), 2.3, x) safe_sum(abs2(2.3 - x))
 
 @test_approx_eq sumxlogx(p) sum(p .* log(p))
 @test_approx_eq sumxlogy(p, q) sum(p .* log(q))
@@ -306,17 +306,17 @@ a = [true true false; false true false]
 
 # mapreduce
 
-@test_approx_eq mapreduce(Abs2(), Add(), x2, 1) safe_sum(abs2(x2), 1)
+@test_approx_eq mapreduce(Abs2Fun(), Add(), x2, 1) safe_sum(abs2(x2), 1)
 @test_approx_eq mapreduce(Multiply(), Add(), x2, y2, 1) safe_sum(x2 .* y2, 1)
-@test_approx_eq mapdiff_reduce(Abs2(), Add(), x2, y2, 1) safe_sum(abs2(x2  - y2), 1)
+@test_approx_eq mapdiff_reduce(Abs2Fun(), Add(), x2, y2, 1) safe_sum(abs2(x2  - y2), 1)
 
-r = zeros(1, 6); mapreduce!(r, Abs2(), Add(), x2, 1)
+r = zeros(1, 6); mapreduce!(r, Abs2Fun(), Add(), x2, 1)
 @test_approx_eq r sum(abs2(x2), 1)
 
 r = zeros(1, 6); mapreduce!(r, Multiply(), Add(), x2, y2, 1)
 @test_approx_eq r sum(x2 .* y2, 1)
 
-r = zeros(1, 6); mapdiff_reduce!(r, Abs2(), Add(), x2, y2, 1)
+r = zeros(1, 6); mapdiff_reduce!(r, Abs2Fun(), Add(), x2, y2, 1)
 @test_approx_eq r sum(abs2(x2 - y2), 1)
 
 

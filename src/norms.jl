@@ -13,7 +13,7 @@ function vnorm(x::ContiguousArray, p::Real)
 	p == 1 ? sumabs(x) :
 	p == 2 ? sqrt(sumsq(x)) :	
 	isinf(p) ? maxabs(x) :
-	sum(FixAbsPow(p), x) .^ inv(p)
+	sum(FixAbsFunPow(p), x) .^ inv(p)
 end
 
 vnorm(x::ContiguousArray) = vnorm(x, 2)
@@ -25,7 +25,7 @@ function vnorm!(dst::ContiguousArray, x::ContiguousArray, p::Real, dims::DimSpec
 	p == 1 ? sumabs!(dst, x, dims) :
 	p == 2 ? map1!(Sqrt(), sumsq!(dst, x, dims)) :	
 	isinf(p) ? maxabs!(dst, x, dims) :
-	map1!(FixAbsPow(inv(p)), sum!(dst, FixAbsPow(p), x, dims))
+	map1!(FixAbsFunPow(inv(p)), sum!(dst, FixAbsFunPow(p), x, dims))
 end
 
 function vnorm{Tx<:Number,Tp<:Real}(x::ContiguousArray{Tx}, p::Tp, dims::DimSpec) 
@@ -44,7 +44,7 @@ function vnormdiff(x::ContiguousArray, y::ArrayOrNumber, p::Real)
 	p == 1 ? sumabsdiff(x, y) :
 	p == 2 ? sqrt(sumsqdiff(x, y)) :	
 	isinf(p) ? maxabsdiff(x, y) :
-	sumfdiff(FixAbsPow(p), x, y) .^ inv(p)
+	sumfdiff(FixAbsFunPow(p), x, y) .^ inv(p)
 end
 
 vnormdiff(x::ContiguousArray, y::ArrayOrNumber) = vnormdiff(x, y, 2)
@@ -56,7 +56,7 @@ function vnormdiff!(dst::ContiguousArray, x::ContiguousArray, y::ArrayOrNumber, 
 	p == 1 ? sumabsdiff!(dst, x, y, dims) :
 	p == 2 ? map1!(Sqrt(), sumsqdiff!(dst, x, y, dims)) :	
 	isinf(p) ? maxabsdiff!(dst, x, y, dims) :
-	map1!(FixAbsPow(inv(p)), sumfdiff!(dst, FixAbsPow(p), x, y, dims))
+	map1!(FixAbsFunPow(inv(p)), sumfdiff!(dst, FixAbsFunPow(p), x, y, dims))
 end
 
 function vnormdiff{Tx<:Number,Ty<:Number,Tp<:Real}(x::ContiguousArray{Tx}, y::ContiguousArray{Ty}, p::Tp, dims::DimSpec) 
@@ -118,7 +118,7 @@ function normalize!{Td<:Real,Tx<:Real}(dst::ContiguousArray{Td}, x::ContiguousAr
 			for j = 1:n
 				xj = unsafe_view(x, :, j)
 				yj = unsafe_view(dst, :, j)
-				u = sum(FixAbsPow(p), xj) .^ inv(p)
+				u = sum(FixAbsFunPow(p), xj) .^ inv(p)
 				map!(Multiply(), yj, xj, inv(u))
 			end
 		end

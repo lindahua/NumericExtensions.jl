@@ -13,7 +13,7 @@ x = rand(3)
 
 for e in [
 	(NegateFun, -),
-	(Abs, abs), (Abs2, abs2), (Sqrt, sqrt), (Cbrt, cbrt), 
+	(AbsFun, abs), (Abs2Fun, abs2), (Sqrt, sqrt), (Cbrt, cbrt), 
 	(Floor, floor), (Ceil, ceil), (Round, round), (Trunc, trunc), 
 	(Exp, exp), (Exp2, exp2), (Exp10, exp10), (Expm1, expm1),
 	(Log, log), (Log2, log2), (Log10, log10), (Log1p, log1p),

@@ -83,10 +83,10 @@ Pre-defined functors
 
 *NumericExtensions.jl* has defined a series of functors as listed below:
 
-* Arithmetic functors: ``Add``, ``Subtract``, ``Multiply``, ``Divide``, ``NegateFun``, ``Abs``
+* Arithmetic functors: ``Add``, ``Subtract``, ``Multiply``, ``Divide``, ``NegateFun``, ``AbsFun``
 * Max and Min functors: ``Max``, ``Min``
 * Rounding functors: ``Floor``, ``Ceil``, ``Round``, ``Trunc``
-* Power functors: ``Pow``, ``Sqrt``, ``Cbrt``, ``Abs2``, ``Hypot``
+* Power functors: ``Pow``, ``Sqrt``, ``Cbrt``, ``Abs2Fun``, ``Hypot``
 * Exp and log functors: ``Exp``, ``Exp2``, ``Exp10``, ``Log``, ``Log2``, ``Log10``, ``Expm1``, ``Log1p``
 * Trigonometric functors: ``Sin``, ``Cos``, ``Tan``, ``Asin``, ``Acos``, ``Atan``, ``Atan2``
 * Hyperbolic functors: ``Sinh``, ``Cosh``, ``Tanh``, ``Asinh``, ``Acosh``, ``Atanh``

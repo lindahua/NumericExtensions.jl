@@ -16,7 +16,7 @@ xlogy{T<:FloatingPoint}(x::T, y::T) = x > 0 ? x * log(y) : zero(T)
 # unary functors 
 
 for e in [
-    (:NegateFun, :-), (:Abs, :abs), (:Abs2, :abs2), (:Sqrt, :sqrt), (:Cbrt, :cbrt),
+    (:NegateFun, :-), (:AbsFun, :abs), (:Abs2Fun, :abs2), (:Sqrt, :sqrt), (:Cbrt, :cbrt),
     (:Floor, :floor), (:Ceil, :ceil), (:Round, :round), (:Trunc, :trunc),
     (:Exp, :exp), (:Exp2, :exp2), (:Exp10, :exp10), (:Expm1, :expm1),
     (:Log, :log), (:Log2, :log2), (:Log10, :log10), (:Log1p, :log1p), 
@@ -44,10 +44,10 @@ for e in [
     @eval evaluate(::($(e[1])), x::Number, y::Number) = ($(e[2]))(x, y)
 end
 
-immutable FixAbsPow{T<:Real} <: UnaryFunctor 
+immutable FixAbsFunPow{T<:Real} <: UnaryFunctor 
     p::T
 end
-evaluate(op::FixAbsPow, x::Number) = abs(x) ^ op.p
+evaluate(op::FixAbsFunPow, x::Number) = abs(x) ^ op.p
 
 type Recip <: UnaryFunctor end
 type Logit <: UnaryFunctor end
@@ -112,11 +112,11 @@ for Op in [:Isfinite, :Isnan, :Isinf]
     @eval result_type{T<:Real}(::$(Op), ::Type{T}) = Bool
 end
 
-result_type{T<:Real}(::Abs, ::Type{T}) = T
-result_type{T<:Real}(::Abs, ::Type{Complex{T}}) = to_fptype(T)
-result_type{T<:Real}(::Abs2, ::Type{T}) = T
-result_type{T<:Real}(::Abs2, ::Type{Complex{T}}) = T
-result_type{Tp<:Real, T<:Number}(::FixAbsPow{Tp}, ::Type{T}) = promote_type(Tp, T)
+result_type{T<:Real}(::AbsFun, ::Type{T}) = T
+result_type{T<:Real}(::AbsFun, ::Type{Complex{T}}) = to_fptype(T)
+result_type{T<:Real}(::Abs2Fun, ::Type{T}) = T
+result_type{T<:Real}(::Abs2Fun, ::Type{Complex{T}}) = T
+result_type{Tp<:Real, T<:Number}(::FixAbsFunPow{Tp}, ::Type{T}) = promote_type(Tp, T)
 
 result_type{T1<:Number,T2<:Number,T3<:Number}(::FMA, ::Type{T1}, ::Type{T2}, ::Type{T3}) = promote_type(T1, promote_type(T2, T3))
 result_type{T<:Number}(::FMA, ::Type{T}, ::Type{T}, ::Type{T}) = T

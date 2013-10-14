@@ -26,7 +26,7 @@ Here, ``map`` creates and returns the resultant array, while ``map!`` writes res
 
 .. code-block:: julia
 	
-	map(Abs(), x)            # returns abs(x)
+	map(AbsFun(), x)            # returns abs(x)
 	map(FMA(), x, y, z)      # returns x + y .* z
 	map!(Add(), dst, x, 2)   # writes x + 2 to dst
 
@@ -57,8 +57,8 @@ Note that ``mapdiff`` and ``mapdiff!`` uses an efficient implementation, which c
 .. code-block:: julia
 
 	map1!(Mul(), x, 2)       # multiply x by 2 (inplace)
-	mapdiff(Abs2(), x, y)    # compute squared differences between x and y
-	mapdiff(Abs(), x, 1)     # compute |x - 1|
+	mapdiff(Abs2Fun(), x, y)    # compute squared differences between x and y
+	mapdiff(AbsFun(), x, 1)     # compute |x - 1|
 
 
 Pre-defined mapping functions
