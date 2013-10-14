@@ -39,7 +39,8 @@ module NumericExtensions
 		Isfinite, Isnan, Isinf,
 
 		Recip,
-		logit, logistic, xlogx, xlogy, Logit, Logistic, Xlogx, Xlogy,
+		logit, logistic, invlogistic, softplus, invsoftplus, relu, xlogx,
+        xlogy, Logit, Logistic, Xlogx, Xlogy,
 
 		# views
 		AbstractUnsafeView, UnsafeVectorView, UnsafeMatrixView, UnsafeCubeView,

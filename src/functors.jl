@@ -9,9 +9,16 @@ typealias TernaryFunctor Functor{3}
 # additional functions
 
 logit{T<:FloatingPoint}(x::T) = log(x/(one(T)-x))
-logistic{T<:FloatingPoint}(x::T) = one(T)/(one(T) + exp(-x))
 xlogx{T<:FloatingPoint}(x::T) = x > 0 ? x * log(x) : zero(T)
 xlogy{T<:FloatingPoint}(x::T, y::T) = x > 0 ? x * log(y) : zero(T)
+
+relu{T<:FloatingPoint}(x::T) = max(zero(T), x)
+
+logistic{T<:FloatingPoint}(x::T) = one(T)/(one(T) + exp(-x))
+invlogistic{T<:FloatingPoint}(y::T) = -log(one(T) / y - one(T))
+
+softplus{T<:FloatingPoint}(x::T) = log(one(T) + exp(x))
+invsoftplus{T<:FloatingPoint}(y::T) = log(exp(y) - one(T))
 
 # unary functors 
 
