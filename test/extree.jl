@@ -350,3 +350,16 @@ x = extree( :(abs2(scalar(a[i, j]))) )
 @test x.args[1] == ERef(EVar(:a), (EVar(:i), EVar(:j)); isscalar=true)
 @test is_scalar_expr(x)
 
+x = extree( :(sum((x - y).^2)) )
+@test isa(x, EReduc)
+@test x.fun == EFun(:sum) && numargs(x) == 1
+a1 = x.args[1]
+@test isa(a1, EMap)
+@test a1.fun == EFun(:.^) && numargs(a1) == 2
+a11, a12 = a1.args[1], a1.args[2]
+@test isa(a11, EMap)
+@test a11.fun == EFun(:-)
+@test a11.args == (EVar(:x), EVar(:y))
+@test a12 == EConst(2)
+@test is_scalar_expr(x)
+
