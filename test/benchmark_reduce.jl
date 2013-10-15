@@ -63,20 +63,20 @@ u = randn(1000)
 
 typealias DIMS Union(Int, (Int, Int))
 
-_max(x::Array) = max(x)
-_max(x::Array, d::DIMS) = max(x, (), d)
+_maximum(x::Array) = maximum(x)
+_maximum(x::Array, d::DIMS) = maximum(x, d)
 
-_min(x::Array) = min(x)
-_min(x::Array, d::DIMS) = min(x, (), d)
+_minimum(x::Array) = minimum(x)
+_minimum(x::Array, d::DIMS) = minimum(x, d)
 
 _sumabs(x::Array) = sum(abs(x))
 _sumabs(x::Array, d::DIMS) = sum(abs(x), d)
 
-_maxabs(x::Array) = max(abs(x))
-_maxabs(x::Array, d::DIMS) = max(abs(x), (), d)
+_maxabs(x::Array) = maximum(abs(x))
+_maxabs(x::Array, d::DIMS) = maximum(abs(x), d)
 
-_minabs(x::Array) = min(abs(x))
-_minabs(x::Array, d::DIMS) = min(abs(x), (), d)
+_minabs(x::Array) = minimum(abs(x))
+_minabs(x::Array, d::DIMS) = minimum(abs(x), d)
 
 _sumsq(x::Array) = sum(abs2(x))
 _sumsq(x::Array, d::DIMS) = sum(abs2(x), d)
@@ -87,11 +87,11 @@ _dot(x::Array, y::Array, d::DIMS) = sum(x .* y, d)
 _sumabsdiff(x::Array, y::Array) = sum(abs(x - y))
 _sumabsdiff(x::Array, y::Array, d::DIMS) = sum(abs(x - y), d)
 
-_maxabsdiff(x::Array, y::Array) = max(abs(x - y))
-_maxabsdiff(x::Array, y::Array, d::DIMS) = max(abs(x - y), (), d)
+_maxabsdiff(x::Array, y::Array) = maximum(abs(x - y))
+_maxabsdiff(x::Array, y::Array, d::DIMS) = maximum(abs(x - y), d)
 
-_minabsdiff(x::Array, y::Array) = min(abs(x - y))
-_minabsdiff(x::Array, y::Array, d::DIMS) = min(abs(x - y), (), d)
+_minabsdiff(x::Array, y::Array) = minimum(abs(x - y))
+_minabsdiff(x::Array, y::Array, d::DIMS) = minimum(abs(x - y), d)
 
 _sumsqdiff(x::Array, y::Array) = sum(abs2(x - y))
 _sumsqdiff(x::Array, y::Array, d::DIMS) = sum(abs2(x - y), d)
@@ -102,17 +102,17 @@ _entropy(x::Array, d::DIMS) = -sum(x .* log(x), d)
 _sumxlogy(x::Array, y::Array) = sum(x .* log(y)) 
 _sumxlogy(x::Array, y::Array, d::DIMS) = sum(x .* log(y), d)
 
-_logsumexp(x::Array) = (u = max(x); log(sum(exp(x - u))) + u)
-_logsumexp(x::Array, d::DIMS) = (u = max(x, (), d); log(sum(exp(x .- u))) .+ u)
+_logsumexp(x::Array) = (u = maximum(x); log(sum(exp(x - u))) + u)
+_logsumexp(x::Array, d::DIMS) = (u = maximum(x, d); log(sum(exp(x .- u))) .+ u)
 
 function _softmax(x::Array)
-	u = max(x)
+	u = maximum(x)
 	r = exp(x - u)
 	r / sum(r)
 end
 
 function _softmax(x::Array, d::Int)
-	u = max(x, (), d)
+	u = maximum(x, d)
 	r = exp(x .- u)
 	r ./ sum(r, d)
 end
@@ -125,8 +125,8 @@ println("Benchmark results on Base methods:")
 
 @bench_reduc1 oldperf "sum" 10 sum a2
 @bench_reduc1 oldperf "mean" 10 mean a2
-@bench_reduc1 oldperf "max" 10 _max a2
-@bench_reduc1 oldperf "min" 10 _min a2
+@bench_reduc1 oldperf "maximum" 10 _maximum a2
+@bench_reduc1 oldperf "minimum" 10 _minimum a2
 @bench_reduc1 oldperf "sumabs" 10 _sumabs a2
 @bench_reduc1 oldperf "maxabs" 10 _maxabs a2
 @bench_reduc1 oldperf "minabs" 10 _minabs a2
@@ -156,18 +156,18 @@ push!(oldperf, ("varm", [NaN, NaN, NaN]))
 using NumericExtensions
 const newperf = Array((ASCIIString, Vector{Float64}), 0)
 
-new_max(x::Array) = max(x)   # cannot use _max or _min, as they will not be recompiled
-new_max(x::Array, d::DIMS) = max(x, (), d)
+new_maximum(x::Array) = maximum(x)   # cannot use _maximum or _minimum, as they will not be recompiled
+new_maximum(x::Array, d::DIMS) = maximum(x, d)
 
-new_min(x::Array) = min(x)
-new_min(x::Array, d::DIMS) = min(x, (), d)
+new_minimum(x::Array) = minimum(x)
+new_minimum(x::Array, d::DIMS) = minimum(x, d)
 
 println("Benchmark results in New methods:")
 
 @bench_reduc1 newperf "sum" 10 sum a2
 @bench_reduc1 newperf "mean" 10 mean a2
-@bench_reduc1 newperf "max" 10 new_max a2
-@bench_reduc1 newperf "min" 10 new_min a2
+@bench_reduc1 newperf "maximum" 10 new_maximum a2
+@bench_reduc1 newperf "minimum" 10 new_minimum a2
 @bench_reduc1 newperf "sumabs" 10 sumabs a2
 @bench_reduc1 newperf "maxabs" 10 maxabs a2
 @bench_reduc1 newperf "minabs" 10 minabs a2

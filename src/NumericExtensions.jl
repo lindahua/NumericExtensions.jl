@@ -17,7 +17,7 @@ module NumericExtensions
 		Base.+, Base.*, Base.\, Base./,
 
 		# reduction functions to be extended
-		Base.sum, Base.prod, Base.max, Base.min, Base.dot, 
+		Base.sum, Base.prod, Base.maximum, Base.minimum, Base.dot, 
 		Base.cumsum, Base.cummax, Base.cummin, Base.cumprod,
 		Base.norm, Base.LinAlg.BLAS.asum,
 

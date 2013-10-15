@@ -38,7 +38,7 @@ function code_full_reduction{KType<:EwiseKernel}(fname::Symbol, ktype::Type{KTyp
 			i = 1
 			@inbounds v = $ker_i
 			for i in 2 : n
-				@inbounds v = evaluate(op, v, $ker_i)
+				v = evaluate(op, v, $ker_i)
 			end
 			v
 		end
@@ -327,17 +327,17 @@ function code_basic_reduction{KType<:EwiseKernel}(fname::Symbol, op::Expr, ktype
 	end
 end
 
-function code_basic_mapreduction(fname::Symbol, op::Expr, emptyfun::Symbol)
+function code_basic_mapreduction(fname::Symbol, fdiffname::Symbol, op::Expr, emptyfun::Symbol)
 	c1 = code_basic_reduction(fname, op, UnaryFunKernel, :mapreduce, emptyfun)
 	c2 = code_basic_reduction(fname, op, BinaryFunKernel, :mapreduce, emptyfun)
 	c3 = code_basic_reduction(fname, op, TernaryFunKernel, :mapreduce, emptyfun)
-	c2d = code_basic_reduction(symbol(string(fname, "fdiff")), op, DiffFunKernel, :mapdiff_reduce, emptyfun)
+	c2d = code_basic_reduction(fdiffname, op, DiffFunKernel, :mapdiff_reduce, emptyfun)
 
 	combined = Expr(:block, c1.args..., c2.args..., c3.args..., c2d.args...)
 end
 
-macro basic_mapreduction(fname, op, emptyfun)
-	esc(code_basic_mapreduction(fname, op, emptyfun))
+macro basic_mapreduction(fname, fdiffname, op, emptyfun)
+	esc(code_basic_mapreduction(fname, fdiffname, op, emptyfun))
 end
 
 
@@ -361,18 +361,17 @@ function sum_range{T<:Number}(x::AbstractArray{T}, rg::Range1)
 	s
 end
 
+maximum{T<:Real}(x::ContiguousArray{T}) = isempty(x) ? empty_notallowed(T) : reduce(MaxFun(), x)
+maximum{T<:Real}(x::ContiguousArray{T}, dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(MaxFun(), x, dims)
+maximum!{R<:Real, T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, dims::DimSpec) = reduce!(dst, MaxFun(), x, dims) 
 
-max{T<:Real}(x::ContiguousArray{T}) = isempty(x) ? empty_notallowed(T) : reduce(MaxFun(), x)
-max{T<:Real}(x::ContiguousArray{T}, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(MaxFun(), x, dims)
-max!{R<:Real, T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, ::(), dims::DimSpec) = reduce!(dst, MaxFun(), x, dims) 
+minimum{T<:Real}(x::ContiguousArray{T}) = isempty(x) ? empty_notallowed(T) : reduce(MinFun(), x)
+minimum{T<:Real}(x::ContiguousArray{T}, dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(MinFun(), x, dims)
+minimum!{R<:Real, T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, dims::DimSpec) = reduce!(dst, MinFun(), x, dims) 
 
-min{T<:Real}(x::ContiguousArray{T}) = isempty(x) ? empty_notallowed(T) : reduce(MinFun(), x)
-min{T<:Real}(x::ContiguousArray{T}, ::(), dims::DimSpec) = isempty(x) ? empty_notallowed(T) : reduce(MinFun(), x, dims)
-min!{R<:Real, T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, ::(), dims::DimSpec) = reduce!(dst, MinFun(), x, dims) 
-
-@basic_mapreduction sum Add() zero 
-@basic_mapreduction max MaxFun() empty_notallowed
-@basic_mapreduction min MinFun() empty_notallowed
+@basic_mapreduction sum sumfdiff Add() zero 
+@basic_mapreduction maximum maxfdiff MaxFun() empty_notallowed
+@basic_mapreduction minimum minfdiff MinFun() empty_notallowed
 
 #################################################
 #
@@ -416,8 +415,8 @@ end
 # specific function definitions
 
 @derived_reduction1 sumabs sum AbsFun()
-@derived_reduction1 maxabs max AbsFun()
-@derived_reduction1 minabs min AbsFun()
+@derived_reduction1 maxabs maximum AbsFun()
+@derived_reduction1 minabs minimum AbsFun()
 @derived_reduction1 sumsq sum Abs2Fun()
 @derived_reduction1 sumxlogx sum XlogxFun()
 

@@ -97,7 +97,7 @@ function sortindexes{I<:Integer}(x::AbstractArray{I}, k::Integer)
 	return (sinds, cnts)
 end
 
-sortindexes{I<:Integer}(x::AbstractArray{I}) = sortindexes(x, max(x))
+sortindexes{I<:Integer}(x::AbstractArray{I}) = sortindexes(x, maximum(x))
 
 function groupindexes{I<:Integer}(x::AbstractArray{I}, k::Integer)
 	sinds::Vector{I}, cnts::Vector{Int} = sortindexes(x, k)
@@ -111,6 +111,6 @@ function groupindexes{I<:Integer}(x::AbstractArray{I}, k::Integer)
 	grps	
 end
 
-groupindexes{I<:Integer}(x::AbstractArray{I}) = groupindexes(x, max(x))
+groupindexes{I<:Integer}(x::AbstractArray{I}) = groupindexes(x, maximum(x))
 
 
