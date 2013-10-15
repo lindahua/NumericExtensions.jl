@@ -363,3 +363,14 @@ a11, a12 = a1.args[1], a1.args[2]
 @test a12 == EConst(2)
 @test is_scalar_expr(x)
 
+x = extree( :(sum(x) + maximum(y)) )
+@test isa(x, EMap)
+@test x.fun == EFun(:+) && numargs(x) == 2
+a1, a2 = x.args[1], x.args[2]
+@test isa(a1, EReduc)
+@test a1.fun == EFun(:sum)
+@test a1.args == (EVar(:x),)
+@test a2.fun == EFun(:maximum)
+@test a2.args == (EVar(:y),)
+@test is_scalar_expr(x)
+
