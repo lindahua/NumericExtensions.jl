@@ -51,6 +51,23 @@ for e in [
     @eval evaluate(::($(e[1])), x::Number, y::Number) = ($(e[2]))(x, y)
 end
 
+### Note: this special code is needed to get performance 
+# due to compiler issues, the functions are not properly inlined without this
+# in some cases
+
+const libm = dlopen("libm")
+const _fmax  = dlsym(libm, :fmax)
+const _fmaxf = dlsym(libm, :fmaxf)
+const _fmin  = dlsym(libm, :fmin)
+const _fminf = dlsym(libm, :fminf)
+
+evaluate{T<:Integer}(::MaxFun, x::T, y::T) = (x > y ? x : y)
+evaluate{T<:Integer}(::MinFun, x::T, y::T) = (x < y ? x : y)
+evaluate(::MaxFun, x::Float64, y::Float64) = ccall(_fmax,  Float64, (Float64, Float64), x, y)
+evaluate(::MaxFun, x::Float32, y::Float32) = ccall(_fmaxf, Float32, (Float32, Float32), x, y)
+evaluate(::MinFun, x::Float64, y::Float64) = ccall(_fmin,  Float64, (Float64, Float64), x, y)
+evaluate(::MinFun, x::Float32, y::Float32) = ccall(_fminf, Float32, (Float32, Float32), x, y)
+
 immutable FixAbsPow{T<:Real} <: UnaryFunctor 
     p::T
 end
