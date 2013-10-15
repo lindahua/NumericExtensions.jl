@@ -55,7 +55,7 @@ const BINARY_EWISE_FUNCTIONS = Set{Symbol}(
 const BINARY_SEWISE_FUNCTIONS = Set{Symbol}(:*, :/, :\, :^, :%)
 
 const UNARY_REDUC_FUNCTIONS = Set{Symbol}(
-	:sum, :mean, :prod, :max, :min, :maximum, :minimum, :var, :std, 
+	:sum, :mean, :prod, :maximum, :minimum, :var, :std, 
 	:sumabs, :meanabs, :maxabs, :minabs, :sumsq, :meansq)
 
 const BINARY_REDUC_FUNCTIONS = Set{Symbol}(
