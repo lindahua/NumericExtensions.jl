@@ -26,7 +26,8 @@ import NumericExtensions.EGenericCall
 import NumericExtensions.EColon
 import NumericExtensions.ERef
 import NumericExtensions.EEnd
-import NumericExtensions.EColon
+import NumericExtensions.EAssignment
+import NumericExtensions.EBlock
 
 #### Type System
 
@@ -300,6 +301,13 @@ a1, a2 = x.args[1], x.args[2]
 x = extree( :(2 + 3^2 + 4 * 5) )
 @test x == EConst(31)
 
+x = extree( :(scalar(x) + y) )
+@test isa(x, EMap)
+@test x.fun == EFun(:+) && numargs(x) == 2
+@test x.args == (EVar(:x, true), EVar(:y))
+@test !is_scalar_expr(x)
+
+
 # reduction call
 
 x = extree( :(sum(x)) )
@@ -373,4 +381,72 @@ a1, a2 = x.args[1], x.args[2]
 @test a2.fun == EFun(:maximum)
 @test a2.args == (EVar(:y),)
 @test is_scalar_expr(x)
+
+
+# more complex expressions that require part lifting
+
+#
+x = extree( :(g + sum(x) + h) )
+@test isa(x, EBlock) && numargs(x) == 2
+e1, e2 = x.exprs[1], x.exprs[2]
+@test isa(e1, EAssignment)
+@test isa(e1.lhs, EVar) && e1.lhs.isscalar
+e1r = e1.rhs
+@test isa(e1r, EReduc)
+@test e1r.fun == EFun(:sum) && e1r.args == (EVar(:x),)
+@test isa(e2, EMap)
+@test e2.fun == EFun(:+)
+@test e2.args == (EVar(:g), e1.lhs, EVar(:h))
+@test !is_scalar_expr(x)
+
+#
+x = extree( :(a * b + c) )
+@test isa(x, EBlock) && numargs(x) == 2
+e1, e2 = x.exprs[1], x.exprs[2]
+@test isa(e1, EAssignment)
+@test isa(e1.lhs, EVar) && !e1.lhs.isscalar
+e1r = e1.rhs
+@test isa(e1r, EGenericCall) 
+@test e1r.fun == EFun(:*) && e1r.args == (EVar(:a), EVar(:b))
+@test isa(e2, EMap)
+@test e2.fun == EFun(:+)
+@test e2.args == (e1.lhs, EVar(:c))
+@test !is_scalar_expr(x)
+
+# 
+x = extree( :(sum(x) * (a * b) + maximum(y) + scalar(e + f)) )
+@test isa(x, EBlock) && numargs(x) == 5
+
+e1 = x.exprs[1]
+@test isa(e1, EAssignment)
+@test isa(e1.lhs, EVar) && e1.lhs.isscalar
+e1r = e1.rhs
+@test isa(e1r, EReduc) && e1r.fun == EFun(:sum) && e1r.args == (EVar(:x),)
+
+e2 = x.exprs[2]
+@test isa(e2, EAssignment)
+@test isa(e2.lhs, EVar) && !e2.lhs.isscalar
+e2r = e2.rhs
+@test isa(e2r, EGenericCall) && e2r.fun == EFun(:*) && e2r.args == (EVar(:a), EVar(:b))
+
+e3 = x.exprs[3]
+@test isa(e3, EAssignment)
+@test isa(e3.lhs, EVar) && e3.lhs.isscalar
+e3r = e3.rhs
+@test isa(e3r, EReduc) && e3r.fun == EFun(:maximum) && e3r.args == (EVar(:y),)
+
+e4 = x.exprs[4]
+@test isa(e4, EAssignment)
+@test isa(e4.lhs, EVar) && e4.lhs.isscalar
+e4r = e4.rhs
+@test isa(e4r, EMap) && e4r.fun == EFun(:+) && e4r.args == (EVar(:e), EVar(:f))
+
+e5 = x.exprs[5]
+@test isa(e5, EMap)
+@test e5.fun == EFun(:+) && numargs(e5) == 3
+e51 = e5.args[1]
+@test isa(e51, EMap) && e51.fun == EFun(:*) && e51.args == (e1.lhs, e2.lhs)
+@test e5.args[2] == e3.lhs
+@test e5.args[3] == e4.lhs
+
 

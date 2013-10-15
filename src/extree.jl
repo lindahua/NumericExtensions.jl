@@ -215,6 +215,7 @@ type EBlock <: AbstractExpr
 	EBlock(a::Vector{AbstractExpr}) = new(a)
 end
 
+numargs(ex::EBlock) = length(ex.exprs)
 tag_scalar(ex::EBlock) = error("Tagging a block expression as scalar is now allowed.")
 
 function show(io::IO, ex::EBlock)
@@ -367,6 +368,8 @@ function extree_for_call!(ctx::ExprContext, x::Expr)
 					for i = 1 : nargs
 						a = _args[i]
 						if is_scalar_expr(a) && !(isa(a, EConst) || isa(a, EVar))
+							_args[i] = lift_expr!(ctx, a)
+						elseif !isa(a, EwiseExpr)
 							_args[i] = lift_expr!(ctx, a)
 						end
 					end
