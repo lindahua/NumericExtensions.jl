@@ -1,6 +1,7 @@
 # run all tests
 
-tests = [ "unsafe_views", 
+tests = [ "shapes", 
+		  "unsafe_views", 
 		  "mathfuns",
 		  "extree" ]
 		  # "map"

@@ -29,6 +29,9 @@ module NumericExtensions
 
 
 	export 
+		# shapes
+		mapshape, maplength,
+
 		# views
 		AbstractUnsafeView, UnsafeVectorView, UnsafeMatrixView, UnsafeCubeView,
 		ContiguousArray, ContiguousVector, ContiguousMatrix, ContiguousCube,
@@ -118,7 +121,7 @@ module NumericExtensions
 
 	# codes
 
-	include("common.jl")
+	include("shapes.jl")
 	include("unsafe_views.jl")
 	include("mathfuns.jl")
 	# include("functors.jl")
