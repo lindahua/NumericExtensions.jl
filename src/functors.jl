@@ -55,11 +55,11 @@ end
 # due to compiler issues, the functions are not properly inlined without this
 # in some cases
 
-const libm = dlopen("libm")
-const _fmax  = dlsym(libm, :fmax)
-const _fmaxf = dlsym(libm, :fmaxf)
-const _fmin  = dlsym(libm, :fmin)
-const _fminf = dlsym(libm, :fminf)
+@unix_only const libm = dlopen("libm")
+@unix_only const _fmax  = dlsym(libm, :fmax)
+@unix_only const _fmaxf = dlsym(libm, :fmaxf)
+@unix_only const _fmin  = dlsym(libm, :fmin)
+@unix_only const _fminf = dlsym(libm, :fminf)
 
 evaluate{T<:Integer}(::MaxFun, x::T, y::T) = (x > y ? x : y)
 evaluate{T<:Integer}(::MinFun, x::T, y::T) = (x < y ? x : y)
