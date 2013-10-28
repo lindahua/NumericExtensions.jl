@@ -41,23 +41,7 @@ module NumericExtensions
 		sqr, rcp, rsqrt, rcbrt,
 
 		# functors
-		# to_fparray,
-
-		# Functor, UnaryFunctor, BinaryFunctor, TernaryFunctor,
-		# result_type, evaluate,
-		# Add, Subtract, Multiply, Divide, Negate, MaxFun, MinFun, Recip, 
-		# AbsFun, Abs2Fun, SqrtFun, CbrtFun, Pow, HypotFun, FixAbsPow, FMA,
-		# FloorFun, CeilFun, RoundFun, TruncFun,
-		# ExpFun, Exp2Fun, Exp10Fun, Expm1Fun, 
-		# LogFun, Log2Fun, Log10Fun, Log1pFun,
-		# SinFun, CosFun, TanFun, AsinFun, AcosFun, AtanFun, Atan2Fun,
-		# SinhFun, CoshFun, TanhFun, AsinhFun, AcoshFun, AtanhFun, 
-		# ErfFun, ErfcFun, GammaFun, LgammaFun, DigammaFun, 
-		# Greater, GreaterEqual, Less, LessEqual, Equal, NotEqual,
-		# IsfiniteFun, IsnanFun, IsinfFun,
-
-		# logit, logistic, invlogistic, softplus, invsoftplus, relu, xlogx, xlogy, 
-  		# LogitFun, LogisticFun, XlogxFun, XlogyFun,
+		Functor, evaluate,
 
 		# extree
 		extree
@@ -124,7 +108,7 @@ module NumericExtensions
 	include("shapes.jl")
 	include("unsafe_views.jl")
 	include("mathfuns.jl")
-	# include("functors.jl")
+	include("functors.jl")
 	include("extree.jl")
 	
 	# include("codegen.jl")
