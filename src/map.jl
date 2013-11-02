@@ -22,8 +22,13 @@ function code_mapfuns(nargs::Int)
             return dst			
     	end	
 
-    	map!(f::Functor, dst::NumericArray, $(params...)) = rangemap!(f, dst, 1, length(dst), $(asyms...))
-    	map1!(f::Functor, a1::NumericArray, $(params[2:end]...)) = rangemap!(f, a1, 1, length(a1), $(asyms...))
+    	function map!(f::Functor, dst::NumericArray, $(params...))
+            shp = mapshape($(asyms...))
+            length(dst) == prod(shp) || error("Inconsistent argument dimensions.")
+            rangemap!(f, dst, 1, length(dst), $(asyms...))
+        end
+
+    	map1!(f::Functor, a1::NumericArray, $(params[2:end]...)) = map!(f, a1, $(asyms...))
 
     	function map(f::Functor, $(params...))
     		shp = mapshape($(asyms...))
@@ -51,8 +56,10 @@ end
 @mapfuns 5
 
 function mapdiff!(f::Functor, dst::NumericArray, a1::ArrOrNum, a2::ArrOrNum)
+    shp = mapshape(a1, a2)
+    length(dst) == prod(shp) || error("Inconsistent argument dimensions.")
 	for i = 1 : length(dst)
-		dst[i] = evaluate(f, getvalue(a1, i) - getvalue(a2, i))
+		@inbounds dst[i] = evaluate(f, getvalue(a1, i) - getvalue(a2, i))
 	end
 	return dst
 end
