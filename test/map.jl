@@ -5,20 +5,25 @@ using Base.Test
 x = [1., 2., 3.]
 y = [6., 5., 4.]
 
-@test map(Abs2Fun(), x) == abs2(x)
+# map!
+
+r = fill(-1.0, length(x))
+map!(Abs2Fun(), r, x)
+@test r == abs2(x)
+
+r = fill(-1.0, length(x))
+map!(Multiply(), r, x, y)
+@test r == x .* y
+
+r = fill(-1.0, length(x))
+map!(Subtract(), r, x, 2)
+@test r == x - 2
+
+# map1!
 
 r = copy(x)
 map1!(Abs2Fun(), r)
 @test r == abs2(x)
-
-@test map(Add(), x, y) == x + y
-@test map(Multiply(), x, y) == x .* y
-@test map(Subtract(), x, 1) == x - 1
-@test map(Subtract(), 1, x) == 1 - x
-
-@test mapdiff(Abs2Fun(), x, y) == abs2(x - y)
-@test mapdiff(Abs2Fun(), 1., y) == abs2(1 - y)
-@test mapdiff(Abs2Fun(), x, 1.) == abs2(x - 1)
 
 r = copy(x)
 map1!(Add(), r, y)
@@ -31,6 +36,19 @@ map1!(Add(), r, 1)
 r = copy(x)
 mapdiff!(Abs2Fun(), r, x, y)
 @test r == abs2(x - y)
+
+# map
+
+@test map(Abs2Fun(), x) == abs2(x)
+
+@test map(Add(), x, y) == x + y
+@test map(Multiply(), x, y) == x .* y
+@test map(Subtract(), x, 1) == x - 1
+@test map(Subtract(), 1, x) == 1 - x
+
+@test mapdiff(Abs2Fun(), x, y) == abs2(x - y)
+@test mapdiff(Abs2Fun(), 1., y) == abs2(1 - y)
+@test mapdiff(Abs2Fun(), x, 1.) == abs2(x - 1)
 
 
 # Test inplace functions
@@ -132,13 +150,9 @@ r = copy(a); fma!(r, b, 2.)
 
 # customized functions
 
-type Plus <: BinaryFunctor end
-NumericExtensions.evaluate(::Plus, x, y) = x + y
-NumericExtensions.result_type{T1,T2}(::Plus, ::Type{T1}, ::Type{T2}) = promote_type(T1, T2)
+type MyFun <: Functor end
+NumericExtensions.evaluate(::MyFun, x, y) = abs2(x) + y
 
-@test_approx_eq map(Plus(), a, b) a + b
-
-
-
+@test_approx_eq map(MyFun(), a, b) abs2(a) + b
 
 

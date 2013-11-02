@@ -44,16 +44,14 @@ module NumericExtensions
 		Functor, evaluate,
 
 		# extree
-		extree
+		extree, 
 
-		# # map
-		# map, map!, map1!, mapdiff, mapdiff!,
-
-		# add!, subtract!, multiply!, divide!, negate!, rcp!, 
-		# sqrt!, abs!, abs2!, pow!, exp!, log!,
-		# floor!, ceil!, round!, trunc!,
-
-		# absdiff, sqrdiff, fma, fma!,
+		# map
+		map, map!, map1!, mapdiff, mapdiff!, 
+		add!, subtract!, multiply!, divide!, negate!, rcp!, 
+		sqrt!, abs!, sqr!, abs2!, pow!, exp!, log!,
+		floor!, ceil!, round!, trunc!,
+		absdiff, sqrdiff, fma, fma!
 
 		# # vbroadcast
 		# vbroadcast, vbroadcast!, vbroadcast1!,
@@ -110,9 +108,8 @@ module NumericExtensions
 	include("mathfuns.jl")
 	include("functors.jl")
 	include("extree.jl")
+	include("map.jl")
 	
-	# include("codegen.jl")
-	# include("map.jl")
 	# include("vbroadcast.jl")
 	# include("diagop.jl")
 	# include("reduce.jl")

@@ -4,9 +4,9 @@ tests = [ "shapes",
 		  "unsafe_views", 
 		  "mathfuns",
 		  "functors",
-		  "extree" ]
+		  "extree",
+		  "map" ]
 
-		  # "map"
 		  # "vbroadcast", 
 		  # "reduce", 
 		  # "norms",

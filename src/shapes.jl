@@ -2,7 +2,11 @@
 
 typealias SizeTuple{N} NTuple{N,Int}
 
+typealias NumericArray{T<:Number,N} AbstractArray{T,N}
 typealias ArrOrNum{T<:Number} Union(AbstractArray{T}, T) 
+
+getvalue(a::Number, i::Integer) = a
+getvalue(a::AbstractArray, i::Integer) = a[i]
 
 
 #### preceding or succeeding length
@@ -17,7 +21,6 @@ function succ_length{N}(s::SizeTuple{N}, d::Int)
 	d == N ? 1 :
 	d == N-1 ? s[N] : prod(s[d+1:N])
 end
-
 
 ### Shape of mapping
 
