@@ -14,7 +14,7 @@ module NumericExtensions
 		Base.map, Base.map!, Base.reduce, Base.mapreduce,
 
 		# arithmetic functions
-		Base.+, Base.*, Base.\, Base./,
+		Base.+, Base.*, Base.\, Base./, Base.==,
 
 		# reduction functions to be extended
 		Base.sum, Base.prod, Base.maximum, Base.minimum, Base.dot, 

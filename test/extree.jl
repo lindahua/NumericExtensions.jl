@@ -260,126 +260,83 @@ x = extree(:(x1 + x2 + x3 + x4 + x5))
 # compound ewise-map
 
 x = extree( :(sin(x + y)) )
-@test isa(x, EMap)
-@test x.fun == EFun(:sin) && numargs(x) == 1
-a1 = x.args[1]
-@test isa(a1, EMap)
-@test a1.fun == EFun(:+)
-@test a1.args == (EVar(:x), EVar(:y))
+@test x == EMap(EFun(:sin), (EMap(EFun(:+), (EVar(:x), EVar(:y))),))
+@test !is_scalar_expr(x)
 
 x = extree( :(x.^2 + y.^3 + z.^4) )
-@test isa(x, EMap)
-@test x.fun == EFun(:+) && numargs(x) == 3
+@test x == EMap(EFun(:+), (
+	EMap(EFun(:.^), (EVar(:x), EConst(2))),
+	EMap(EFun(:.^), (EVar(:y), EConst(3))),
+	EMap(EFun(:.^), (EVar(:z), EConst(4)))
+	))
 @test !is_scalar_expr(x)
-a1, a2, a3 = x.args[1], x.args[2], x.args[3]
-@test isa(a1, EMap) && a1.fun == EFun(:.^) && a1.args == (EVar(:x),EConst(2))
-@test isa(a2, EMap) && a2.fun == EFun(:.^) && a2.args == (EVar(:y),EConst(3))
-@test isa(a3, EMap) && a3.fun == EFun(:.^) && a3.args == (EVar(:z),EConst(4))
 
 x = extree( :(exp(x + a) .* atan2(abs(s), abs2(2.0))) )
-@test isa(x, EMap)
-@test x.fun == EFun(:.*) && numargs(x) == 2
+@test x == EMap(EFun(:.*), (
+	EMap(EFun(:exp), (EMap(EFun(:+), (EVar(:x), EVar(:a))),)), 
+	EMap(EFun(:atan2), (EMap(EFun(:abs), (EVar(:s),)), EConst(4.0)))
+	))
 @test !is_scalar_expr(x)
-a1, a2 = x.args[1], x.args[2]
-@test isa(a1, EMap) && numargs(a1) == 1 && a1.fun == EFun(:exp)
-a11 = a1.args[1]
-@test isa(a11, EMap) && a11.fun == EFun(:+) && a11.args == (EVar(:x), EVar(:a))
-@test isa(a2, EMap) && numargs(a2) == 2 && a2.fun == EFun(:atan2)
-a21, a22 = a2.args[1], a2.args[2]
-@test isa(a21, EMap) && a21.fun == EFun(:abs) && a21.args == (EVar(:s),)
-@test a22 == EConst(4.0)
 
 x = extree( :(2 * scalar(x) + scalar(y)) )
-@test isa(x, EMap)
-@test x.fun == EFun(:+) && numargs(x) == 2
-a1, a2 = x.args[1], x.args[2]
-@test isa(a1, EMap)
-@test a1.fun == EFun(:*) && a1.args == (EConst(2), EVar(:x, true))
-@test a2 == EVar(:y, true)
+@test x == EMap(EFun(:+), 
+	(EMap(EFun(:*), (EConst(2), EVar(:x, true)); isscalar=true), EVar(:y, true)); isscalar=true)
 @test is_scalar_expr(x)
 
 x = extree( :(2 + 3^2 + 4 * 5) )
 @test x == EConst(31)
 
 x = extree( :(scalar(x) + y) )
-@test isa(x, EMap)
-@test x.fun == EFun(:+) && numargs(x) == 2
-@test x.args == (EVar(:x, true), EVar(:y))
+@test x == EMap(EFun(:+), (EVar(:x, true), EVar(:y)))
 @test !is_scalar_expr(x)
 
 
 # reduction call
 
 x = extree( :(sum(x)) )
-@test isa(x, EReduc)
-@test x.fun == EFun(:sum) && numargs(x) == 1
+@test x == EReduc(EFun(:sum), (EVar(:x),))
 @test is_scalar_expr(x)
-@test x.args == ( EVar(:x), )
 
 x = extree( :(meansqdiff(x, 2.0)) )
-@test isa(x, EReduc)
-@test x.fun == EFun(:meansqdiff) && numargs(x) == 2
+@test x == EReduc(EFun(:meansqdiff), (EVar(:x), EConst(2.0)))
 @test is_scalar_expr(x)
-@test x.args == ( EVar(:x), EConst(2.0) )
 
 x = extree( :(sum(2.5)) )
 @test x == EConst(2.5)
 
 x = extree( :(sum(scalar(a))) )
-@test isa(x, EReduc)
-@test x.fun == EFun(:sum) && numargs(x) == 1
+@test x == EReduc(EFun(:sum), (EVar(:a, true),))
 @test is_scalar_expr(x)
-@test x.args == (EVar(:a, true),)
 
 x = extree( :(maxabsdiff(scalar(x), scalar(y))) )
-@test isa(x, EReduc)
-@test x.fun == EFun(:maxabsdiff) && numargs(x) == 2
+@test x == EReduc(EFun(:maxabsdiff), (EVar(:x, true), EVar(:y, true)))
 @test is_scalar_expr(x)
-@test x.args == (EVar(:x, true), EVar(:y, true))
 
 # composition of ewise map, reduction, and reference
 
 x = extree( :(log(x[:,i])) )
-@test isa(x, EMap)
-@test x.fun == EFun(:log) && numargs(x) == 1
-@test x.args[1] == ERef( EVar(:x), (EColon(), EVar(:i)) )
+@test x == EMap(EFun(:log), (ERef(EVar(:x), (EColon(), EVar(:i))),))
 @test !is_scalar_expr(x)
 
 x = extree( :(b[:,1] + a[:]) )
-@test isa(x, EMap)
-@test x.fun == EFun(:+) && numargs(x) == 2
-@test x.args[1] == ERef( EVar(:b), (EColon(), EConst(1)) )
-@test x.args[2] == ERef( EVar(:a), (EColon(),) )
+@test x == EMap(EFun(:+), 
+	(ERef(EVar(:b), (EColon(), EConst(1))), ERef(EVar(:a), (EColon(),))))
 @test !is_scalar_expr(x)
 
 x = extree( :(abs2(scalar(a[i, j]))) )
-@test isa(x, EMap)
-@test x.fun == EFun(:abs2) && numargs(x) == 1
-@test x.args[1] == ERef(EVar(:a), (EVar(:i), EVar(:j)); isscalar=true)
+@test x == EMap(EFun(:abs2), 
+	(ERef(EVar(:a), (EVar(:i), EVar(:j)); isscalar=true),); isscalar=true)
 @test is_scalar_expr(x)
 
 x = extree( :(sum((x - y).^2)) )
-@test isa(x, EReduc)
-@test x.fun == EFun(:sum) && numargs(x) == 1
-a1 = x.args[1]
-@test isa(a1, EMap)
-@test a1.fun == EFun(:.^) && numargs(a1) == 2
-a11, a12 = a1.args[1], a1.args[2]
-@test isa(a11, EMap)
-@test a11.fun == EFun(:-)
-@test a11.args == (EVar(:x), EVar(:y))
-@test a12 == EConst(2)
+@test x == EReduc(EFun(:sum), 
+	(EMap(EFun(:.^), (EMap(EFun(:-), (EVar(:x), EVar(:y))), EConst(2))),))
 @test is_scalar_expr(x)
 
 x = extree( :(sum(x) + maximum(y)) )
-@test isa(x, EMap)
-@test x.fun == EFun(:+) && numargs(x) == 2
-a1, a2 = x.args[1], x.args[2]
-@test isa(a1, EReduc)
-@test a1.fun == EFun(:sum)
-@test a1.args == (EVar(:x),)
-@test a2.fun == EFun(:maximum)
-@test a2.args == (EVar(:y),)
+@test x == EMap(EFun(:+), 
+	(EReduc(EFun(:sum), (EVar(:x),)), EReduc(EFun(:maximum), (EVar(:y),))); 
+	isscalar=true)
 @test is_scalar_expr(x)
 
 

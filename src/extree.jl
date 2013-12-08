@@ -11,6 +11,9 @@ abstract EwiseExpr <: AbstractExpr
 
 is_scalar_expr(ex::AbstractExpr) = false
 
+== (x1::AbstractExpr, x2::AbstractExpr) = false
+!= (x1::AbstractExpr, x2::AbstractExpr) = !(x1 == x2)
+
 ##### Generic expressions
 
 # Generic expressions are not further parsed. 
@@ -27,6 +30,8 @@ end
 
 is_scalar_expr(ex::EGenericExpr) = ex.isscalar
 tag_scalar(ex::EGenericExpr) = EGenericExpr(ex.expr, true)
+
+== (x1::EGenericExpr, x2::EGenericExpr) = (x1.expr == x2.expr && x1.isscalar == x2.isscalar)
 
 ##### Simple expressions
 
@@ -55,6 +60,8 @@ is_scalar_expr(ex::EConst) = true
 tag_scalar(ex::EConst) = ex
 show(io::IO, ex::EConst) = print(io, "EConst($(ex.value))")
 
+== (x1::EConst, x2::EConst) = x1.value === x2.value
+
 ## EVar
 
 immutable EVar <: SimpleExpr
@@ -69,9 +76,16 @@ is_scalar_expr(ex::EVar) = ex.isscalar
 tag_scalar(ex::EVar) = EVar(ex.sym, true)
 show(io::IO, ex::EVar) = print(io, ex.isscalar ? "EVar($(ex.sym), scalar)" : "EVar($(ex.sym))")
 
-## ERange
+== (x1::EVar, x2::EVar) = x1.sym == x2.sym && x1.isscalar == x2.isscalar
+
+## EEnd
 
 immutable EEnd end
+
+== (x1::EEnd, x2::EEnd) = true
+
+## ERange
+
 typealias ERangeArg Union(EConst,EVar,EEnd)
 
 immutable ERange{Args<:(ERangeArg...,)} <: SimpleExpr
@@ -87,12 +101,15 @@ function show(io::IO, ex::ERange)
 	print(io, ")")
 end
 
+== (x1::ERange, x2::ERange) = x1.args == x2.args
 
 ##### Function calls
 
 immutable EFun
 	sym::Symbol
 end
+
+== (x1::EFun, x2::EFun) = x1.sym == x2.sym
 
 is_unary_ewise(f::EFun) = (f.sym in UNARY_EWISE_FUNCTIONS)
 is_binary_ewise(f::EFun) = (f.sym in BINARY_EWISE_FUNCTIONS)
@@ -114,6 +131,8 @@ is_scalar_expr(ex::EMap) = ex.isscalar
 tag_scalar(ex::EMap) = EMap(ex.fun, ex.args; isscalar=true) 
 show(io::IO, ex::EMap) = show_ecall(io, "EMap", ex)
 
+== (x1::EMap, x2::EMap) = x1.fun == x2.fun && x1.args == x2.args && x1.isscalar == x2.isscalar
+
 ## EReduc
 
 type EReduc{Args<:(AbstractExpr...,)} <: AbstractExpr
@@ -125,6 +144,8 @@ EReduc{Args<:(AbstractExpr...,)}(f::EFun, args::Args) = EReduc{Args}(f, args)
 is_scalar_expr(ex::EReduc) = true
 tag_scalar(ex::EReduc) = ex
 show(io::IO, ex::EReduc) = show_ecall(io, "EReduc", ex)
+
+== (x1::EReduc, x2::EReduc) = x1.fun == x2.fun && x1.args == x2.args
 
 ## EGenericCall
 
@@ -138,6 +159,8 @@ EGenericCall{Args<:(AbstractExpr...,)}(f::EFun, args::Args; isscalar=false) = EG
 is_scalar_expr(ex::EGenericCall) = ex.isscalar
 tag_scalar(ex::EGenericCall) = EGenericCall(ex.fun, ex.args; isscalar=true)
 show(io::IO, ex::EGenericCall) = show_ecall(io, "EGenericCall", ex)
+
+== (x1::EGenericCall, x2::EGenericCall) = x1.fun == x2.fun && x1.args == x2.args && x1.isscalar == x2.isscalar
 
 # Note: other kind of function call expressions should 
 # be captured by EGenericExpr
@@ -163,6 +186,8 @@ end
 
 immutable EColon end
 
+== (x1::EColon, x2::EColon) = true
+
 typealias ERefArg Union(SimpleExpr, EColon)
 
 immutable ERef{Args<:(ERefArg...,)} <: EwiseExpr
@@ -170,6 +195,8 @@ immutable ERef{Args<:(ERefArg...,)} <: EwiseExpr
 	args::Args
 	isscalar::Bool
 end
+
+== (x1::ERef, x2::ERef) = (x1.arr == x2.arr && x1.args == x2.args && x1.isscalar == x2.isscalar)
 
 ERef{Args<:(ERefArg...,)}(h::EVar, args::Args; isscalar=false) = ERef{Args}(h, args, isscalar)
 is_scalar_expr(ex::ERef) = ex.isscalar
@@ -205,6 +232,8 @@ function show(io::IO, ex::EAssignment)
 	print(io, ")")
 end
 
+== (x1::EAssignment, x2::EAssignment) = (x1.lhs == x2.lhs && x1.rhs == x2.rhs)
+
 
 ##### Block Expression
 
@@ -225,6 +254,20 @@ function show(io::IO, ex::EBlock)
 		println(io, ce)
 	end
 	println(io, ")")
+end
+
+function == (x1::EBlock, x2::EBlock)
+	n = length(x1.exprs)
+	if length(x2.exprs) == n
+		for i = 1 : n
+			if !(x1.exprs[i] == x2.exprs[i])
+				return false
+			end
+		end
+		return true
+	else
+		return false
+	end
 end
 
 
