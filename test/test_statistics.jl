@@ -29,6 +29,8 @@ z3 = randn(3, 4, 5)
 p3 = rand(3, 4, 5)
 q3 = rand(3, 4, 5)
 
+x4 = randn(3, 4, 5, 2)
+
 # mean
 
 safe_mean(x) = sum(x) / length(x)
@@ -179,6 +181,11 @@ safe_var(x, d::Int) = safe_varm(x, mean(x, d), d)
 
 r = zeros(size(x2, 2)); var!(r, x2, 1) 
 @test_approx_eq r vec(var(x2, 1))
+
+@test_approx_eq var(x4, 1) safe_var(x4, 1)
+@test_approx_eq var(x4, 2) safe_var(x4, 2)
+@test_approx_eq var(x4, 3) safe_var(x4, 3)
+@test_approx_eq var(x4, 4) safe_var(x4, 4)
 
 # std
 

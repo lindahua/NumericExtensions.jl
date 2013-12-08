@@ -183,10 +183,12 @@ function varm!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R},
 		m = prec_length(siz, dim)
 		n = siz[dim]
 		k = succ_length(siz, dim)
+
 		for l = 1:k
 			_varm_rowwise!(
-				unsafe_view(dst,:,l), unsafe_view(x,:,:,l), 
-				unsafe_view(mu,:,l), m, n)
+				UnsafeVectorView{R}(pointer(dst, (l-1)*m+1), m), 
+				UnsafeMatrixView{T}(pointer(x, (l-1)*m*n+1), m, n),
+				UnsafeVectorView{R}(pointer(mu, (l-1)*m+1), m), m, n)
 		end
 	end
 	dst
