@@ -2,7 +2,8 @@
 
 tests = [ "shapes", 
 		  "unsafe_views", 
-		  "mathfuns" ]
+		  "mathfuns", 
+		  "maptypes" ]
 		  #"map" ]
 
 		  # "vbroadcast", 

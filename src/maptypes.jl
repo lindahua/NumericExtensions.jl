@@ -65,6 +65,8 @@ for op in [:&, :|, :$]
 	@eval maptype{T1<:Integer, T2<:Integer}(::TFun{$(Meta.quot(op))}, ::Type{T1}, ::Type{T2}) = promote_type(T1, T2)
 end
 
+maptype{T<:Integer}(::TFun{:~}, ::Type{T}) = T
+
 
 #################################################
 #
@@ -75,3 +77,8 @@ end
 for op in [:abs2]
 	@eval maptype{T<:Number}(::TFun{$(Meta.quot(op))}, ::Type{T}) = T 
 end
+
+
+
+
+
