@@ -41,10 +41,7 @@ module NumericExtensions
 		sqr, rcp, rsqrt, rcbrt,
 
 		# functors
-		Functor, evaluate,
-
-		# extree
-		extree, 
+		Functor, evaluate, 
 
 		# map
 		map, map!, map1!, mapdiff, mapdiff!, 
@@ -107,7 +104,6 @@ module NumericExtensions
 	include("unsafe_views.jl")
 	include("mathfuns.jl")
 	include("functors.jl")
-	include("extree.jl")
 	include("map.jl")
 	
 	# include("vbroadcast.jl")

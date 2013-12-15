@@ -4,7 +4,6 @@ tests = [ "shapes",
 		  "unsafe_views", 
 		  "mathfuns",
 		  "functors",
-		  "extree",
 		  "map" ]
 
 		  # "vbroadcast", 
