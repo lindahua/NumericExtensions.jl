@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/lindahua/NumericExtensions.jl.png)](https://travis-ci.org/lindahua/NumericExtensions.jl)
 
-Julia extensions to provide high performance computational support.
+Julia extensions to provide high performance computational support and devectorized code generation.
 
 -------------------------------------
 
