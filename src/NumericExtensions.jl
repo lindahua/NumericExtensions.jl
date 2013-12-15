@@ -40,9 +40,6 @@ module NumericExtensions
 		# mathfuns
 		sqr, rcp, rsqrt, rcbrt,
 
-		# functors
-		Functor, evaluate, 
-
 		# map
 		map, map!, map1!, mapdiff, mapdiff!, 
 		add!, subtract!, multiply!, divide!, negate!, rcp!, 
@@ -103,8 +100,7 @@ module NumericExtensions
 	include("shapes.jl")
 	include("unsafe_views.jl")
 	include("mathfuns.jl")
-	include("functors.jl")
-	include("map.jl")
+	# include("map.jl")
 	
 	# include("vbroadcast.jl")
 	# include("diagop.jl")
