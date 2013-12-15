@@ -38,7 +38,11 @@ module NumericExtensions
 		unsafe_view,
 
 		# mathfuns
-		sqr, rcp, rsqrt, rcbrt,
+		sqr, rcp, rsqrt, rcbrt, 
+		TFun, tfun, funsym,
+
+		# maptypes
+		fptype, promote_fptype, maptype,
 
 		# map
 		map, map!, map1!, mapdiff, mapdiff!, 
@@ -100,6 +104,7 @@ module NumericExtensions
 	include("shapes.jl")
 	include("unsafe_views.jl")
 	include("mathfuns.jl")
+	include("maptypes.jl")
 	# include("map.jl")
 	
 	# include("vbroadcast.jl")
