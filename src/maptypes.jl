@@ -104,13 +104,29 @@ end
 # unary real functions
 
 for op in [:sqrt, :cbrt, :rcp, :rsqrt, :rcbrt,
-	:exp, :exp2, :exp10, :expm1, :log, :log2, :log10, :log1p]
+	:exp, :exp2, :exp10, :expm1, :log, :log2, :log10, :log1p, 
+	:sin, :cos, :tan, :cot, :sec, :csc,
+	:sinh, :cosh, :tanh, :coth, :sech, :csch,
+	:asin, :acos, :atan, :acot, :asec, :acsc,
+	:asinh, :acosh, :atanh, :acoth, :asech, :acsch,  
+	:sind, :cosd, :tand, :cotd, :secd, :cscd,
+	:asind, :acosd, :atand, :acotd, :asecd, :acscd, 
+	:erf, :erfc, :erfinv, :erfcinv, :gamma, :lgamma, :digamma, 
+	:eta, :zeta]
 
 	@eval maptype{T<:FloatingPoint}(::TFun{$(Meta.quot(op))}, ::Type{T}) = T
 	@eval maptype{T<:Integer}(::TFun{$(Meta.quot(op))}, ::Type{T}) = fptype(T)
 end
 
 maptype{T<:Number}(::TFun{:sqr}, ::Type{T}) = T
+
+# binary real functions
+
+for op in [:hypot, :atan2, :beta, :lbeta]
+	@eval maptype{T<:Real}(::TFun{$(Meta.quot(op))}, ::Type{T}, ::Type{T}) = fptype(T)
+	@eval maptype{T1<:Real,T2<:Real}(::TFun{$(Meta.quot(op))}, ::Type{T1}, ::Type{T2}) = promote_type(fptype(T1), fptype(T2))
+end
+
 
 
 
