@@ -97,9 +97,9 @@ end
 
 println("    on algebraic functions ...")
 
-for op in [:abs, :abs2, :sign, 
+for op in [:abs, :abs2, :sign, :sqrt, :cbrt, :rcp, :rsqrt, :rcbrt,
 	:floor, :ceil, :round, :trunc, :ifloor, :iceil, :iround, :itrunc]
-	
+
 	for T in realtypes
 		R = actual_type(op, one(T))
 		@test_rtype1 op T R

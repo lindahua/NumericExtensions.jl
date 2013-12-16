@@ -101,7 +101,16 @@ for op in [:ifloor, :iceil, :itrunc, :iround]
 	@eval maptype{T<:Integer}(::TFun{$(Meta.quot(op))}, ::Type{T}) = T
 end
 
+# unary real functions
 
+for op in [:sqrt, :cbrt, :rcp, :rsqrt, :rcbrt,
+	:exp, :exp2, :exp10, :expm1, :log, :log2, :log10, :log1p]
+
+	@eval maptype{T<:FloatingPoint}(::TFun{$(Meta.quot(op))}, ::Type{T}) = T
+	@eval maptype{T<:Integer}(::TFun{$(Meta.quot(op))}, ::Type{T}) = fptype(T)
+end
+
+maptype{T<:Number}(::TFun{:sqr}, ::Type{T}) = T
 
 
 
