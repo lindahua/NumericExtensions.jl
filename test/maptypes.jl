@@ -49,17 +49,24 @@ end
 # 	end
 # end
 
-# # comparison
+# comparison
 
-# println("    on comparison ...")
+println("    on comparison ...")
 
-# for op in [:(==), :(!=), :<, :>, :<=, :>=]
-# 	ewise_op = symbol(".$op")
-# 	for T1 in realtypes, T2 in realtypes
-# 		R = actual_type(ewise_op, one(T1), one(T2))
-# 		@test_rtype2 op T1 T2 R
-# 	end
-# end
+for op in [:(==), :(!=), :<, :>, :<=, :>=]
+	ewise_op = symbol(".$op")
+	for T1 in realtypes, T2 in realtypes
+		R = actual_type(ewise_op, one(T1), one(T2))
+		@test_rtype2 op T1 T2 R
+	end
+end
+
+for op in [:isnan, :isinf, :isfinite]
+	for T in realtypes
+		R = actual_type(op, one(T))
+		@test_rtype1 op T R
+	end
+end
 
 # # logical operations
 

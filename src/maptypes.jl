@@ -52,8 +52,18 @@ maptype{T2<:Integer}(::Union(TFun{:^},TFun{:.^}), ::Type{Bool}, ::Type{T2}) = Bo
 
 # comparison
 
-for op in [:(==), :(!=), :<, :>, :<=, :>=, :.==, :.!=, :.<, :.>, :.<=, :.>=]
+for op in [:(==), :(!=), :isequal]
 	@eval maptype{T1<:Number, T2<:Number}(::TFun{$(Meta.quot(op))}, ::Type{T1}, ::Type{T2}) = Bool
+end
+
+for op in [:<, :>, :<=, :>=, :.==, :.!=, :.<, :.>, :.<=, :.>=]
+	@eval maptype{T1<:Real, T2<:Real}(::TFun{$(Meta.quot(op))}, ::Type{T1}, ::Type{T2}) = Bool
+end
+
+# predicates
+
+for op in [:isinf, :isnan, :isfinite]
+	@eval maptype{T<:Real}(::TFun{$(Meta.quot(op))}, ::Type{T}) = Bool
 end
 
 # logical & bit
@@ -79,6 +89,9 @@ maptype{T<:Number}(::Union(TFun{:abs},TFun{:abs2}), ::Type{T}) = T
 maptype{T<:Signed}(::Union(TFun{:abs},TFun{:abs2}), ::Type{T}) = promote_type(T, Int)
 maptype{T<:Unsigned}(::TFun{:abs}, ::Type{T}) = T
 maptype{T<:Unsigned}(::TFun{:abs2}, ::Type{T}) = promote_type(T, Uint)
+
+# other unary
+
 
 
 
