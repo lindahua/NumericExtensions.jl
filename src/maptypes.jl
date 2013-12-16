@@ -24,7 +24,7 @@ promote_fptype{T1<:Integer, T2<:Integer}(::Type{T1}, ::Type{T2}) = promote_type(
 #
 #################################################
 
-for op in [:+, :-, :*, :.+ ,:.-, :.*]
+for op in [:+, :.+, :-, :.-, :*, :.*, :%, :.%, :div, :fld, :rem, :mod]
 	@eval maptype{T<:Number}(::TFun{$(Meta.quot(op))}, ::Type{T}, ::Type{T}) = T
 	@eval maptype{T1<:Number,T2<:Number}(::TFun{$(Meta.quot(op))}, ::Type{T1}, ::Type{T2}) = promote_type(T1, T2)
 end
@@ -85,12 +85,21 @@ maptype{T<:Integer}(::TFun{:~}, ::Type{T}) = T
 # abs & abs2
 
 maptype(::Union(TFun{:abs},TFun{:abs2}), ::Type{Bool}) = Bool
-maptype{T<:Number}(::Union(TFun{:abs},TFun{:abs2}), ::Type{T}) = T 
+maptype{T<:Real}(::Union(TFun{:abs},TFun{:abs2}), ::Type{T}) = T 
 maptype{T<:Signed}(::Union(TFun{:abs},TFun{:abs2}), ::Type{T}) = promote_type(T, Int)
 maptype{T<:Unsigned}(::TFun{:abs}, ::Type{T}) = T
 maptype{T<:Unsigned}(::TFun{:abs2}, ::Type{T}) = promote_type(T, Uint)
 
-# other unary
+# sign & fp rounding
+
+for op in [:sign, :floor, :ceil, :trunc, :round]
+	@eval maptype{T<:Real}(::TFun{$(Meta.quot(op))}, ::Type{T}) = T
+end
+
+for op in [:ifloor, :iceil, :itrunc, :iround]
+	@eval maptype{T<:FloatingPoint}(::TFun{$(Meta.quot(op))}, ::Type{T}) = Int64
+	@eval maptype{T<:Integer}(::TFun{$(Meta.quot(op))}, ::Type{T}) = T
+end
 
 
 
