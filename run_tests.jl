@@ -4,10 +4,10 @@ tests = [ "shapes",
 		  "unsafe_views", 
 		  "mathfuns", 
 		  "functors",
-		  "map" ]
+		  "map",
+		  "reduce" ]
 
-		  # "vbroadcast", 
-		  # "reduce", 
+		  # "vbroadcast",  
 		  # "norms",
 		  # "statistics", 
 		  # "wsum", 

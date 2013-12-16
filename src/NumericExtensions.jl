@@ -48,7 +48,7 @@ module NumericExtensions
 		add!, subtract!, multiply!, divide!, negate!, rcp!, 
 		sqrt!, abs!, sqr!, abs2!, pow!, exp!, log!,
 		floor!, ceil!, round!, trunc!,
-		absdiff, sqrdiff, fma, fma!
+		absdiff, sqrdiff, fma, fma!,
 
 		# # vbroadcast
 		# vbroadcast, vbroadcast!, vbroadcast1!,
@@ -94,8 +94,8 @@ module NumericExtensions
   #       quad, quad!, invquad, invquad!, X_A_Xt, Xt_A_X, X_invA_Xt, Xt_invA_X,
   #       unwhiten_winv!, unwhiten_winv,
 
-		# # benchmark
-		# BenchmarkTable, nrows, ncolumns, add_row!
+		# benchmark
+		BenchmarkTable, nrows, ncolumns, add_row!
 
 
 	# codes
@@ -108,7 +108,7 @@ module NumericExtensions
 	
 	# include("vbroadcast.jl")
 	# include("diagop.jl")
-	# include("reduce.jl")
+	include("reduce.jl")
 	# include("norms.jl")
 	# include("scan.jl")
 	# include("statistics.jl")
@@ -118,7 +118,7 @@ module NumericExtensions
 
 	# include("pdmat.jl")
 
-	# include("benchmark.jl")
+	include("benchmark.jl")
 
 	# include("deprecates.jl")
 end
