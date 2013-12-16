@@ -37,13 +37,11 @@ for op in [:/, :\, :./, :.\]
 	@eval maptype{T1<:Number,T2<:Number}(::TFun{$(Meta.quot(op))}, ::Type{T1}, ::Type{T2}) = promote_fptype(T1, T2)
 end
 
-for op in [:^, :.^]
-	@eval maptype{T1<:FloatingPoint, T2<:FloatingPoint}(::TFun{$(Meta.quot(op))}, ::Type{T1}, ::Type{T2}) = promote_type(T1, T2)
-	@eval maptype{T1<:FloatingPoint, T2<:Integer}(::TFun{$(Meta.quot(op))}, ::Type{T1}, ::Type{T2}) = T1
-	@eval maptype{T1<:Integer, T2<:FloatingPoint}(::TFun{$(Meta.quot(op))}, ::Type{T1}, ::Type{T2}) = T2
-	@eval maptype{T1<:Integer, T2<:Integer}(::TFun{$(Meta.quot(op))}, ::Type{T1}, ::Type{T2}) = promote_type(T1, T2)
-	@eval maptype{T2<:Integer}(::TFun{$(Meta.quot(op))}, ::Type{Bool}, ::Type{T2}) = Bool
-end
+maptype{T1<:FloatingPoint, T2<:FloatingPoint}(::Union(TFun{:^},TFun{:.^}), ::Type{T1}, ::Type{T2}) = promote_type(T1, T2)
+maptype{T1<:FloatingPoint, T2<:Integer}(::Union(TFun{:^},TFun{:.^}), ::Type{T1}, ::Type{T2}) = T1
+maptype{T1<:Integer, T2<:FloatingPoint}(::Union(TFun{:^},TFun{:.^}), ::Type{T1}, ::Type{T2}) = T2
+maptype{T1<:Integer, T2<:Integer}(::Union(TFun{:^},TFun{:.^}), ::Type{T1}, ::Type{T2}) = promote_type(T1, T2)
+maptype{T2<:Integer}(::Union(TFun{:^},TFun{:.^}), ::Type{Bool}, ::Type{T2}) = Bool
 
 
 #################################################
@@ -74,10 +72,13 @@ maptype{T<:Integer}(::TFun{:~}, ::Type{T}) = T
 #
 #################################################
 
-for op in [:abs2]
-	@eval maptype{T<:Number}(::TFun{$(Meta.quot(op))}, ::Type{T}) = T 
-end
+# abs & abs2
 
+maptype(::Union(TFun{:abs},TFun{:abs2}), ::Type{Bool}) = Bool
+maptype{T<:Number}(::Union(TFun{:abs},TFun{:abs2}), ::Type{T}) = T 
+maptype{T<:Signed}(::Union(TFun{:abs},TFun{:abs2}), ::Type{T}) = promote_type(T, Int)
+maptype{T<:Unsigned}(::TFun{:abs}, ::Type{T}) = T
+maptype{T<:Unsigned}(::TFun{:abs2}, ::Type{T}) = promote_type(T, Uint)
 
 
 

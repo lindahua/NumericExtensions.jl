@@ -37,11 +37,11 @@ end
 
 ## Main test cases
 
-# arithmetics & comparison
+# # comparison
 
-# println("    on arithmetics & comparison ...")
+# println("    on arithmetics ...")
 
-# for op in [:+, :-, :*, :/, :\, :^, :(==), :(!=), :<, :>, :<=, :>=]
+# for op in [:+, :-, :*, :/, :\, :^]
 # 	ewise_op = symbol(".$op")
 # 	for T1 in realtypes, T2 in realtypes
 # 		R = actual_type(ewise_op, one(T1), one(T2))
@@ -49,23 +49,47 @@ end
 # 	end
 # end
 
-# on elementary math
+# # comparison
 
-println("    on logical operations ...")
+# println("    on comparison ...")
 
-for op in [:&, :|, :$]
-	for T1 in inttypes, T2 in inttypes
-		R = actual_type(op, one(T1), one(T2))
-		@test_rtype2 op T1 T2 R
-	end
-end
+# for op in [:(==), :(!=), :<, :>, :<=, :>=]
+# 	ewise_op = symbol(".$op")
+# 	for T1 in realtypes, T2 in realtypes
+# 		R = actual_type(ewise_op, one(T1), one(T2))
+# 		@test_rtype2 op T1 T2 R
+# 	end
+# end
 
-for op in [:~]
-	for T in inttypes
+# # logical operations
+
+# println("    on logical operations ...")
+
+# for op in [:&, :|, :$]
+# 	for T1 in inttypes, T2 in inttypes
+# 		R = actual_type(op, one(T1), one(T2))
+# 		@test_rtype2 op T1 T2 R
+# 	end
+# end
+
+# for op in [:~]
+# 	for T in inttypes
+# 		R = actual_type(op, one(T))
+# 		@test_rtype1 op T R
+# 	end
+# end
+
+# algebraic math
+
+println("    on algebraic functions ...")
+
+for op in [:abs, :abs2]
+	for T in realtypes
 		R = actual_type(op, one(T))
 		@test_rtype1 op T R
 	end
 end
+
 
 
 
