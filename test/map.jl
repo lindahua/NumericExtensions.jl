@@ -75,7 +75,7 @@ mapdiff!(Abs2Fun(), r, 2, x)
 type MyFun <: Functor end
 NumericExtensions.evaluate(::MyFun, x, y) = abs2(x) + y
 
-@test_approx_eq map(MyFun(), a, b) abs2(a) + b
+@test_approx_eq map(MyFun(), x, y) abs2(x) + y
 
 
 # Specific inplace functions

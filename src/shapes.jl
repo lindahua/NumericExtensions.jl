@@ -84,5 +84,5 @@ maplength(a1::Number, a2::AbstractArray) = length(a2)
 maplength(a1::AbstractArray, a2::AbstractArray) = prod(mapshape(a1, a2))
 
 maplength(a1::Number, a2::Number, a3::Number, ra::Number...) = 1
-maplength(a1::ArrOrNum, a2::ArrOrNum, a3::ArrOrNum, ra::ArrOrNum...) = length(mapshape(a1, a2, a3, ra...))
+maplength(a1::ArrOrNum, a2::ArrOrNum, a3::ArrOrNum, ra::ArrOrNum...) = prod(mapshape(a1, a2, a3, ra...))
 

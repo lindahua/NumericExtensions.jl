@@ -14,18 +14,15 @@ function code_mapfuns(nargs::Int)
 	params = [Expr(:(::), a, :ArrOrNum) for a in asyms]
     sargs = [:(getvalue($a, i)) for a in asyms]
     sargs1 = [:(getvalue($a, 1)) for a in asyms]
-    quote
-    	function rangemap!(f::Functor, dst::NumericArray, first::Int, last::Int, $(params...))
-    		for i = first : last
-    			@inbounds dst[i] = evaluate(f, $(sargs...))
-    		end
-            return dst			
-    	end	
+    kernel = 
 
+    quote
     	function map!(f::Functor, dst::NumericArray, $(params...))
-            shp = mapshape($(asyms...))
-            length(dst) == prod(shp) || error("Inconsistent argument dimensions.")
-            rangemap!(f, dst, 1, length(dst), $(asyms...))
+            length(dst) == maplength($(asyms...)) || error("Inconsistent argument dimensions.")
+            for i = 1 : length(dst)
+                @inbounds dst[i] = evaluate(f, $(sargs...))
+            end
+            dst
         end
 
     	map1!(f::Functor, a1::NumericArray, $(params[2:end]...)) = map!(f, a1, $(asyms...))
@@ -33,14 +30,7 @@ function code_mapfuns(nargs::Int)
     	function map(f::Functor, $(params...))
     		shp = mapshape($(asyms...))
     		n::Int = prod(shp)
-    		if n > 0
-    			r1 = evaluate(f, $(sargs1...))
-    			dst = Array(typeof(r1), shp)
-    			dst[1] = r1
-    			rangemap!(f, dst, 2, n, $(asyms...))
-    		else
-    			Any[]
-    		end
+    		reshape([(@inbounds y = evaluate(f, $(sargs...)); y) for i = 1 : n], shp)
     	end
     end
 end

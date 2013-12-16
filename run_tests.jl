@@ -3,8 +3,8 @@
 tests = [ "shapes", 
 		  "unsafe_views", 
 		  "mathfuns", 
-		  "maptypes" ]
-		  #"map" ]
+		  "functors",
+		  "map" ]
 
 		  # "vbroadcast", 
 		  # "reduce", 

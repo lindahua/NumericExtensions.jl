@@ -26,16 +26,3 @@ invsoftplus(x::Real) = log(exp(x) - one(x))
 @vectorize_1arg Real rsqrt
 @vectorize_1arg Real rcbrt
 
-
-#################################################
-#
-#  TFun{S} wraps a typed functor, e.g. TFun{:abs}
-#
-#################################################
-
-type TFun{S} 
-end
-
-tfun(s::Symbol) = TFun{s}()
-funsym{S}(f::TFun{S}) = S
-
