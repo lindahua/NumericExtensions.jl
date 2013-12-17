@@ -59,6 +59,7 @@ module NumericExtensions
 
 		# mapreduce
 		sumabs, sumabs!, sumsq, sumsq!, sumxlogx, sumxlogx!, sumxlogy, sumxlogy!,
+		sumdiff, sumdiff!, sumabsdiff, sumabsdiff!, sumsqdiff, sumsqdiff!,
 
 		# # reduce
 		# reduce!, mapreduce!, mapdiff_reduce, mapdiff_reduce!,
