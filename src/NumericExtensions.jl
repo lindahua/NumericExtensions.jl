@@ -58,7 +58,7 @@ module NumericExtensions
 		# add_diag!, add_diag, set_diag!, set_diag,
 
 		# mapreduce
-		sumabs, sumabs!, sumsq, sumsq!, sumxlogx, sumxlogx!,
+		sumabs, sumabs!, sumsq, sumsq!, sumxlogx, sumxlogx!, sumxlogy, sumxlogy!,
 
 		# # reduce
 		# reduce!, mapreduce!, mapdiff_reduce, mapdiff_reduce!,
@@ -111,6 +111,8 @@ module NumericExtensions
 	
 	# include("vbroadcast.jl")
 	# include("diagop.jl")
+
+	include("codegen.jl")
 	include("reduce.jl")
 	include("mapreduce.jl")
 	# include("norms.jl")
