@@ -40,69 +40,6 @@ function rsize(x::Array, dim::Int)
 	end
 end
 
-function rsize{T}(x::Array{T, 3}, dims::(Int, Int))
-	d1 = dims[1]
-	d2 = dims[2]
-	rsiz_v = [size(x)...]
-	rsiz_v[d1] = 1
-	rsiz_v[d2] = 1
-	tuple(rsiz_v...)
-end
-
-function safe_xreduce(op::Functor, x::Array, s0, dim::Int)
-	# compute size
-	nd = ndims(x)
-	rsiz = rsize(x, dim)
-	rd = size(x, dim)
-	r = zeros(rsiz)
-
-	# perform slice-wise computation
-	ns = prod(rsiz)  # number of slices
-	for i in 1 : ns
-		coord = [ind2sub(rsiz, i)...]
-		s = s0
-		for j in 1 : rd
-			if 1 <= dim <= nd 
-				coord[dim] = j
-			end
-			s = evaluate(op, s, x[coord...])
-		end
-		r[i] = s
-	end
-	r
-end
-
-function safe_xreduce(op::Functor, x::Array, s0, dims::(Int, Int))
-	# compute size
-	rsiz = rsize(x, dims)
-
-	d1::Int = dims[1]
-	d2::Int = dims[2]
-	rd1 = size(x, d1)
-	rd2 = size(x, d2)
-	r = zeros(rsiz)
-
-	# perform slice-wise computation
-	ns = prod(rsiz)
-	for i in 1 : ns
-		coord = [ind2sub(rsiz, i)...]
-		s = s0
-		for j2 in 1 : rd2
-			for j1 in 1 : rd1
-				coord[d1] = j1
-				coord[d2] = j2
-				s = evaluate(op, s, x[coord...])
-			end
-		end
-		r[i] = s
-	end
-	r
-end
-
-safe_sum(x, dim::Union(Int, (Int, Int))) = safe_xreduce(Add(), x, zero(eltype(x)), dim)
-safe_max(x, dim::Union(Int, (Int, Int))) = safe_xreduce(MaxFun(), x, typemin(eltype(x)), dim)
-safe_min(x, dim::Union(Int, (Int, Int))) = safe_xreduce(MinFun(), x, typemax(eltype(x)), dim)
-
 
 ### full reduction ###
 

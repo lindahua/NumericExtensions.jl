@@ -117,6 +117,8 @@ module NumericExtensions
 	include("codegen.jl")
 	include("reduce.jl")
 	include("mapreduce.jl")
+	include("reducedim.jl")
+
 	# include("norms.jl")
 	# include("scan.jl")
 	# include("statistics.jl")
