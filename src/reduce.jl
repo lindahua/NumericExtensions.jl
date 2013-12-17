@@ -106,6 +106,8 @@ const CASSUM_BLOCKLEN = 1024
 cassum(a::NumericArray, ifirst::Integer, ilast::Integer) = cassum(a, int(ifirst), int(ilast), CASSUM_BLOCKLEN)
 cassum(a::NumericArray) = cassum(a, 1, length(a), CASSUM_BLOCKLEN)
 
+_sum(ifirst::Int, ilast::Int, a::NumericArray) = cassum(a, ifirst, ilast)
+
 ##
 #
 #  default sum
@@ -120,7 +122,7 @@ mean(a::NumericArray) = cassum(a) / length(a)
 #
 #################################################
 
-function _maximum{T<:Integer}(a::NumericArray{T}, ifirst::Int, ilast::Int)
+function _maximum{T<:Integer}(ifirst::Int, ilast::Int, a::NumericArray{T})
 	if ifirst > ilast
 		error("Argument for maximum cannot be empty.")
 	end
@@ -137,7 +139,7 @@ function _maximum{T<:Integer}(a::NumericArray{T}, ifirst::Int, ilast::Int)
 	return s
 end
 
-function _maximum{T<:FloatingPoint}(a::NumericArray{T}, ifirst::Int, ilast::Int)
+function _maximum{T<:FloatingPoint}(ifirst::Int, ilast::Int, a::NumericArray{T})
 	if ifirst > ilast
 		error("Argument for maximum cannot be empty.")
 	end
@@ -162,7 +164,7 @@ function _maximum{T<:FloatingPoint}(a::NumericArray{T}, ifirst::Int, ilast::Int)
 	return s
 end
 
-function _minimum{T<:Integer}(a::NumericArray{T}, ifirst::Int, ilast::Int)
+function _minimum{T<:Integer}(ifirst::Int, ilast::Int, a::NumericArray{T})
 	if ifirst > ilast
 		error("Argument for minimum cannot be empty.")
 	end
@@ -179,7 +181,7 @@ function _minimum{T<:Integer}(a::NumericArray{T}, ifirst::Int, ilast::Int)
 	return s
 end
 
-function _minimum{T<:FloatingPoint}(a::NumericArray{T}, ifirst::Int, ilast::Int)
+function _minimum{T<:FloatingPoint}(ifirst::Int, ilast::Int, a::NumericArray{T})
 	if ifirst > ilast
 		error("Argument for minimum cannot be empty.")
 	end
@@ -204,9 +206,9 @@ function _minimum{T<:FloatingPoint}(a::NumericArray{T}, ifirst::Int, ilast::Int)
 	return s
 end
 
-maximum{T<:Integer}(a::NumericArray{T}) = _maximum(a, 1, length(a))
-maximum{T<:FloatingPoint}(a::NumericArray{T}) = _maximum(a, 1, length(a))
-minimum{T<:Integer}(a::NumericArray{T}) = _minimum(a, 1, length(a))
-minimum{T<:FloatingPoint}(a::NumericArray{T}) = _minimum(a, 1, length(a))
+maximum{T<:Integer}(a::NumericArray{T}) = _maximum(1, length(a), a)
+maximum{T<:FloatingPoint}(a::NumericArray{T}) = _maximum(1, length(a), a)
+minimum{T<:Integer}(a::NumericArray{T}) = _minimum(1, length(a), a)
+minimum{T<:FloatingPoint}(a::NumericArray{T}) = _minimum(1, length(a), a)
 
 
