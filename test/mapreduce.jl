@@ -65,6 +65,7 @@ q = rand(3, 4)
 
 @test_approx_eq sumxlogx(p) sum(p .* log(p))
 @test_approx_eq sumxlogy(p, q) sum(p .* log(q))
+@test_approx_eq entropy(p) -sum(p .* log(p))
 
 # generic & ternary
 

@@ -175,9 +175,6 @@ meansq(a::NumericArray) = mean(Abs2Fun(), a)
 dot(a::NumericVector, b::NumericVector) = sum(Multiply(), a, b)
 dot(a::NumericArray, b::NumericArray) = sum(Multiply(), a, b)
 
-sumxlogx(a::NumericArray) = sum(XlogxFun(), a)
-sumxlogy(a::ArrOrNum, b::ArrOrNum) = sum(XlogyFun(), a, b)
-
 sumabsdiff(a::ArrOrNum, b::ArrOrNum) = sumfdiff(AbsFun(), a, b)
 maxabsdiff(a::ArrOrNum, b::ArrOrNum) = maxfdiff(AbsFun(), a, b)
 minabsdiff(a::ArrOrNum, b::ArrOrNum) = minfdiff(AbsFun(), a, b)
@@ -188,7 +185,8 @@ maxsqdiff(a::ArrOrNum, b::ArrOrNum) = maxfdiff(Abs2Fun(), a, b)
 minsqdiff(a::ArrOrNum, b::ArrOrNum) = minfdiff(Abs2Fun(), a, b)
 meansqdiff(a::ArrOrNum, b::ArrOrNum) = meanfdiff(Abs2Fun(), a, b)
 
-
-
+sumxlogx(a::NumericArray) = sum(XlogxFun(), a)
+sumxlogy(a::ArrOrNum, b::ArrOrNum) = sum(XlogyFun(), a, b)
+entropy(a::NumericArray) = -sumxlogx(a)
 
 
