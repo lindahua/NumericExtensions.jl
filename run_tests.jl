@@ -6,7 +6,9 @@ tests = [ "shapes",
 		  "mathfuns", 
 		  "functors",
 		  "map",
-		  "reduce" ]
+		  "reduce",
+		  "mapreduce",
+		  "reducedim" ]
 
 		  # "vbroadcast",  
 		  # "norms",
