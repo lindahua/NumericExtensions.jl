@@ -10,7 +10,7 @@ using NumericExtensions
 @test evaluate(Subtract(), 2, 3) == -1
 @test evaluate(Multiply(), 2, 3) == 6
 @test evaluate(Divide(),   2, 3) == 2 / 3
-@test evaluate(Rem(),      5, 3) == 2
+@test evaluate(Modulo(),   5, 3) == 2
 @test evaluate(Pow(),      2, 3) == 8
 
 @test evaluate(Greater(),      2, 3) == false

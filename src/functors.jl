@@ -32,7 +32,7 @@ end
 ####################################### 
 
 export 
-    Negate, Add, Subtract, Multiply, Divide, Pow, Rem,
+    Negate, Add, Subtract, Multiply, Divide, Pow, Modulo,
     Greater, GreaterEqual, Less, LessEqual, Equal, NotEqual,
     Not, And, Or,
     BitwiseNot, BitwiseAnd, BitwiseOr, BitwiseXor
@@ -57,8 +57,8 @@ evaluate(::Divide, x::Number, y::Number) = x / y
 type Pow <: Functor end
 evaluate(::Pow, x::Number, y::Number) = x ^ y
 
-type Rem <: Functor end
-evaluate(::Rem, x::Real, y::Real) = x % y
+type Modulo <: Functor end
+evaluate(::Modulo, x::Real, y::Real) = x % y
 
 # comparison operators
 
@@ -114,7 +114,7 @@ export
     MaxFun, MinFun,
     AbsFun, Abs2Fun, SqrFun, RcpFun, SqrtFun, RsqrtFun,
     CbrtFun, RcbrtFun, HypotFun, FixPow, FixAbsPow,
-    IsfiniteFun, IsinfFun, IsnanFun,
+    IsfiniteFun, IsinfFun, IsnanFun, IsequalFun,
     FloorFun, CeilFun, RoundFun, TruncFun,
     IfloorFun, IceilFun, IroundFun, ItruncFun,
     ModFun, FldFun, RemFun, DivFun, 
@@ -160,6 +160,7 @@ evaluate(f::FixAbsPow, x::Real) = (abs(x) ^ f.p)
 @functor1 IsfiniteFun FloatingPoint isfinite
 @functor1 IsnanFun    FloatingPoint isnan
 @functor1 IsinfFun    FloatingPoint isinf
+@functor2 IsequalFun  Number        isequal
 
 # rounding functors
 
