@@ -58,18 +58,19 @@ module NumericExtensions
 		# add_diag!, add_diag, set_diag!, set_diag,
 
 		# mapreduce
-		sumabs, sumabs!, sumsq, sumsq!, sumxlogx, sumxlogx!, sumxlogy, sumxlogy!,
-		sumdiff, sumdiff!, sumabsdiff, sumabsdiff!, sumsqdiff, sumsqdiff!,
+		sumfdiff, maxfdiff, minfdiff, meanfdiff, 
+		sumabs, maxabs, minabs, meanabs, sumsq, meansq,
+		sumabsdiff, maxabsdiff, minabsdiff, meanabsdiff,		
+		sumsqdiff, meansqdiff, sumxlogx, sumxlogy, 
 
-		# # reduce
-		# reduce!, mapreduce!, mapdiff_reduce, mapdiff_reduce!,
-		# sum!, sumfdiff, sumfdiff!,
-		# max!, maxfdiff, maxfdiff!,
-		# min!, minfdiff, minfdiff!,
-		# sumabs, sumabs!, maxabs, maxabs!, minabs, minabs!, sumsq, sumsq!, asum,
-		# dot!, sumabsdiff, sumabsdiff!, sumsqdiff, sumsqdiff!,
-		# maxabsdiff, maxabsdiff!, minabsdiff, minabsdiff!,  
-		# sumxlogx, sumxlogx!, sumxlogy, sumxlogy!, 
+		# reducedims
+		foldl!, foldr!, sum!, maximum!, minimum!, mean!, dot!,
+
+		# mapreducedims
+		sumfdiff!, maxfdiff!, minfdiff!, meanfdiff!,
+		sumabs!, maxabs!, minabs!, meanabs!, sumsq!, meansq!,
+		sumabsdiff!, maxabsdiff!, minabsdiff!, meanabsdiff!,
+		sumsqdiff!, meansqdiff!, sumxlogx!, sumxlogy!,
 
 		# # norms
 		# vnorm, vnorm!, vnormdiff, vnormdiff!, normalize, normalize!,

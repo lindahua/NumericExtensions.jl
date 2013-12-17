@@ -5,6 +5,9 @@ typealias SizeTuple{N} NTuple{N,Int}
 typealias NumericArray{T<:Number,N} AbstractArray{T,N}
 typealias ArrOrNum{T<:Number} Union(AbstractArray{T}, T) 
 
+typealias NumericVector{T<:Number} AbstractVector{T}
+typealias NumericMatrix{T<:Number} AbstractMatrix{T}
+
 getvalue(a::Number, i::Integer) = a
 getvalue(a::AbstractArray, i::Integer) = a[i]
 
