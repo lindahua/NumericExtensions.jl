@@ -54,8 +54,8 @@ module NumericExtensions
 		# vbroadcast, vbroadcast!, vbroadcast1!,
 		# badd, badd!, bsubtract, bsubtract!, bmultiply, bmultiply!, bdivide, bdivide!,
 
-		# # diagop
-		# add_diag!, add_diag, set_diag!, set_diag,
+		# diagop
+		add_diag!, add_diag, set_diag!, set_diag,
 
 		# mapreduce
 		sumfdiff, maxfdiff, minfdiff, meanfdiff, 
@@ -112,7 +112,7 @@ module NumericExtensions
 	include("map.jl")
 	
 	# include("vbroadcast.jl")
-	# include("diagop.jl")
+	include("diagop.jl")
 
 	include("codegen.jl")
 	include("reduce.jl")

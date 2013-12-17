@@ -2,6 +2,7 @@
 
 tests = [ "shapes", 
 		  "unsafe_views", 
+		  "diagop",
 		  "mathfuns", 
 		  "functors",
 		  "map",

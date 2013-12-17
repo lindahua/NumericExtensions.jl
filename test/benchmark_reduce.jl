@@ -69,53 +69,53 @@ _maximum(x::Array, d::DIMS) = maximum(x, d)
 _minimum(x::Array) = minimum(x)
 _minimum(x::Array, d::DIMS) = minimum(x, d)
 
-# _sumabs(x::Array) = sum(abs(x))
-# _sumabs(x::Array, d::DIMS) = sum(abs(x), d)
+_sumabs(x::Array) = sum(abs(x))
+_sumabs(x::Array, d::DIMS) = sum(abs(x), d)
 
-# _maxabs(x::Array) = maximum(abs(x))
-# _maxabs(x::Array, d::DIMS) = maximum(abs(x), d)
+_maxabs(x::Array) = maximum(abs(x))
+_maxabs(x::Array, d::DIMS) = maximum(abs(x), d)
 
-# _minabs(x::Array) = minimum(abs(x))
-# _minabs(x::Array, d::DIMS) = minimum(abs(x), d)
+_minabs(x::Array) = minimum(abs(x))
+_minabs(x::Array, d::DIMS) = minimum(abs(x), d)
 
-# _sumsq(x::Array) = sum(abs2(x))
-# _sumsq(x::Array, d::DIMS) = sum(abs2(x), d)
+_sumsq(x::Array) = sum(abs2(x))
+_sumsq(x::Array, d::DIMS) = sum(abs2(x), d)
 
-# _dot(x::Array, y::Array) = sum(x .* y)
-# _dot(x::Array, y::Array, d::DIMS) = sum(x .* y, d)
+_dot(x::Array, y::Array) = sum(x .* y)
+_dot(x::Array, y::Array, d::DIMS) = sum(x .* y, d)
 
-# _sumabsdiff(x::Array, y::Array) = sum(abs(x - y))
-# _sumabsdiff(x::Array, y::Array, d::DIMS) = sum(abs(x - y), d)
+_sumabsdiff(x::Array, y::Array) = sum(abs(x - y))
+_sumabsdiff(x::Array, y::Array, d::DIMS) = sum(abs(x - y), d)
 
-# _maxabsdiff(x::Array, y::Array) = maximum(abs(x - y))
-# _maxabsdiff(x::Array, y::Array, d::DIMS) = maximum(abs(x - y), d)
+_maxabsdiff(x::Array, y::Array) = maximum(abs(x - y))
+_maxabsdiff(x::Array, y::Array, d::DIMS) = maximum(abs(x - y), d)
 
-# _minabsdiff(x::Array, y::Array) = minimum(abs(x - y))
-# _minabsdiff(x::Array, y::Array, d::DIMS) = minimum(abs(x - y), d)
+_minabsdiff(x::Array, y::Array) = minimum(abs(x - y))
+_minabsdiff(x::Array, y::Array, d::DIMS) = minimum(abs(x - y), d)
 
-# _sumsqdiff(x::Array, y::Array) = sum(abs2(x - y))
-# _sumsqdiff(x::Array, y::Array, d::DIMS) = sum(abs2(x - y), d)
+_sumsqdiff(x::Array, y::Array) = sum(abs2(x - y))
+_sumsqdiff(x::Array, y::Array, d::DIMS) = sum(abs2(x - y), d)
 
-# _entropy(x::Array) = -sum(x .* log(x))
-# _entropy(x::Array, d::DIMS) = -sum(x .* log(x), d)
+_entropy(x::Array) = -sum(x .* log(x))
+_entropy(x::Array, d::DIMS) = -sum(x .* log(x), d)
 
-# _sumxlogy(x::Array, y::Array) = sum(x .* log(y)) 
-# _sumxlogy(x::Array, y::Array, d::DIMS) = sum(x .* log(y), d)
+_sumxlogy(x::Array, y::Array) = sum(x .* log(y)) 
+_sumxlogy(x::Array, y::Array, d::DIMS) = sum(x .* log(y), d)
 
-# _logsumexp(x::Array) = (u = maximum(x); log(sum(exp(x - u))) + u)
-# _logsumexp(x::Array, d::DIMS) = (u = maximum(x, d); log(sum(exp(x .- u))) .+ u)
+_logsumexp(x::Array) = (u = maximum(x); log(sum(exp(x - u))) + u)
+_logsumexp(x::Array, d::DIMS) = (u = maximum(x, d); log(sum(exp(x .- u))) .+ u)
 
-# function _softmax(x::Array)
-# 	u = maximum(x)
-# 	r = exp(x - u)
-# 	r / sum(r)
-# end
+function _softmax(x::Array)
+	u = maximum(x)
+	r = exp(x - u)
+	r / sum(r)
+end
 
-# function _softmax(x::Array, d::Int)
-# 	u = maximum(x, d)
-# 	r = exp(x .- u)
-# 	r ./ sum(r, d)
-# end
+function _softmax(x::Array, d::Int)
+	u = maximum(x, d)
+	r = exp(x .- u)
+	r ./ sum(r, d)
+end
 
 # benchmark
 
