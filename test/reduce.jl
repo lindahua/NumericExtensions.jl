@@ -117,6 +117,9 @@ q = rand(3, 4)
 @test foldl(Subtract(), 10, [4, 7, 9]) === (10 - 4 - 7 - 9)
 @test foldr(Subtract(), 10, [4, 7, 9]) === 4 - (7 - (9 - 10))
 
+@test foldl(Subtract(), [4, 7, 9]) === (4 - 7 - 9)
+@test foldr(Subtract(), [4, 7, 9]) === (4 - (7 - 9))
+
 # sum
 
 @test sum(Bool[]) === 0
