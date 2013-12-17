@@ -46,17 +46,18 @@ function _sum_eachcol!{R<:Number,T<:Number}(r::ContiguousArray{R}, a::Contiguous
 	end	
 end
 
-function _sum_eachrow!{R<:Number,T<:Number}(r::ContiguousArray{R}, a::ContiguousArray{T}, m::Int, n::Int, offset::Int)
+function _sum_eachrow!{R<:Number,T<:Number}(r::ContiguousArray{R}, a::ContiguousArray{T}, m::Int, n::Int)
 	if n > 0
 		for i = 1 : m
-			@inbounds r[i] = a[offset + i]
+			@inbounds r[i] = a[i]
 		end
 
-		for j = 2 : n
-			offset += m
+		offset = m
+		for j = 2 : n			
 			for i = 1 : m
 				@inbounds r[i] += a[offset + i]
 			end
+			offset += m
 		end
 	else
 		z = zero(R)
@@ -65,7 +66,6 @@ function _sum_eachrow!{R<:Number,T<:Number}(r::ContiguousArray{R}, a::Contiguous
 		end
 	end
 end
-
 
 function _sum!{R<:Number,T<:Number,D}(r::ContiguousArray{R}, a::ContiguousArray{T,D}, dim::Int)
 	shp = size(a)
@@ -81,13 +81,15 @@ function _sum!{R<:Number,T<:Number,D}(r::ContiguousArray{R}, a::ContiguousArray{
 		k = succ_length(shp, dim)
 
 		if k == 1
-			_sum_eachrow!(r, a, m, n, 0)
+			_sum_eachrow!(r, a, m, n)
 		else
-			offset = 0
 			mn = m * n
+			ro = 0
+			ao = 0
 			for l = 1 : k
-				_sum_eachrow!(r, a, m, n, offset)
-				offset += mn
+				_sum_eachrow!(offset_view(r, ro, m), offset_view(a, ao, m, n), m, n)
+				ro += m
+				ao += mn
 			end
 		end
 	end
@@ -96,11 +98,11 @@ end
 
 
 function sum!(r::ContiguousArray, a::ContiguousArray, dim::Int)
-	length(r) != reduced_length(size(a), dim) || error("Invalid argument dimensions.")
+	length(r) == reduced_length(size(a), dim) || error("Invalid argument dimensions.")
 	_sum!(r, a, dim)
 end
 
-function sum!{T}(a::ContiguousArray{T}, dim::Int)
+function sum{T}(a::ContiguousArray{T}, dim::Int)
 	rshp = reduced_shape(size(a), dim)
 	_sum!(Array(T, rshp), a, dim)
 end

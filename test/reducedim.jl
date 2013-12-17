@@ -47,3 +47,62 @@ reduced_length = NumericExtensions.reduced_length
 @test_throws reduced_length((3, 4, 5, 6), 5)
 
 
+## Testing of sum
+
+a1 = rand(6)
+a2 = rand(5, 6)
+a3 = rand(5, 4, 3)
+a4 = rand(5, 4, 3, 2)
+
+# auxiliary
+
+function safe_sumdim(a::Array, dim::Int)
+	n = size(a, dim)
+	s = slicedim(a, dim, 1)
+	for i = 2 : n
+		s += slicedim(a, dim, i)
+	end
+	return s
+end
+
+do_sum!(a::Array, dim::Int) = sum!(zeros(reduced_shape(size(a), dim)), a, dim)
+
+
+# testing sum
+
+@test_approx_eq sum(a1, 1) safe_sumdim(a1, 1)
+
+@test_approx_eq sum(a2, 1) safe_sumdim(a2, 1)
+@test_approx_eq sum(a2, 2) safe_sumdim(a2, 2)
+
+@test_approx_eq sum(a3, 1) safe_sumdim(a3, 1)
+@test_approx_eq sum(a3, 2) safe_sumdim(a3, 2)
+@test_approx_eq sum(a3, 3) safe_sumdim(a3, 3)
+
+@test_approx_eq sum(a4, 1) safe_sumdim(a4, 1)
+@test_approx_eq sum(a4, 2) safe_sumdim(a4, 2)
+@test_approx_eq sum(a4, 3) safe_sumdim(a4, 3)
+@test_approx_eq sum(a4, 4) safe_sumdim(a4, 4)
+
+# testing sum!
+
+@test_approx_eq do_sum!(a1, 1) safe_sumdim(a1, 1)
+
+@test_approx_eq do_sum!(a2, 1) safe_sumdim(a2, 1)
+@test_approx_eq do_sum!(a2, 2) safe_sumdim(a2, 2)
+
+@test_approx_eq do_sum!(a3, 1) safe_sumdim(a3, 1)
+@test_approx_eq do_sum!(a3, 2) safe_sumdim(a3, 2)
+@test_approx_eq do_sum!(a3, 3) safe_sumdim(a3, 3)
+
+@test_approx_eq do_sum!(a4, 1) safe_sumdim(a4, 1)
+@test_approx_eq do_sum!(a4, 2) safe_sumdim(a4, 2)
+@test_approx_eq do_sum!(a4, 3) safe_sumdim(a4, 3)
+@test_approx_eq do_sum!(a4, 4) safe_sumdim(a4, 4)
+
+
+
+
+
+
+
