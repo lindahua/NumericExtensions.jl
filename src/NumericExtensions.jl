@@ -114,7 +114,6 @@ module NumericExtensions
 	# include("vbroadcast.jl")
 	include("diagop.jl")
 
-	include("codegen.jl")
 	include("reduce.jl")
 	include("mapreduce.jl")
 	include("reducedim.jl")

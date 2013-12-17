@@ -2,10 +2,12 @@
 
 abstract AbstractUnsafeView{T, N} <: AbstractArray{T, N}
 
-typealias ContiguousArray{T, N} Union(Array{T, N}, AbstractUnsafeView{T, N})
-typealias ContiguousVector{T} ContiguousArray{T, 1}
-typealias ContiguousMatrix{T} ContiguousArray{T, 2}
-typealias ContiguousCube{T} ContiguousArray{T, 3}
+typealias ContiguousArray{T<:Number, N} Union(Array{T, N}, AbstractUnsafeView{T, N})
+typealias ContiguousVector{T<:Number} ContiguousArray{T, 1}
+typealias ContiguousMatrix{T<:Number} ContiguousArray{T, 2}
+typealias ContiguousCube{T<:Number} ContiguousArray{T, 3}
+
+typealias ContiguousArrOrNum{T<:Number} Union(ContiguousArray{T}, T)
 
 similar(a::AbstractUnsafeView, T::DataType, shape::NTuple) = Array(T, shape)
 similar{T}(a::AbstractUnsafeView{T}) = Array(T, size(a))
