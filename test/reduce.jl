@@ -104,7 +104,6 @@ safe_max(x, dim::Union(Int, (Int, Int))) = safe_xreduce(MaxFun(), x, typemin(elt
 safe_min(x, dim::Union(Int, (Int, Int))) = safe_xreduce(MinFun(), x, typemax(eltype(x)), dim)
 
 
-
 ### full reduction ###
 
 x = randn(3, 4)
@@ -112,6 +111,13 @@ y = randn(3, 4)
 z = randn(3, 4)
 p = rand(3, 4)
 q = rand(3, 4)
+
+# foldl & foldr
+
+@test foldl(Subtract(), 10, [4, 7, 9]) === (10 - 4 - 7 - 9)
+@test foldr(Subtract(), 10, [4, 7, 9]) === 4 - (7 - (9 - 10))
+
+# sum
 
 @test sum(Bool[]) === 0
 @test sum([false]) === 0
@@ -125,9 +131,17 @@ q = rand(3, 4)
 @test sum([2, 3, 4, 5]) === 14
 @test sum([2, 3, 4, 5, 6, 7]) === 27
 
+@test_approx_eq sum(x) safe_sum(x)
+
+# mean
+
 @test isnan(mean(Int[]))
 @test isnan(mean(Float64[]))
 @test mean([1, 2]) == 1.5
+
+@test_approx_eq mean(x) safe_sum(x) / length(x)
+
+# maximum & minimum
 
 @test_throws maximum(Int[])
 @test_throws minimum(Int[])
@@ -138,8 +152,6 @@ q = rand(3, 4)
 @test maximum([NaN, 3.0, NaN, 2.0, NaN]) === 3.0
 @test minimum([NaN, 3.0, NaN, 2.0, NaN]) === 2.0
 
-@test_approx_eq sum(x) safe_sum(x)
-@test_approx_eq mean(x) safe_sum(x) / length(x)
 @test maximum(x) == safe_max(x)
 @test minimum(x) == safe_min(x)
 

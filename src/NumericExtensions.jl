@@ -11,7 +11,7 @@ module NumericExtensions
 		Base.show, Base.add!, Base.copy, Base.similar, Base.pointer,
 
 		# higher-level map & reduction functions to be extended
-		Base.map, Base.map!, Base.reduce, Base.mapreduce,
+		Base.map, Base.map!, Base.reduce, Base.mapreduce, Base.foldl, Base.foldr,
 
 		# arithmetic functions
 		Base.+, Base.*, Base.\, Base./, Base.==,
