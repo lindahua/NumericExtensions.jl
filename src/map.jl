@@ -18,8 +18,9 @@ function code_mapfuns(nargs::Int)
 
     quote
     	function map!(f::Functor, dst::NumericArray, $(params...))
-            length(dst) == maplength($(asyms...)) || error("Inconsistent argument dimensions.")
-            for i = 1 : length(dst)
+            n = length(dst)
+            n == maplength($(asyms...)) || error("Inconsistent argument dimensions.")
+            for i = 1 : n
                 @inbounds dst[i] = evaluate(f, $(sargs...))
             end
             dst
@@ -46,9 +47,9 @@ end
 @mapfuns 5
 
 function mapdiff!(f::Functor, dst::NumericArray, a1::ArrOrNum, a2::ArrOrNum)
-    shp = mapshape(a1, a2)
-    length(dst) == prod(shp) || error("Inconsistent argument dimensions.")
-	for i = 1 : length(dst)
+    n = length(dst)
+    n == maplength(a1, a2) || error("Inconsistent argument dimensions.")
+	for i = 1 : n
 		@inbounds dst[i] = evaluate(f, getvalue(a1, i) - getvalue(a2, i))
 	end
 	return dst
@@ -57,17 +58,7 @@ end
 function mapdiff(f::Functor, a1::ArrOrNum, a2::ArrOrNum)
 	shp = mapshape(a1, a2)
 	n::Int = prod(shp)
-	if n > 0
-		r1 = evaluate(f, getvalue(a1, 1) - getvalue(a2, 1))
-		dst = Array(typeof(r1), shp)
-		dst[1] = r1
-		for i = 2 : n
-			@inbounds dst[i] = evaluate(f, getvalue(a1, i) - getvalue(a2, i))
-		end
-		return dst
-	else
-		Any[]
-	end
+	reshape([(@inbounds y = getvalue(a1, i) - getvalue(a2, i); evaluate(f, y)) for i = 1 : n], shp)
 end	
 
 
