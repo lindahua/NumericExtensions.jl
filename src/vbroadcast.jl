@@ -1,120 +1,76 @@
 # A set of inplace broadcasting functions
 
-function _check_dimlen(a::AbstractArray, b::AbstractArray, dim::Int)
-	size(a, dim) == length(b) ? nothing : throw(ArgumentError("Argument dimensions must match."))
-end
 
 # broadcast along specific dimension(s)
 
-function vbroadcast!(f::BinaryFunctor, dst::Matrix, a::Matrix, b::ContiguousArray, dim::Int)
-	_check_dimlen(a, b, dim)
-	m = size(a, 1)
-	n = size(a, 2)
+function _vbroadcast_eachcol!(m::Int, n::Int, f::Functor{2}, r::ContiguousArray, a::ContiguousArray, b::ContiguousArray)
+	o = 0
+	for j = 1 : n
+		for i = 1 : m
+			@inbounds r[o+i] = evaluate(f, a[o+i], b[i])
+		end
+		o += m
+	end	
+end
+
+function _vbroadcast_eachrow!(m::Int, n::Int, f::Functor{2}, r::ContiguousArray, a::ContiguousArray, b::ContiguousArray)
+	o = 0
+	for j = 1 : n
+		@inbounds bj = b[j]
+		for i = 1 : m
+			@inbounds r[o+i] = evaluate(f, a[o+i], bj)
+		end
+		o += m
+	end
+end
+
+function vbroadcast!(f::Functor{2}, r::ContiguousArray, a::ContiguousArray, b::ContiguousArray, dim::Int)
+	shp = size(a)
+	nd = ndims(a)
+	size(r) == shp && size(a, dim) == length(b) || error("Inconsistent argument dimensions.")
+	1 <= dim <= nd || error("Invalid value of dim.")
+	
 	if dim == 1
-		o = 0
-		for j in 1 : n
-			for i in 1 : m
-				oi = o + i
-				dst[oi] = evaluate(f, a[oi], b[i])
-			end
-			o += m
-		end
-	elseif dim == 2
-		o = 0
-		for j in 1 : n
-			bj = b[j]
-			for i in 1 : m
-				oi = o + i
-				dst[oi] = evaluate(f, a[oi], bj)
-			end
-			o += m
-		end
+		m = shp[1]
+		n = succ_length(shp, 1)
+		_vbroadcast_eachcol!(m, n, f, r, a, b)
 	else
-		throw(ArgumentError("dim must be either 1 or 2."))
+		m = prec_length(shp, nd)
+		n = shp[nd]
+		k = succ_length(shp, nd)
+
+		_vbroadcast_eachrow!(m, n, f, r, a, b)
+
+		if k > 1
+			mn = m * n
+			o = mn
+			for l = 2 : k
+				_vbroadcast_eachrow!(m, n, f, offset_view(r, o, m, n), offset_view(a, o, m, n), b)
+			end
+			o += mn
+		end
 	end
-	dst
+
+	return r
 end
 
-function vbroadcast!{R,T}(f::BinaryFunctor, dst::Array{R,3}, a::Array{T,3}, b::ContiguousArray, dim::Int)
-	_check_dimlen(a, b, dim)
-	m = size(a, 1)
-	n = size(a, 2)
-	k = size(a, 3)
-	if dim == 1
-		nk = n * k
-		vbroadcast!(f, reshape(dst, m, nk), reshape(a, m, nk), b, 1)
-	elseif dim == 2
-		o = 0
-		for l in 1 : k
-			for j in 1 : n
-				bj = b[j]
-				for i in 1 : m
-					oi = o + i
-					dst[oi] = evaluate(f, a[oi], bj)
-				end
-				o += m
-			end
-		end
-	elseif dim == 3
-		mn = m * n
-		vbroadcast!(f, reshape(dst, mn, k), reshape(a, mn, k), b, 2)
-	else
-		throw(ArgumentError("dim must be either 1 or 2."))
-	end
-	dst
-end
 
-function vbroadcast!{R,T}(f::BinaryFunctor, dst::Array{R,3}, a::Array{T,3}, b::ContiguousMatrix, dims::(Int, Int))
-	if !(size(b, 1) == size(a, dims[1]) && size(b, 2) == size(a, dims[2]))
-		throw(ArgumentError("Argument dimensions must match."))
-	end
+vbroadcast1!(f::Functor{2}, a::ContiguousArray, b::ContiguousArray, dim::Int) = vbroadcast!(f, a, a, b, dim)
 
-	m = size(a, 1)
-	n = size(a, 2)
-	k = size(a, 3)
-
-	if dims == (1, 2)
-		mn = m * n
-		vbroadcast!(f, reshape(dst, mn, k), reshape(a, mn, k), b, 1)
-	elseif dims == (1, 3)
-		o = 0
-		o2 = 0
-		for l in 1 : k
-			for j in 1 : n
-				for i in 1 : m
-					oi = o + i
-					dst[oi] = evaluate(f, a[oi], b[o2 + i])
-				end
-				o += m
-			end
-			o2 += m
-		end
-	elseif dims == (2, 3)
-		nk = n * k
-		vbroadcast!(f, reshape(dst, m, nk), reshape(a, m, nk), b, 2)
-	else
-		throw(ArgumentError("dim must be either 1 or 2."))
-	end
-	dst
-end
-
-vbroadcast1!(f::BinaryFunctor, a::Array, b::ContiguousArray, dims::DimSpec) = vbroadcast!(f, a, a, b, dims)
-
-function vbroadcast(f::BinaryFunctor, a::Array, b::ContiguousArray, dims::DimSpec)
+function vbroadcast(f::Functor{2}, a::ContiguousArray, b::ContiguousArray, dim::Int)
 	R = result_type(f, eltype(a), eltype(b))
-	vbroadcast!(f, Array(R, size(a)), a, b, dims)
+	vbroadcast!(f, Array(R, size(a)), a, b, dim)
 end
 
 # Specific broadcasting function
 
-badd!(a::ContiguousArray, b::ContiguousArray, dims::DimSpec) = vbroadcast1!(Add(), a, b, dims)
-bsubtract!(a::ContiguousArray, b::ContiguousArray, dims::DimSpec) = vbroadcast1!(Subtract(), a, b, dims)
-bmultiply!(a::ContiguousArray, b::ContiguousArray, dims::DimSpec) = vbroadcast1!(Multiply(), a, b, dims)
-bdivide!(a::ContiguousArray, b::ContiguousArray, dims::DimSpec) = vbroadcast1!(Divide(), a, b, dims)
+badd!(a::ContiguousArray, b::ContiguousArray, dim::Int) = vbroadcast1!(Add(), a, b, dim)
+bsubtract!(a::ContiguousArray, b::ContiguousArray, dim::Int) = vbroadcast1!(Subtract(), a, b, dim)
+bmultiply!(a::ContiguousArray, b::ContiguousArray, dim::Int) = vbroadcast1!(Multiply(), a, b, dim)
+bdivide!(a::ContiguousArray, b::ContiguousArray, dim::Int) = vbroadcast1!(Divide(), a, b, dim)
 
-badd(a::ContiguousArray, b::ContiguousArray, dims::DimSpec) = vbroadcast(Add(), a, b, dims)
-bsubtract(a::ContiguousArray, b::ContiguousArray, dims::DimSpec) = vbroadcast(Subtract(), a, b, dims)
-bmultiply(a::ContiguousArray, b::ContiguousArray, dims::DimSpec) = vbroadcast(Multiply(), a, b, dims)
-bdivide(a::ContiguousArray, b::ContiguousArray, dims::DimSpec) = vbroadcast(Divide(), a, b, dims)
-
+badd(a::ContiguousArray, b::ContiguousArray, dim::Int) = vbroadcast(Add(), a, b, dim)
+bsubtract(a::ContiguousArray, b::ContiguousArray, dim::Int) = vbroadcast(Subtract(), a, b, dim)
+bmultiply(a::ContiguousArray, b::ContiguousArray, dim::Int) = vbroadcast(Multiply(), a, b, dim)
+bdivide(a::ContiguousArray, b::ContiguousArray, dim::Int) = vbroadcast(Divide(), a, b, dim)
 

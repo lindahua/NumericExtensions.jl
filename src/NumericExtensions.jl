@@ -51,9 +51,9 @@ module NumericExtensions
 		floor!, ceil!, round!, trunc!,
 		absdiff, sqrdiff, fma, fma!,
 
-		# # vbroadcast
-		# vbroadcast, vbroadcast!, vbroadcast1!,
-		# badd, badd!, bsubtract, bsubtract!, bmultiply, bmultiply!, bdivide, bdivide!,
+		# vbroadcast
+		vbroadcast, vbroadcast!, vbroadcast1!,
+		badd, badd!, bsubtract, bsubtract!, bmultiply, bmultiply!, bdivide, bdivide!,
 
 		# diagop
 		add_diag!, add_diag, set_diag!, set_diag,
@@ -113,7 +113,7 @@ module NumericExtensions
 	include("codegen.jl")
 	include("map.jl")
 	
-	# include("vbroadcast.jl")
+	include("vbroadcast.jl")
 	include("diagop.jl")
 
 	include("reduce.jl")
