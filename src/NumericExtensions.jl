@@ -39,6 +39,7 @@ module NumericExtensions
 
 		# mathfuns
 		sqr, rcp, rsqrt, rcbrt, 
+		logit, xlogx, xlogy, logistic, invlogistic, softplus, invsoftplus,
 
 		# functors
 		Functor, @functor1, @functor2, evaluate,

@@ -26,3 +26,6 @@ invsoftplus(x::Real) = log(exp(x) - one(x))
 @vectorize_1arg Real rsqrt
 @vectorize_1arg Real rcbrt
 
+@vectorize_1arg Real logit
+@vectorize_1arg Real logistic
+

@@ -54,6 +54,16 @@ a2 = 2 * rand(5, 6) - 1.0
 a3 = 2 * rand(5, 4, 3) - 1.0
 a4 = 2 * rand(5, 4, 3, 2) - 1.0
 
+p1 = rand(6)
+p2 = rand(5, 6)
+p3 = rand(5, 4, 3)
+p4 = rand(5, 4, 3, 2)
+
+q1 = rand(6)
+q2 = rand(5, 6)
+q3 = rand(5, 4, 3)
+q4 = rand(5, 4, 3, 2)
+
 # auxiliary
 
 function safe_sumdim(a::Array, dim::Int)
@@ -132,7 +142,37 @@ do_sum!(a::Array, dim::Int) = sum!(zeros(reduced_shape(size(a), dim)), a, dim)
 @test_approx_eq sumsq(a4, 3) sum(abs2(a4), 3)
 @test_approx_eq sumsq(a4, 4) sum(abs2(a4), 4)
 
+# testing sumxlogx
 
+@test_approx_eq sumxlogx(p1, 1) sum(p1 .* log(p1), 1)
+
+@test_approx_eq sumxlogx(p2, 1) sum(p2 .* log(p2), 1)
+@test_approx_eq sumxlogx(p2, 2) sum(p2 .* log(p2), 2)
+
+@test_approx_eq sumxlogx(p3, 1) sum(p3 .* log(p3), 1)
+@test_approx_eq sumxlogx(p3, 2) sum(p3 .* log(p3), 2)
+@test_approx_eq sumxlogx(p3, 3) sum(p3 .* log(p3), 3)
+
+@test_approx_eq sumxlogx(p4, 1) sum(p4 .* log(p4), 1)
+@test_approx_eq sumxlogx(p4, 2) sum(p4 .* log(p4), 2)
+@test_approx_eq sumxlogx(p4, 3) sum(p4 .* log(p4), 3)
+@test_approx_eq sumxlogx(p4, 4) sum(p4 .* log(p4), 4)
+
+# testing sumxlogy
+
+@test_approx_eq sumxlogy(p1, q1, 1) sum(p1 .* log(q1), 1)
+
+@test_approx_eq sumxlogy(p2, q2, 1) sum(p2 .* log(q2), 1)
+@test_approx_eq sumxlogy(p2, q2, 2) sum(p2 .* log(q2), 2)
+
+@test_approx_eq sumxlogy(p3, q3, 1) sum(p3 .* log(q3), 1)
+@test_approx_eq sumxlogy(p3, q3, 2) sum(p3 .* log(q3), 2)
+@test_approx_eq sumxlogy(p3, q3, 3) sum(p3 .* log(q3), 3)
+
+@test_approx_eq sumxlogy(p4, q4, 1) sum(p4 .* log(q4), 1)
+@test_approx_eq sumxlogy(p4, q4, 2) sum(p4 .* log(q4), 2)
+@test_approx_eq sumxlogy(p4, q4, 3) sum(p4 .* log(q4), 3)
+@test_approx_eq sumxlogy(p4, q4, 4) sum(p4 .* log(q4), 4)
 
 
 
