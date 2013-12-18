@@ -56,7 +56,7 @@ function prepare_reducedim_args(::_RDArgs{-2})
 	aparams = [:(f::Functor{1}), :(a1::ContiguousArrOrNum), :(a2::ContiguousArrOrNum)]
 	args = [:a1, :a2]
 	offset_args = [:(offset_view(a1, ao, m, n)), :(offset_view(a2, ao, m, n))]
-	term = :(f(getvalue(a1, idx) - getvalue(a2, idx)))
+	term = :(evaluate(f, getvalue(a1, idx) - getvalue(a2, idx)))
 	inputsize = :(mapshape(a1, a2))
 	termtype = :(result_type(f, promote_type(eltype(a1), eltype(a2))))
 	return ReduceDimCodeHelper(aparams, args, offset_args, term, inputsize, termtype)
@@ -69,9 +69,9 @@ function prepare_reducedim_args{N}(::_RDArgs{N})
 	aparams = [:(f::Functor{$N}), [:($a::ContiguousArrOrNum) for a in aargs]...]
 	args = [:f, aargs...]
 	offset_args = [:f, [:(offset_view($a, ao, m, n)) for a in aargs]...]
-	term = Expr(:call, :f, [:(getvalue($a, idx)) for a in aargs]...)
-	inputsize = :(mapshape($(aargs...)))
-	termtype = :(result_type(f, [:(eltype($a)) for a in aargs]...))
+	term = Expr(:call, :evaluate, :f, [:(getvalue($a, idx)) for a in aargs]...)
+	inputsize = Expr(:call, :mapshape, aargs...)
+	termtype = Expr(:call, :result_type, :f, [:(eltype($a)) for a in aargs]...)
 	return ReduceDimCodeHelper(aparams, args, offset_args, term, inputsize, termtype)
 end
 
@@ -143,7 +143,7 @@ function generate_sumdim_codes(AN::Int, accum::Symbol)
 
 		global $(_accum!)
 		function $(_accum!)(r::ContiguousArray, $(h.aparams...), dim::Int)
-			shp = size(a)
+			shp = $(h.inputsize)
 			
 			if dim == 1
 				m = shp[1]
@@ -189,10 +189,27 @@ macro code_sumdim(AN, fname)
 	esc(generate_sumdim_codes(AN, fname))
 end
 
+# specific functions
+
 @code_sumdim 0 sum
 @code_sumdim 1 sum
 @code_sumdim 2 sum
 @code_sumdim 3 sum
 @code_sumdim (-2) sumfdiff
+
+# derived functions
+
+sumabs(a::ContiguousArray, dim::Int) = sum(AbsFun(), a, dim)
+sumsq(a::ContiguousArray, dim::Int) = sum(Abs2Fun(), a, dim)
+
+sumxlogx(a::ContiguousArray, dim::Int) = sum(XlogxFun(), a, dim)
+sumxlogy(a::ContiguousArray, b::ContiguousArray, dim::Int) = sum(XlogyFun(), a, b, dim)
+
+
+
+
+
+
+
 
 

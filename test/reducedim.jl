@@ -49,10 +49,10 @@ reduced_length = NumericExtensions.reduced_length
 
 ## Testing of sum
 
-a1 = rand(6)
-a2 = rand(5, 6)
-a3 = rand(5, 4, 3)
-a4 = rand(5, 4, 3, 2)
+a1 = 2 * rand(6) - 1.0
+a2 = 2 * rand(5, 6) - 1.0
+a3 = 2 * rand(5, 4, 3) - 1.0
+a4 = 2 * rand(5, 4, 3, 2) - 1.0
 
 # auxiliary
 
@@ -100,6 +100,37 @@ do_sum!(a::Array, dim::Int) = sum!(zeros(reduced_shape(size(a), dim)), a, dim)
 @test_approx_eq do_sum!(a4, 3) safe_sumdim(a4, 3)
 @test_approx_eq do_sum!(a4, 4) safe_sumdim(a4, 4)
 
+# testing sumabs
+
+@test_approx_eq sumabs(a1, 1) sum(abs(a1), 1)
+
+@test_approx_eq sumabs(a2, 1) sum(abs(a2), 1)
+@test_approx_eq sumabs(a2, 2) sum(abs(a2), 2)
+
+@test_approx_eq sumabs(a3, 1) sum(abs(a3), 1)
+@test_approx_eq sumabs(a3, 2) sum(abs(a3), 2)
+@test_approx_eq sumabs(a3, 3) sum(abs(a3), 3)
+
+@test_approx_eq sumabs(a4, 1) sum(abs(a4), 1)
+@test_approx_eq sumabs(a4, 2) sum(abs(a4), 2)
+@test_approx_eq sumabs(a4, 3) sum(abs(a4), 3)
+@test_approx_eq sumabs(a4, 4) sum(abs(a4), 4)
+
+# testing sumsq
+
+@test_approx_eq sumsq(a1, 1) sum(abs2(a1), 1)
+
+@test_approx_eq sumsq(a2, 1) sum(abs2(a2), 1)
+@test_approx_eq sumsq(a2, 2) sum(abs2(a2), 2)
+
+@test_approx_eq sumsq(a3, 1) sum(abs2(a3), 1)
+@test_approx_eq sumsq(a3, 2) sum(abs2(a3), 2)
+@test_approx_eq sumsq(a3, 3) sum(abs2(a3), 3)
+
+@test_approx_eq sumsq(a4, 1) sum(abs2(a4), 1)
+@test_approx_eq sumsq(a4, 2) sum(abs2(a4), 2)
+@test_approx_eq sumsq(a4, 3) sum(abs2(a4), 3)
+@test_approx_eq sumsq(a4, 4) sum(abs2(a4), 4)
 
 
 
