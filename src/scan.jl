@@ -151,7 +151,7 @@ macro code_scandim(AN)
 						ro = 0
 						ao = 0
 						for l = 1 : k
-							_scan_eachrow!(m, n, offset_view(r, ro, mn), op, $(h.offset_args...))
+							_scan_eachrow!(m, n, offset_view(r, ro, m, n), op, $(h.offset_args...))
 							ro += mn
 							ao += mn
 						end
