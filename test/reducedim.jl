@@ -47,7 +47,7 @@ reduced_length = NumericExtensions.reduced_length
 @test_throws reduced_length((3, 4, 5, 6), 5)
 
 
-## Testing of sum
+## Testing of reducedim functions 
 
 a1 = 2 * rand(6) - 1.0
 a2 = 2 * rand(5, 6) - 1.0
@@ -82,6 +82,10 @@ end
 
 do_sum!(a::Array, dim::Int) = sum!(zeros(reduced_shape(size(a), dim)), a, dim)
 
+safe_meandim(a::Array, dim::Int) = safe_sumdim(a, dim) / size(a, dim)
+
+do_mean!(a::Array, dim::Int) = mean!(zeros(reduced_shape(size(a), dim)), a, dim)
+
 
 # testing sum
 
@@ -115,6 +119,39 @@ do_sum!(a::Array, dim::Int) = sum!(zeros(reduced_shape(size(a), dim)), a, dim)
 @test_approx_eq do_sum!(a4, 3) safe_sumdim(a4, 3)
 @test_approx_eq do_sum!(a4, 4) safe_sumdim(a4, 4)
 
+# testing mean
+
+@test_approx_eq mean(a1, 1) safe_meandim(a1, 1)
+
+@test_approx_eq mean(a2, 1) safe_meandim(a2, 1)
+@test_approx_eq mean(a2, 2) safe_meandim(a2, 2)
+
+@test_approx_eq mean(a3, 1) safe_meandim(a3, 1)
+@test_approx_eq mean(a3, 2) safe_meandim(a3, 2)
+@test_approx_eq mean(a3, 3) safe_meandim(a3, 3)
+
+@test_approx_eq mean(a4, 1) safe_meandim(a4, 1)
+@test_approx_eq mean(a4, 2) safe_meandim(a4, 2)
+@test_approx_eq mean(a4, 3) safe_meandim(a4, 3)
+@test_approx_eq mean(a4, 4) safe_meandim(a4, 4)
+
+# testing mean!
+
+@test_approx_eq do_mean!(a1, 1) safe_meandim(a1, 1)
+
+@test_approx_eq do_mean!(a2, 1) safe_meandim(a2, 1)
+@test_approx_eq do_mean!(a2, 2) safe_meandim(a2, 2)
+
+@test_approx_eq do_mean!(a3, 1) safe_meandim(a3, 1)
+@test_approx_eq do_mean!(a3, 2) safe_meandim(a3, 2)
+@test_approx_eq do_mean!(a3, 3) safe_meandim(a3, 3)
+
+@test_approx_eq do_mean!(a4, 1) safe_meandim(a4, 1)
+@test_approx_eq do_mean!(a4, 2) safe_meandim(a4, 2)
+@test_approx_eq do_mean!(a4, 3) safe_meandim(a4, 3)
+@test_approx_eq do_mean!(a4, 4) safe_meandim(a4, 4)
+
+
 # testing sumabs
 
 @test_approx_eq sumabs(a1, 1) sum(abs(a1), 1)
@@ -131,6 +168,22 @@ do_sum!(a::Array, dim::Int) = sum!(zeros(reduced_shape(size(a), dim)), a, dim)
 @test_approx_eq sumabs(a4, 3) sum(abs(a4), 3)
 @test_approx_eq sumabs(a4, 4) sum(abs(a4), 4)
 
+# testing meanabs
+
+@test_approx_eq meanabs(a1, 1) mean(abs(a1), 1)
+
+@test_approx_eq meanabs(a2, 1) mean(abs(a2), 1)
+@test_approx_eq meanabs(a2, 2) mean(abs(a2), 2)
+
+@test_approx_eq meanabs(a3, 1) mean(abs(a3), 1)
+@test_approx_eq meanabs(a3, 2) mean(abs(a3), 2)
+@test_approx_eq meanabs(a3, 3) mean(abs(a3), 3)
+
+@test_approx_eq meanabs(a4, 1) mean(abs(a4), 1)
+@test_approx_eq meanabs(a4, 2) mean(abs(a4), 2)
+@test_approx_eq meanabs(a4, 3) mean(abs(a4), 3)
+@test_approx_eq meanabs(a4, 4) mean(abs(a4), 4)
+
 # testing sumsq
 
 @test_approx_eq sumsq(a1, 1) sum(abs2(a1), 1)
@@ -146,6 +199,38 @@ do_sum!(a::Array, dim::Int) = sum!(zeros(reduced_shape(size(a), dim)), a, dim)
 @test_approx_eq sumsq(a4, 2) sum(abs2(a4), 2)
 @test_approx_eq sumsq(a4, 3) sum(abs2(a4), 3)
 @test_approx_eq sumsq(a4, 4) sum(abs2(a4), 4)
+
+# testing meansq
+
+@test_approx_eq meansq(a1, 1) mean(abs2(a1), 1)
+
+@test_approx_eq meansq(a2, 1) mean(abs2(a2), 1)
+@test_approx_eq meansq(a2, 2) mean(abs2(a2), 2)
+
+@test_approx_eq meansq(a3, 1) mean(abs2(a3), 1)
+@test_approx_eq meansq(a3, 2) mean(abs2(a3), 2)
+@test_approx_eq meansq(a3, 3) mean(abs2(a3), 3)
+
+@test_approx_eq meansq(a4, 1) mean(abs2(a4), 1)
+@test_approx_eq meansq(a4, 2) mean(abs2(a4), 2)
+@test_approx_eq meansq(a4, 3) mean(abs2(a4), 3)
+@test_approx_eq meansq(a4, 4) mean(abs2(a4), 4)
+
+# testing dot
+
+@test_approx_eq dot(a1, b1, 1) sum(a1 .* b1, 1)
+
+@test_approx_eq dot(a2, b2, 1) sum(a2 .* b2, 1)
+@test_approx_eq dot(a2, b2, 2) sum(a2 .* b2, 2)
+
+@test_approx_eq dot(a3, b3, 1) sum(a3 .* b3, 1)
+@test_approx_eq dot(a3, b3, 2) sum(a3 .* b3, 2)
+@test_approx_eq dot(a3, b3, 3) sum(a3 .* b3, 3)
+
+@test_approx_eq dot(a4, b4, 1) sum(a4 .* b4, 1)
+@test_approx_eq dot(a4, b4, 2) sum(a4 .* b4, 2)
+@test_approx_eq dot(a4, b4, 3) sum(a4 .* b4, 3)
+@test_approx_eq dot(a4, b4, 4) sum(a4 .* b4, 4)
 
 # testing sumxlogx
 
@@ -179,21 +264,7 @@ do_sum!(a::Array, dim::Int) = sum!(zeros(reduced_shape(size(a), dim)), a, dim)
 @test_approx_eq sumxlogy(p4, q4, 3) sum(p4 .* log(q4), 3)
 @test_approx_eq sumxlogy(p4, q4, 4) sum(p4 .* log(q4), 4)
 
-# testing dot
 
-@test_approx_eq dot(a1, b1, 1) sum(a1 .* b1, 1)
-
-@test_approx_eq dot(a2, b2, 1) sum(a2 .* b2, 1)
-@test_approx_eq dot(a2, b2, 2) sum(a2 .* b2, 2)
-
-@test_approx_eq dot(a3, b3, 1) sum(a3 .* b3, 1)
-@test_approx_eq dot(a3, b3, 2) sum(a3 .* b3, 2)
-@test_approx_eq dot(a3, b3, 3) sum(a3 .* b3, 3)
-
-@test_approx_eq dot(a4, b4, 1) sum(a4 .* b4, 1)
-@test_approx_eq dot(a4, b4, 2) sum(a4 .* b4, 2)
-@test_approx_eq dot(a4, b4, 3) sum(a4 .* b4, 3)
-@test_approx_eq dot(a4, b4, 4) sum(a4 .* b4, 4)
 
 
 

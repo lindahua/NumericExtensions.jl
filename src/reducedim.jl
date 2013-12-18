@@ -197,7 +197,46 @@ end
 @code_sumdim 3 sum
 @code_sumdim (-2) sumfdiff
 
-# derived functions
+#################################################
+#
+#    mean along dims
+#
+#################################################
+
+macro code_meandim(AN, meanf, sumf)
+
+	sumf! = symbol("$(sumf)!")
+	meanf! = symbol("$(meanf)!")
+	h = prepare_reducedim_args(_rdargs(AN))
+
+	quote
+		global $(meanf)
+		function $(meanf)($(h.aparams...), dim::Int) 
+			shp = $(h.inputsize)
+			divide!($(sumf)($(h.args...), dim), shp[dim])
+		end
+
+		global $(meanf!)
+		function $(meanf!)(r::ContiguousArray, $(h.aparams...), dim::Int)
+			shp = $(h.inputsize)
+			divide!($(sumf!)(r, $(h.args...), dim), shp[dim])
+		end
+
+	end
+end
+
+@code_meandim 0 mean sum
+@code_meandim 1 mean sum
+@code_meandim 2 mean sum
+@code_meandim 3 mean sum
+@code_meandim (-2) meanfdiff sumfdiff
+
+
+#################################################
+#
+#    derived functions
+#
+#################################################
 
 macro mapreduce_fun1(fname, accum, F, AT, RT)
 	fname! = symbol("$(fname)!")
@@ -225,10 +264,22 @@ macro mapreduce_fun2(fname, accum, F, AT, RT)
 	end
 end
 
-@mapreduce_fun1 sumabs   sum AbsFun   ContiguousArray ContiguousRealArray
-@mapreduce_fun1 sumsq    sum Abs2Fun  ContiguousArray ContiguousRealArray
+@mapreduce_fun1 sumabs  sum  AbsFun ContiguousArray ContiguousRealArray
+@mapreduce_fun1 meanabs mean AbsFun ContiguousArray ContiguousRealArray
+
+@mapreduce_fun1 sumsq  sum  Abs2Fun ContiguousArray ContiguousRealArray
+@mapreduce_fun1 meansq mean Abs2Fun ContiguousArray ContiguousRealArray
+
+@mapreduce_fun2 dot sum Multiply ContiguousRealArray ContiguousRealArray
+
 @mapreduce_fun1 sumxlogx sum XlogxFun ContiguousRealArray ContiguousRealArray
 @mapreduce_fun2 sumxlogy sum XlogyFun ContiguousRealArray ContiguousRealArray
-@mapreduce_fun2 dot      sum Multiply ContiguousRealArray ContiguousRealArray
+
+
+
+
+
+
+
 
 
