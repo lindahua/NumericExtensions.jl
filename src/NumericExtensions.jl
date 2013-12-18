@@ -110,6 +110,7 @@ module NumericExtensions
 	include("unsafe_views.jl")
 	include("mathfuns.jl")
 	include("functors.jl")
+	include("codegen.jl")
 	include("map.jl")
 	
 	# include("vbroadcast.jl")
