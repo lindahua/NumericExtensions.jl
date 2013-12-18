@@ -6,7 +6,7 @@
 #
 #################################################
 
-function vnorm(x::ContiguousArray, p::Real)
+function vnorm(x::ContiguousRealArray, p::Real)
 	if !(p > 0)
 		throw(ArgumentError("p must be positive."))
 	end
@@ -16,9 +16,9 @@ function vnorm(x::ContiguousArray, p::Real)
 	sum(FixAbsPow(p), x) .^ inv(p)
 end
 
-vnorm(x::ContiguousArray) = vnorm(x, 2)
+vnorm(x::ContiguousRealArray) = vnorm(x, 2)
 
-function vnorm!(dst::ContiguousArray, x::ContiguousArray, p::Real, dims::DimSpec)
+function vnorm!(dst::ContiguousRealArray, x::ContiguousRealArray, p::Real, dims::DimSpec)
 	if !(p > 0)
 		throw(ArgumentError("p must be positive."))
 	end
@@ -28,16 +28,15 @@ function vnorm!(dst::ContiguousArray, x::ContiguousArray, p::Real, dims::DimSpec
 	map1!(FixAbsPow(inv(p)), sum!(dst, FixAbsPow(p), x, dims))
 end
 
-function vnorm{Tx<:Number,Tp<:Real}(x::ContiguousArray{Tx}, p::Tp, dims::DimSpec) 
-	tt = to_fptype(promote_type(Tx, Tp))
-	r = Array(tt, reduced_size(size(x), dims))
+function vnorm(x::ContiguousRealArray, p::Real, dims::DimSpec) 
+	tt = promote_type(fptype(eltype(x)), fptype(typeof(p)))
+	r = Array(tt, reduced_shape(size(x), dims))
 	vnorm!(r, x, p, dims)
-	r
 end
 
 # vnormdiff
 
-function vnormdiff(x::ContiguousArray, y::ArrayOrNumber, p::Real)
+function vnormdiff(x::ContiguousRealArray, y::ContiguousArrOrNum, p::Real)
 	if !(p > 0)
 		throw(ArgumentError("p must be positive."))
 	end
@@ -47,9 +46,9 @@ function vnormdiff(x::ContiguousArray, y::ArrayOrNumber, p::Real)
 	sumfdiff(FixAbsPow(p), x, y) .^ inv(p)
 end
 
-vnormdiff(x::ContiguousArray, y::ArrayOrNumber) = vnormdiff(x, y, 2)
+vnormdiff(x::ContiguousRealArray, y::ContiguousArrOrNum) = vnormdiff(x, y, 2)
 
-function vnormdiff!(dst::ContiguousArray, x::ContiguousArray, y::ArrayOrNumber, p::Real, dims::DimSpec)
+function vnormdiff!(dst::ContiguousRealArray, x::ContiguousRealArray, y::ContiguousArrOrNum, p::Real, dims::DimSpec)
 	if !(p > 0)
 		throw(ArgumentError("p must be positive."))
 	end
@@ -59,11 +58,10 @@ function vnormdiff!(dst::ContiguousArray, x::ContiguousArray, y::ArrayOrNumber, 
 	map1!(FixAbsPow(inv(p)), sumfdiff!(dst, FixAbsPow(p), x, y, dims))
 end
 
-function vnormdiff{Tx<:Number,Ty<:Number,Tp<:Real}(x::ContiguousArray{Tx}, y::ContiguousArray{Ty}, p::Tp, dims::DimSpec) 
-	tt = to_fptype(promote_type(promote_type(Tx, Ty), Tp))
-	r = Array(tt, reduced_size(size(x), dims))
+function vnormdiff(x::ContiguousRealArray, y::ContiguousRealArray, p::Real, dims::DimSpec) 
+	tt = promote_type(fptype(promote_type(eltype(x), eltype(y))), fptype(typeof(p)))
+	r = Array(tt, reduced_shape(size(x), dims))
 	vnormdiff!(r, x, y, p, dims)
-	r
 end
 
 
@@ -75,15 +73,15 @@ end
 
 # normalize an array as a whole
 
-function normalize!{Td<:Real,Tx<:Real}(dst::ContiguousArray{Td}, x::ContiguousArray{Tx}, p::Real)
+function normalize!(dst::ContiguousRealArray, x::ContiguousRealArray, p::Real)
 	return map!(Multiply(), dst, x, inv(vnorm(x, p)))
 end
-normalize!{Tx<:Real}(x::ContiguousArray{Tx}, p::Real) = normalize!(x, x, p)
-normalize{Tx<:Real}(x::ContiguousArray{Tx}, p::Real) = x * inv(vnorm(x, p))
+normalize!(x::ContiguousRealArray, p::Real) = normalize!(x, x, p)
+normalize(x::ContiguousRealArray, p::Real) = x * inv(vnorm(x, p))
 
 # normalize along specific dimension
 
-function normalize!{Td<:Real,Tx<:Real}(dst::ContiguousArray{Td}, x::ContiguousArray{Tx}, p::Real, d::Int)
+function normalize!(dst::ContiguousRealArray, x::ContiguousRealArray, p::Real, d::Int)
 	if !(p > 0)
 		throw(ArgumentError("p must be positive."))
 	end
@@ -129,6 +127,6 @@ function normalize!{Td<:Real,Tx<:Real}(dst::ContiguousArray{Td}, x::ContiguousAr
 	dst
 end
 
-normalize!{Tx<:Real}(x::ContiguousArray{Tx}, p::Real, d::Int) = normalize!(x, x, p, d)
-normalize{Tx<:Real}(x::ContiguousArray{Tx}, p::Real, d::Int) = normalize!(similar(x), x, p, d)
+normalize!(x::ContiguousRealArray, p::Real, d::Int) = normalize!(x, x, p, d)
+normalize(x::ContiguousRealArray, p::Real, d::Int) = normalize!(similar(x), x, p, d)
 

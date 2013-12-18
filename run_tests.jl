@@ -8,10 +8,10 @@ tests = [ "shapes",
 		  "map",
 		  "reduce",
 		  "mapreduce",
-		  "reducedim" ]
+		  "reducedim",
+		  "norms" ]
 
 		  # "vbroadcast",  
-		  # "norms",
 		  # "statistics", 
 		  # "wsum", 
 		  # "utils",

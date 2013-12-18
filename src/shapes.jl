@@ -8,6 +8,8 @@ typealias ArrOrNum{T<:Number} Union(AbstractArray{T}, T)
 typealias NumericVector{T<:Number} AbstractVector{T}
 typealias NumericMatrix{T<:Number} AbstractMatrix{T}
 
+typealias DimSpec Int
+
 getvalue(a::Number, i::Integer) = a
 getvalue(a::AbstractArray, i::Integer) = a[i]
 

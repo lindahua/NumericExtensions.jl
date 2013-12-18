@@ -337,6 +337,11 @@ evaluate{T<:Number}(::IfelseFun, c::Bool, x::T, y::T) = ifelse(c, x, y)
 #
 ####################################### 
 
+fptype{T<:FloatingPoint}(::Type{T}) = T
+fptype{T<:Integer}(::Type{T}) = Float64
+fptype{T<:Union(Bool,Uint8,Int8,Uint16,Int16)}(::Type{T}) = Float32
+
+
 result_type(f::Functor{1}, t1::Type) = typeof(evaluate(f, one(t1)))
 result_type(f::Functor{2}, t1::Type, t2::Type) = typeof(evaluate(f, one(t1), one(t2)))
 result_type(f::Functor{3}, t1::Type, t2::Type, t3::Type) = typeof(evaluate(f, one(t1), one(t2), one(t3)))

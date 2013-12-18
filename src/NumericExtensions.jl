@@ -73,8 +73,8 @@ module NumericExtensions
 		sumabsdiff!, maxabsdiff!, minabsdiff!, meanabsdiff!,
 		sumsqdiff!, meansqdiff!, sumxlogx!, sumxlogy!,
 
-		# # norms
-		# vnorm, vnorm!, vnormdiff, vnormdiff!, normalize, normalize!,
+		# norms
+		vnorm, vnorm!, vnormdiff, vnormdiff!, normalize, normalize!,
 
 		# # scan
 		# scan, scan!, mapscan, mapscan!, 
@@ -119,7 +119,7 @@ module NumericExtensions
 	include("mapreduce.jl")
 	include("reducedim.jl")
 
-	# include("norms.jl")
+	include("norms.jl")
 	# include("scan.jl")
 	# include("statistics.jl")
 	# include("weightsum.jl")
