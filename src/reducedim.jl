@@ -29,38 +29,51 @@ end
 #
 #################################################
 
-function prepare_reducedim_args(AN::Int)
-	# AN = 0:  a
-	# AN = 1:  f(a1)
-	# AN = 2:  f(a1, a2)
-	# ...
-	# AN = -2: f(a1 - a2)
+type _RDArgs{AN} end
 
-	@assert AN >= 0 || AN == -2
+_rdargs(n::Int) = _RDArgs{n}()
 
-	AN_ = abs(AN)
-	AN_ = abs(AN)
-
-	arrargs = [symbol("a$i") for i = 1 : AN_]
-
-	args = AN == 0 ? [:a] : [:f, arrargs...]
-
-	aparams = AN_ == 0 ? [:(a::ContiguousArray)] :
-			  AN_ == 1 ? [:(f::Functor), :(a1::ContiguousArray)] :
-			  [:(f::Functor), [Expr(:(::), arrargs[i], :ContiguousArray) for i = 1 : AN]...]
-
-	term = AN == 0 ? :(a[idx]) :
-		   AN >= 1 ? functor_evalexpr(:f, arrargs, :idx) :
-		   functor_evalexpr(:f, arrargs, :idx; usediff=true)
-
-	inputsize = AN == 0 ? :(size(a)) : :(mapshape($(args...)))
-
-	offset_args = AN == 0 ? [:(offset_view(a, ao, m, n))] : 
-				  [:f, [:(offset_view($a, ao, m, n)) for a in arrargs]...]
-
-	return (aparams, args, term, inputsize, offset_args)
+immutable ReduceDimCodeHelper
+	aparams::Vector{Expr}
+	args::Vector{Symbol}
+	offset_args::Vector
+	term::Expr
+	inputsize::Expr
+	termtype::Expr
 end
 
+function prepare_reducedim_args(::_RDArgs{0})
+	aparams = [:(a::ContiguousArray)]
+	args = [:a]
+	offset_args = [:(offset_view(a, ao, m, n))]
+	term = :(a[idx])
+	inputsize = :(size(a))
+	termtype = :(eltype(a))
+	return ReduceDimCodeHelper(aparams, args, offset_args, term, inputsize, termtype)
+end
+
+function prepare_reducedim_args(::_RDArgs{-2})
+	aparams = [:(f::Functor{1}), :(a1::ContiguousArrOrNum), :(a2::ContiguousArrOrNum)]
+	args = [:a1, :a2]
+	offset_args = [:(offset_view(a1, ao, m, n)), :(offset_view(a2, ao, m, n))]
+	term = :(f(getvalue(a1, idx) - getvalue(a2, idx)))
+	inputsize = :(mapshape(a1, a2))
+	termtype = :(result_type(f, promote_type(eltype(a1), eltype(a2))))
+	return ReduceDimCodeHelper(aparams, args, offset_args, term, inputsize, termtype)
+end
+
+function prepare_reducedim_args{N}(::_RDArgs{N})
+	@assert N >= 1
+
+	aargs = [symbol("a$i") for i = 1 : N]
+	aparams = [:(f::Functor{$N}), [:($a::ContiguousArrOrNum) for a in aargs]...]
+	args = [:f, aargs...]
+	offset_args = [:f, [:(offset_view($a, ao, m, n)) for a in aargs]...]
+	term = Expr(:call, :f, [:(getvalue($a, idx)) for a in aargs]...)
+	inputsize = :(mapshape($(aargs...)))
+	termtype = :(result_type(f, [:(eltype($a)) for a in aargs]...))
+	return ReduceDimCodeHelper(aparams, args, offset_args, term, inputsize, termtype)
+end
 
 #################################################
 #
@@ -81,17 +94,17 @@ function generate_sumdim_codes(AN::Int, accum::Symbol)
 
 	# parameter & argument preparation
 
-	(aparams, args, term, inputsize, offset_args) = prepare_reducedim_args(AN)
+	h = prepare_reducedim_args(_rdargs(AN))
 
 	# generate functions
 
 	quote
 		global $(_accum_eachcol!)
-		function $(_accum_eachcol!){R<:Number}(m::Int, n::Int, r::ContiguousArray{R}, $(aparams...))
+		function $(_accum_eachcol!){R<:Number}(m::Int, n::Int, r::ContiguousArray{R}, $(h.aparams...))
 			offset = 0
 			if m > 0
 				for j = 1 : n
-					rj = _sum(offset+1, offset+m, $(args...))
+					rj = _sum(offset+1, offset+m, $(h.args...))
 					@inbounds r[j] = rj
 					offset += m
 				end
@@ -104,10 +117,10 @@ function generate_sumdim_codes(AN::Int, accum::Symbol)
 		end
 	
 		global $(_accum_eachrow!)
-		function $(_accum_eachrow!){R<:Number}(m::Int, n::Int, r::ContiguousArray{R}, $(aparams...))
+		function $(_accum_eachrow!){R<:Number}(m::Int, n::Int, r::ContiguousArray{R}, $(h.aparams...))
 			if n > 0
 				for idx = 1 : m
-					@inbounds vi = $term
+					@inbounds vi = $(h.term)
 					@inbounds r[idx] = vi
 				end
 
@@ -115,7 +128,7 @@ function generate_sumdim_codes(AN::Int, accum::Symbol)
 				for j = 2 : n			
 					for i = 1 : m
 						idx = offset + i
-						@inbounds vi = $term
+						@inbounds vi = $(h.term)
 						@inbounds r[i] += vi
 					end
 					offset += m
@@ -129,13 +142,13 @@ function generate_sumdim_codes(AN::Int, accum::Symbol)
 		end
 
 		global $(_accum!)
-		function $(_accum!)(r::ContiguousArray, $(aparams...), dim::Int)
+		function $(_accum!)(r::ContiguousArray, $(h.aparams...), dim::Int)
 			shp = size(a)
 			
 			if dim == 1
 				m = shp[1]
 				n = succ_length(shp, 1)
-				_sum_eachcol!(m, n, r, $(args...))
+				_sum_eachcol!(m, n, r, $(h.args...))
 
 			else
 				m = prec_length(shp, dim)
@@ -143,13 +156,13 @@ function generate_sumdim_codes(AN::Int, accum::Symbol)
 				k = succ_length(shp, dim)
 
 				if k == 1
-					_sum_eachrow!(m, n, r, $(args...))
+					_sum_eachrow!(m, n, r, $(h.args...))
 				else
 					mn = m * n
 					ro = 0
 					ao = 0
 					for l = 1 : k
-						_sum_eachrow!(m, n, offset_view(r, ro, m), $(offset_args...))
+						_sum_eachrow!(m, n, offset_view(r, ro, m), $(h.offset_args...))
 						ro += m
 						ao += mn
 					end
@@ -159,15 +172,15 @@ function generate_sumdim_codes(AN::Int, accum::Symbol)
 		end
 
 		global $(accum!)
-		function $(accum!)(r::ContiguousArray, $(aparams...), dim::Int)
-			length(r) == reduced_length($(inputsize), dim) || error("Invalid argument dimensions.")
-			_sum!(r, $(args...), dim)
+		function $(accum!)(r::ContiguousArray, $(h.aparams...), dim::Int)
+			length(r) == reduced_length($(h.inputsize), dim) || error("Invalid argument dimensions.")
+			_sum!(r, $(h.args...), dim)
 		end
 
 		global $(accum)
-		function $(accum){T<:Number}(a::ContiguousArray{T}, dim::Int)
-			rshp = reduced_shape($(inputsize), dim)
-			_sum!(Array(sumtype(T), rshp), $(args...), dim)
+		function $(accum)($(h.aparams...), dim::Int)
+			rshp = reduced_shape($(h.inputsize), dim)
+			_sum!(Array(sumtype($(h.termtype)), rshp), $(h.args...), dim)
 		end		
 	end
 end
@@ -177,7 +190,9 @@ macro code_sumdim(AN, fname)
 end
 
 @code_sumdim 0 sum
-# @code_sumdim 1 sum
-
+@code_sumdim 1 sum
+@code_sumdim 2 sum
+@code_sumdim 3 sum
+@code_sumdim (-2) sumfdiff
 
 
