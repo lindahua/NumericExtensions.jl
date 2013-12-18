@@ -133,10 +133,10 @@ println("Benchmark results on Base methods:")
 @bench_reduc1 oldperf "sumsq" 10 _sumsq a2
 
 @bench_reduc2 oldperf "dot" 10 _dot a2 b2
-# @bench_reduc2 oldperf "sumabsdiff" 10 _sumabsdiff a2 b2
+@bench_reduc2 oldperf "sumabsdiff" 10 _sumabsdiff a2 b2
 # @bench_reduc2 oldperf "maxabsdiff" 10 _maxabsdiff a2 b2
 # @bench_reduc2 oldperf "minabsdiff" 10 _minabsdiff a2 b2
-# @bench_reduc2 oldperf "sumsqdiff" 10 _sumsqdiff a2 b2
+@bench_reduc2 oldperf "sumsqdiff" 10 _sumsqdiff a2 b2
 
 # @bench_reduc1 oldperf "entropy" 10 _entropy b2
 @bench_reduc2 oldperf "sumxlogy" 10 _sumxlogy b2 b2
@@ -174,10 +174,10 @@ println("Benchmark results in New methods:")
 @bench_reduc1 newperf "sumsq" 10 sumsq a2
 
 @bench_reduc2 newperf "dot" 10 dot a2 b2
-# @bench_reduc2 newperf "sumabsdiff" 10 sumabsdiff a2 b2
+@bench_reduc2 newperf "sumabsdiff" 10 sumabsdiff a2 b2
 # @bench_reduc2 newperf "maxabsdiff" 10 maxabsdiff a2 b2
 # @bench_reduc2 newperf "minabsdiff" 10 minabsdiff a2 b2
-# @bench_reduc2 newperf "sumsqdiff" 10 sumsqdiff a2 b2
+@bench_reduc2 newperf "sumsqdiff" 10 sumsqdiff a2 b2
 
 # @bench_reduc1 newperf "entropy" 10 entropy b2
 @bench_reduc2 newperf "sumxlogy" 10 sumxlogy b2 b2
