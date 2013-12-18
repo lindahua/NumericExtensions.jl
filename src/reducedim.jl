@@ -75,6 +75,61 @@ function prepare_reducedim_args{N}(::_RDArgs{N})
 	return ReduceDimCodeHelper(aparams, args, offset_args, term, inputsize, termtype)
 end
 
+
+function generate_reducedim_facets(h::ReduceDimCodeHelper, accum::Symbol)
+
+	# function names
+	_accum_eachcol! = symbol("_$(accum)_eachcol!")
+	_accum_eachrow! = symbol("_$(accum)_eachrow!")
+	_accum! = symbol("_$(accum)!")
+	accum! = symbol("$(accum)!")	
+
+	quote
+		global $(_accum!)
+		function $(_accum!)(r::ContiguousArray, $(h.aparams...), dim::Int)
+			shp = $(h.inputsize)
+			
+			if dim == 1
+				m = shp[1]
+				n = succ_length(shp, 1)
+				$(_accum_eachcol!)(m, n, r, $(h.args...))
+
+			else
+				m = prec_length(shp, dim)
+				n = shp[dim]
+				k = succ_length(shp, dim)
+
+				if k == 1
+					$(_accum_eachrow!)(m, n, r, $(h.args...))
+				else
+					mn = m * n
+					ro = 0
+					ao = 0
+					for l = 1 : k
+						$(_accum_eachrow!)(m, n, offset_view(r, ro, m), $(h.offset_args...))
+						ro += m
+						ao += mn
+					end
+				end
+			end
+			return r
+		end
+
+		global $(accum!)
+		function $(accum!)(r::ContiguousArray, $(h.aparams...), dim::Int)
+			length(r) == reduced_length($(h.inputsize), dim) || error("Invalid argument dimensions.")
+			$(_accum!)(r, $(h.args...), dim)
+		end
+
+		global $(accum)
+		function $(accum)($(h.aparams...), dim::Int)
+			rshp = reduced_shape($(h.inputsize), dim)
+			$(_accum!)(Array(sumtype($(h.termtype)), rshp), $(h.args...), dim)
+		end	
+	end
+end
+
+
 #################################################
 #
 #    sum along dims
@@ -90,12 +145,11 @@ function generate_sumdim_codes(AN::Int, accum::Symbol)
 	_accum_eachcol! = symbol("_$(accum)_eachcol!")
 	_accum_eachrow! = symbol("_$(accum)_eachrow!")
 	_accum = symbol("_$(accum)")
-	_accum! = symbol("_$(accum)!")
-	accum! = symbol("$(accum)!")
 
 	# parameter & argument preparation
 
 	h = prepare_reducedim_args(_rdargs(AN))
+	facets = generate_reducedim_facets(h, accum) 
 
 	# generate functions
 
@@ -142,47 +196,7 @@ function generate_sumdim_codes(AN::Int, accum::Symbol)
 			end
 		end
 
-		global $(_accum!)
-		function $(_accum!)(r::ContiguousArray, $(h.aparams...), dim::Int)
-			shp = $(h.inputsize)
-			
-			if dim == 1
-				m = shp[1]
-				n = succ_length(shp, 1)
-				$(_accum_eachcol!)(m, n, r, $(h.args...))
-
-			else
-				m = prec_length(shp, dim)
-				n = shp[dim]
-				k = succ_length(shp, dim)
-
-				if k == 1
-					$(_accum_eachrow!)(m, n, r, $(h.args...))
-				else
-					mn = m * n
-					ro = 0
-					ao = 0
-					for l = 1 : k
-						$(_accum_eachrow!)(m, n, offset_view(r, ro, m), $(h.offset_args...))
-						ro += m
-						ao += mn
-					end
-				end
-			end
-			return r
-		end
-
-		global $(accum!)
-		function $(accum!)(r::ContiguousArray, $(h.aparams...), dim::Int)
-			length(r) == reduced_length($(h.inputsize), dim) || error("Invalid argument dimensions.")
-			$(_accum!)(r, $(h.args...), dim)
-		end
-
-		global $(accum)
-		function $(accum)($(h.aparams...), dim::Int)
-			rshp = reduced_shape($(h.inputsize), dim)
-			$(_accum!)(Array(sumtype($(h.termtype)), rshp), $(h.args...), dim)
-		end		
+		$(facets)
 	end
 end
 
