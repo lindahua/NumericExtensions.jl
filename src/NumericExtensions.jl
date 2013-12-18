@@ -91,8 +91,8 @@ module NumericExtensions
 		# wsumabs, wsumabs!, wsumabsdiff, wsumabsdiff!,
 		# wsumsq, wsumsq!, wsumsqdiff, wsumsqdiff!,
 
-		# # utils
-		# eachrepeat, sortindexes, groupindexes,
+		# utils
+		eachrepeat, sortindexes, groupindexes,
 
 		# # pdmat
   #       AbstractPDMat, PDMat, PDiagMat, ScalMat, 
@@ -125,7 +125,7 @@ module NumericExtensions
 	# include("statistics.jl")
 	# include("weightsum.jl")
 
-	# include("utils.jl")
+	include("utils.jl")
 
 	# include("pdmat.jl")
 

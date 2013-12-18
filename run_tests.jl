@@ -7,6 +7,7 @@ tests = [ "shapes",
 		  "functors",
 		  "map",
 		  "vbroadcast",
+		  "utils",
 		  "reduce",
 		  "mapreduce",
 		  "reducedim",
@@ -15,7 +16,6 @@ tests = [ "shapes",
  
 		  # "statistics", 
 		  # "wsum", 
-		  # "utils",
 		  # "pdmat"
 
 for t in tests
