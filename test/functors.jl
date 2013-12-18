@@ -109,4 +109,53 @@ z = 1.2
 @test evaluate(IfelseFun(), true, y, z) == y
 @test evaluate(IfelseFun(), false, y, z) == z
 
+# Test unary functors
+
+for e in [
+	(Negate, -),
+	(AbsFun, abs), (Abs2Fun, abs2), (SqrtFun, sqrt), (CbrtFun, cbrt), 
+	(FloorFun, floor), (CeilFun, ceil), (RoundFun, round), (TruncFun, trunc), 
+	(ExpFun, exp), (Exp2Fun, exp2), (Exp10Fun, exp10), (Expm1Fun, expm1),
+	(LogFun, log), (Log2Fun, log2), (Log10Fun, log10), (Log1pFun, log1p),
+	(SinFun, sin), (CosFun, cos), (TanFun, tan), (AsinFun, asin), (AcosFun, acos), (AtanFun, atan),
+	(SinhFun, sinh), (CoshFun, cosh), (TanhFun, tanh), (AsinhFun, asinh), (AcoshFun, acosh), (AtanhFun, atanh), 
+	(ErfFun, erf), (ErfcFun, erfc), (GammaFun, gamma), (LgammaFun, lgamma), (DigammaFun, digamma), 
+	(IsfiniteFun, isfinite), (IsinfFun, isinf), (IsnanFun, isnan)]
+
+	T = e[1]
+	f = e[2]
+
+	@test evaluate(T(), 1.0) === f(1.0)
+	@test evaluate(T(), 1) === f(1)
+end
+
+# Test binary functors
+
+for e in [
+	(Add, +), 
+	(Subtract, -), 
+	(Multiply, *), 
+	(Divide, /), 
+	(Pow, ^), 
+	(MaxFun, max),
+	(MinFun, min),
+	(HypotFun, hypot),
+	(Atan2Fun, atan2),
+	(Greater, >), 
+	(GreaterEqual, >=),
+	(Less, <), 
+	(LessEqual, <=), 
+	(Equal, ==), 
+	(NotEqual, !=)]
+
+	T = e[1]
+	f = e[2]
+
+	@test evaluate(T(), 2.0, 3.0) === f(2.0, 3.0)
+	@test evaluate(T(), 2, 3) === f(2, 3)
+	@test evaluate(T(), 2.0, 3) === f(2.0, 3)
+	@test evaluate(T(), 2, 3.0) === f(2, 3.0)
+end
+
+
 

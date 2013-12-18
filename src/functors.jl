@@ -165,10 +165,10 @@ evaluate(f::FixAbsPow, x::Real) = (abs(x) ^ f.p)
 
 # number classifying functors
 
-@functor1 IsfiniteFun FloatingPoint isfinite
-@functor1 IsnanFun    FloatingPoint isnan
-@functor1 IsinfFun    FloatingPoint isinf
-@functor2 IsequalFun  Number        isequal
+@functor1 IsfiniteFun Real   isfinite
+@functor1 IsnanFun    Real   isnan
+@functor1 IsinfFun    Real   isinf
+@functor2 IsequalFun  Number isequal
 
 # rounding functors
 
