@@ -57,37 +57,33 @@ r = copy(x); bdivide!(r, yr, 2)
 
 # #### 3D ####
 
-# x = randn(4, 5, 6)
+x = randn(4, 5, 6)
 
-# y1 = rand(4) + 0.5; y1m = reshape(y1, 4, 1, 1)
-# y2 = rand(5) + 0.5; y2m = reshape(y2, 1, 5, 1)
-# y3 = rand(6) + 0.5; y3m = reshape(y3, 1, 1, 6)
+y1 = rand(4) + 0.5; y1m = reshape(y1, 4, 1, 1)
+y2 = rand(5) + 0.5; y2m = reshape(y2, 1, 5, 1)
+y3 = rand(6) + 0.5; y3m = reshape(y3, 1, 1, 6)
 
-# # badd
+# badd
 
-# @test_approx_eq badd(x, y1, 1) x .+ y1m
-# @test_approx_eq badd(x, y2, 2) x .+ y2m
-# @test_approx_eq badd(x, y3, 3) x .+ y3m
+@test_approx_eq badd(x, y1, 1) x .+ y1m
+@test_approx_eq badd(x, y2, 2) x .+ y2m
+@test_approx_eq badd(x, y3, 3) x .+ y3m
 
-# @test_approx_eq badd(x, y12, (1, 2)) x .+ y12m
-# @test_approx_eq badd(x, y13, (1, 3)) x .+ y13m
-# @test_approx_eq badd(x, y23, (2, 3)) x .+ y23m
+# bsubtract
 
-# # bsubtract
+@test_approx_eq bsubtract(x, y1, 1) x .- y1m
+@test_approx_eq bsubtract(x, y2, 2) x .- y2m
+@test_approx_eq bsubtract(x, y3, 3) x .- y3m
 
-# @test_approx_eq bsubtract(x, y1, 1) x .- y1m
-# @test_approx_eq bsubtract(x, y2, 2) x .- y2m
-# @test_approx_eq bsubtract(x, y3, 3) x .- y3m
+# bmultiply
 
-# # bmultiply
+@test_approx_eq bmultiply(x, y1, 1) x .* y1m
+@test_approx_eq bmultiply(x, y2, 2) x .* y2m
+@test_approx_eq bmultiply(x, y3, 3) x .* y3m
 
-# @test_approx_eq bmultiply(x, y1, 1) x .* y1m
-# @test_approx_eq bmultiply(x, y2, 2) x .* y2m
-# @test_approx_eq bmultiply(x, y3, 3) x .* y3m
+# bdivide
 
-# # bdivide
-
-# @test_approx_eq bdivide(x, y1, 1) x ./ y1m
-# @test_approx_eq bdivide(x, y2, 2) x ./ y2m
-# @test_approx_eq bdivide(x, y3, 3) x ./ y3m
+@test_approx_eq bdivide(x, y1, 1) x ./ y1m
+@test_approx_eq bdivide(x, y2, 2) x ./ y2m
+@test_approx_eq bdivide(x, y3, 3) x ./ y3m
 

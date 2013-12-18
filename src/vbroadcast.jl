@@ -35,9 +35,9 @@ function vbroadcast!(f::Functor{2}, r::ContiguousArray, a::ContiguousArray, b::C
 		n = succ_length(shp, 1)
 		_vbroadcast_eachcol!(m, n, f, r, a, b)
 	else
-		m = prec_length(shp, nd)
-		n = shp[nd]
-		k = succ_length(shp, nd)
+		m = prec_length(shp, dim)
+		n = shp[dim]
+		k = succ_length(shp, dim)
 
 		_vbroadcast_eachrow!(m, n, f, r, a, b)
 
@@ -46,8 +46,8 @@ function vbroadcast!(f::Functor{2}, r::ContiguousArray, a::ContiguousArray, b::C
 			o = mn
 			for l = 2 : k
 				_vbroadcast_eachrow!(m, n, f, offset_view(r, o, m, n), offset_view(a, o, m, n), b)
+				o += mn
 			end
-			o += mn
 		end
 	end
 
@@ -59,7 +59,7 @@ vbroadcast1!(f::Functor{2}, a::ContiguousArray, b::ContiguousArray, dim::Int) = 
 
 function vbroadcast(f::Functor{2}, a::ContiguousArray, b::ContiguousArray, dim::Int)
 	R = result_type(f, eltype(a), eltype(b))
-	vbroadcast!(f, Array(R, size(a)), a, b, dim)
+	vbroadcast!(f, zeros(R, size(a)), a, b, dim)
 end
 
 # Specific broadcasting function

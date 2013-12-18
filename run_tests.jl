@@ -6,13 +6,13 @@ tests = [ "shapes",
 		  "mathfuns", 
 		  "functors",
 		  "map",
+		  "vbroadcast",
 		  "reduce",
 		  "mapreduce",
 		  "reducedim",
 		  "norms",
 		  "scan" ]
-
-		  # "vbroadcast",  
+ 
 		  # "statistics", 
 		  # "wsum", 
 		  # "utils",
