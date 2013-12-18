@@ -329,7 +329,20 @@ do_mean!(a::Array, dim::Int) = mean!(zeros(reduced_shape(size(a), dim)), a, dim)
 @test_approx_eq sumxlogy(p4, q4, 3) sum(p4 .* log(q4), 3)
 @test_approx_eq sumxlogy(p4, q4, 4) sum(p4 .* log(q4), 4)
 
+# testing entropy
 
+@test_approx_eq entropy(p1, 1) sum(-p1 .* log(p1), 1)
 
+@test_approx_eq entropy(p2, 1) sum(-p2 .* log(p2), 1)
+@test_approx_eq entropy(p2, 2) sum(-p2 .* log(p2), 2)
+
+@test_approx_eq entropy(p3, 1) sum(-p3 .* log(p3), 1)
+@test_approx_eq entropy(p3, 2) sum(-p3 .* log(p3), 2)
+@test_approx_eq entropy(p3, 3) sum(-p3 .* log(p3), 3)
+
+@test_approx_eq entropy(p4, 1) sum(-p4 .* log(p4), 1)
+@test_approx_eq entropy(p4, 2) sum(-p4 .* log(p4), 2)
+@test_approx_eq entropy(p4, 3) sum(-p4 .* log(p4), 3)
+@test_approx_eq entropy(p4, 4) sum(-p4 .* log(p4), 4)
 
 

@@ -138,7 +138,7 @@ println("Benchmark results on Base methods:")
 # @bench_reduc2 oldperf "minabsdiff" 10 _minabsdiff a2 b2
 @bench_reduc2 oldperf "sumsqdiff" 10 _sumsqdiff a2 b2
 
-# @bench_reduc1 oldperf "entropy" 10 _entropy b2
+@bench_reduc1 oldperf "entropy" 10 _entropy b2
 @bench_reduc2 oldperf "sumxlogy" 10 _sumxlogy b2 b2
 # @bench_reduc1 oldperf "var" 10 var a2
 # @bench_reduc1 oldperf "std" 10 std a2
@@ -179,7 +179,7 @@ println("Benchmark results in New methods:")
 # @bench_reduc2 newperf "minabsdiff" 10 minabsdiff a2 b2
 @bench_reduc2 newperf "sumsqdiff" 10 sumsqdiff a2 b2
 
-# @bench_reduc1 newperf "entropy" 10 entropy b2
+@bench_reduc1 newperf "entropy" 10 entropy b2
 @bench_reduc2 newperf "sumxlogy" 10 sumxlogy b2 b2
 # @bench_reduc1 newperf "var" 10 var a2
 # @bench_reduc1 newperf "std" 10 std a2

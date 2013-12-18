@@ -271,19 +271,19 @@ end
 @mapreduce_fun1 sumsq  sum  Abs2Fun ContiguousArray ContiguousRealArray
 @mapreduce_fun1 meansq mean Abs2Fun ContiguousArray ContiguousRealArray
 
-@mapreduce_fun2 dot sum Multiply ContiguousRealArray ContiguousRealArray
-
-@mapreduce_fun1 sumxlogx sum XlogxFun ContiguousRealArray ContiguousRealArray
-@mapreduce_fun2 sumxlogy sum XlogyFun ContiguousRealArray ContiguousRealArray
-
 @mapreduce_fun2 sumabsdiff  sumfdiff  AbsFun ContiguousArray ContiguousRealArray
 @mapreduce_fun2 meanabsdiff meanfdiff AbsFun ContiguousArray ContiguousRealArray
 
 @mapreduce_fun2 sumsqdiff  sumfdiff  Abs2Fun ContiguousArray ContiguousRealArray
 @mapreduce_fun2 meansqdiff meanfdiff Abs2Fun ContiguousArray ContiguousRealArray
 
+@mapreduce_fun2 dot sum Multiply ContiguousRealArray ContiguousRealArray
 
+@mapreduce_fun1 sumxlogx sum XlogxFun ContiguousRealArray ContiguousRealArray
+@mapreduce_fun2 sumxlogy sum XlogyFun ContiguousRealArray ContiguousRealArray
 
+entropy(a::ContiguousRealArray, dim::Int) = negate!(sumxlogx(a, dim))
+entropy!(r::ContiguousRealArray, a::ContiguousRealArray, dim::Int) = negate!(sumxlogx!(r, a, dim))
 
 
 
