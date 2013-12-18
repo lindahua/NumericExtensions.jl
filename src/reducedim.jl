@@ -212,6 +212,7 @@ end
 @code_sumdim 3 sum
 @code_sumdim (-2) sumfdiff
 
+
 #################################################
 #
 #    mean along dims
@@ -245,6 +246,93 @@ end
 @code_meandim 2 mean sum
 @code_meandim 3 mean sum
 @code_meandim (-2) meanfdiff sumfdiff
+
+
+#################################################
+#
+#    maximum/minimum along dims
+#
+#################################################
+
+function generate_maxmindim_codes(AN::Int, accum::Symbol, comp::Symbol)
+
+	# function names
+	_accum_eachcol! = symbol("_$(accum)_eachcol!")
+	_accum_eachrow! = symbol("_$(accum)_eachrow!")
+	_accum = symbol("_$(accum)")
+
+	# parameter & argument preparation
+
+	h = prepare_reducedim_args(_rdargs(AN))
+	facets = generate_reducedim_facets(h, accum) 
+
+	comparef = (v, s)->Expr(:comparison, v, comp, s)
+
+	# generate functions
+
+	quote
+		global $(_accum_eachcol!)
+		function $(_accum_eachcol!){R<:Number}(m::Int, n::Int, r::ContiguousArray{R}, $(h.aparams...))
+			offset = 0
+			if m > 0
+				for j = 1 : n
+					rj = ($_accum)(offset+1, offset+m, $(h.args...))
+					@inbounds r[j] = rj
+					offset += m
+				end
+			else
+				error("maximum/minimum along empty dimensions is not allowed.")
+			end	
+		end
+	
+		global $(_accum_eachrow!)
+		function $(_accum_eachrow!){R<:Number}(m::Int, n::Int, r::ContiguousArray{R}, $(h.aparams...))
+			if n > 0
+				for idx = 1 : m
+					@inbounds vi = $(h.term)
+					@inbounds r[idx] = vi
+				end
+
+				offset = m
+				for j = 2 : n			
+					for i = 1 : m
+						idx = offset + i
+						@inbounds vi = $(h.term)
+						@inbounds ri = r[i]
+						if $(comparef(:vi, :ri)) || (ri != ri)
+							@inbounds r[i] = vi
+						end
+					end
+					offset += m
+				end
+			else
+				error("maximum/minimum along empty dimensions is not allowed.")
+			end
+		end
+
+		$(facets)
+	end
+end
+
+macro code_maximumdim(AN, fname)
+	esc(generate_maxmindim_codes(AN, fname, :>))
+end
+
+macro code_minimumdim(AN, fname)
+	esc(generate_maxmindim_codes(AN, fname, :<))
+end
+
+@code_maximumdim 0 maximum
+@code_maximumdim 1 maximum
+@code_maximumdim 2 maximum
+@code_maximumdim 3 maximum
+@code_maximumdim (-2) maxfdiff
+
+@code_minimumdim 0 minimum
+@code_minimumdim 1 minimum
+@code_minimumdim 2 minimum
+@code_minimumdim 3 minimum
+@code_minimumdim (-2) minfdiff
 
 
 #################################################

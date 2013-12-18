@@ -86,6 +86,27 @@ safe_meandim(a::Array, dim::Int) = safe_sumdim(a, dim) / size(a, dim)
 
 do_mean!(a::Array, dim::Int) = mean!(zeros(reduced_shape(size(a), dim)), a, dim)
 
+function safe_maximumdim(a::Array, dim::Int)
+	n = size(a, dim)
+	s = slicedim(a, dim, 1)
+	for i = 2 : n
+		s = max(s, slicedim(a, dim, i))
+	end
+	return s
+end
+
+function safe_minimumdim(a::Array, dim::Int)
+	n = size(a, dim)
+	s = slicedim(a, dim, 1)
+	for i = 2 : n
+		s = min(s, slicedim(a, dim, i))
+	end
+	return s
+end
+
+do_maximum!(a::Array, dim::Int) = maximum!(zeros(reduced_shape(size(a), dim)), a, dim)
+do_minimum!(a::Array, dim::Int) = minimum!(zeros(reduced_shape(size(a), dim)), a, dim)
+
 
 # testing sum
 
@@ -150,6 +171,70 @@ do_mean!(a::Array, dim::Int) = mean!(zeros(reduced_shape(size(a), dim)), a, dim)
 @test_approx_eq do_mean!(a4, 2) safe_meandim(a4, 2)
 @test_approx_eq do_mean!(a4, 3) safe_meandim(a4, 3)
 @test_approx_eq do_mean!(a4, 4) safe_meandim(a4, 4)
+
+# testing maximum
+
+@test_approx_eq maximum(a1, 1) safe_maximumdim(a1, 1)
+
+@test_approx_eq maximum(a2, 1) safe_maximumdim(a2, 1)
+@test_approx_eq maximum(a2, 2) safe_maximumdim(a2, 2)
+
+@test_approx_eq maximum(a3, 1) safe_maximumdim(a3, 1)
+@test_approx_eq maximum(a3, 2) safe_maximumdim(a3, 2)
+@test_approx_eq maximum(a3, 3) safe_maximumdim(a3, 3)
+
+@test_approx_eq maximum(a4, 1) safe_maximumdim(a4, 1)
+@test_approx_eq maximum(a4, 2) safe_maximumdim(a4, 2)
+@test_approx_eq maximum(a4, 3) safe_maximumdim(a4, 3)
+@test_approx_eq maximum(a4, 4) safe_maximumdim(a4, 4)
+
+# testing maximum!
+
+@test_approx_eq do_maximum!(a1, 1) safe_maximumdim(a1, 1)
+
+@test_approx_eq do_maximum!(a2, 1) safe_maximumdim(a2, 1)
+@test_approx_eq do_maximum!(a2, 2) safe_maximumdim(a2, 2)
+
+@test_approx_eq do_maximum!(a3, 1) safe_maximumdim(a3, 1)
+@test_approx_eq do_maximum!(a3, 2) safe_maximumdim(a3, 2)
+@test_approx_eq do_maximum!(a3, 3) safe_maximumdim(a3, 3)
+
+@test_approx_eq do_maximum!(a4, 1) safe_maximumdim(a4, 1)
+@test_approx_eq do_maximum!(a4, 2) safe_maximumdim(a4, 2)
+@test_approx_eq do_maximum!(a4, 3) safe_maximumdim(a4, 3)
+@test_approx_eq do_maximum!(a4, 4) safe_maximumdim(a4, 4)
+
+# testing minimum
+
+@test_approx_eq minimum(a1, 1) safe_minimumdim(a1, 1)
+
+@test_approx_eq minimum(a2, 1) safe_minimumdim(a2, 1)
+@test_approx_eq minimum(a2, 2) safe_minimumdim(a2, 2)
+
+@test_approx_eq minimum(a3, 1) safe_minimumdim(a3, 1)
+@test_approx_eq minimum(a3, 2) safe_minimumdim(a3, 2)
+@test_approx_eq minimum(a3, 3) safe_minimumdim(a3, 3)
+
+@test_approx_eq minimum(a4, 1) safe_minimumdim(a4, 1)
+@test_approx_eq minimum(a4, 2) safe_minimumdim(a4, 2)
+@test_approx_eq minimum(a4, 3) safe_minimumdim(a4, 3)
+@test_approx_eq minimum(a4, 4) safe_minimumdim(a4, 4)
+
+# testing minimum!
+
+@test_approx_eq do_minimum!(a1, 1) safe_minimumdim(a1, 1)
+
+@test_approx_eq do_minimum!(a2, 1) safe_minimumdim(a2, 1)
+@test_approx_eq do_minimum!(a2, 2) safe_minimumdim(a2, 2)
+
+@test_approx_eq do_minimum!(a3, 1) safe_minimumdim(a3, 1)
+@test_approx_eq do_minimum!(a3, 2) safe_minimumdim(a3, 2)
+@test_approx_eq do_minimum!(a3, 3) safe_minimumdim(a3, 3)
+
+@test_approx_eq do_minimum!(a4, 1) safe_minimumdim(a4, 1)
+@test_approx_eq do_minimum!(a4, 2) safe_minimumdim(a4, 2)
+@test_approx_eq do_minimum!(a4, 3) safe_minimumdim(a4, 3)
+@test_approx_eq do_minimum!(a4, 4) safe_minimumdim(a4, 4)
 
 
 # testing sumabs
