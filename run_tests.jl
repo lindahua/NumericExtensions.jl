@@ -9,7 +9,8 @@ tests = [ "shapes",
 		  "reduce",
 		  "mapreduce",
 		  "reducedim",
-		  "norms" ]
+		  "norms",
+		  "scan" ]
 
 		  # "vbroadcast",  
 		  # "statistics", 

@@ -76,9 +76,9 @@ module NumericExtensions
 		# norms
 		vnorm, vnorm!, vnormdiff, vnormdiff!, normalize, normalize!,
 
-		# # scan
-		# scan, scan!, mapscan, mapscan!, 
-		# cumsum!, cummax!, cummin!,
+		# scan
+		scan, scan!, mapscan, mapscan!, 
+		cumsum!, cummax!, cummin!,
 
 		# # statistics
 		# mean!, meanabs, meanabs!, meansq, meansq!,
@@ -121,7 +121,7 @@ module NumericExtensions
 	include("reducedim.jl")
 
 	include("norms.jl")
-	# include("scan.jl")
+	include("scan.jl")
 	# include("statistics.jl")
 	# include("weightsum.jl")
 
