@@ -78,13 +78,13 @@ macro code_mapreducfuns(N)
 
 		global $sumf
 		function ($sumf)($(h.aparams...))
-			n = maplength($(h.args[2:end]...))
+			n = $(h.inputlen)
 			n == 0 ? 0.0 : ($_sumf)(1, n, $(h.args...))
 		end
 
 		global $meanf
 		function ($meanf)($(h.aparams...))
-			n = maplength($(h.args[2:end]...))
+			n = $(h.inputlen)
 			n == 0 ? NaN : ($_sumf)(1, n, $(h.args...)) / n
 		end
 
@@ -107,14 +107,14 @@ macro code_mapreducfuns(N)
 
 		global $maxf
 		function ($maxf)($(h.aparams...))
-			n = maplength($(h.args[2:end]...))
+			n = $(h.inputlen)
 			n > 0 || error("Empty arguments not allowed.")
 			($_maxf)(1, n, $(h.args...))
 		end
 
 		global $nnmaxf
 		function ($nnmaxf)($(h.aparams...))
-			n = maplength($(h.args[2:end]...))
+			n = $(h.inputlen)
 			n == 0 ? 0.0 : ($_maxf)(1, n, $(h.args...))
 		end
 
@@ -135,14 +135,14 @@ macro code_mapreducfuns(N)
 
 		global $minf
 		function ($minf)($(h.aparams...))
-			n = maplength($(h.args[2:end]...))
+			n = $(h.inputlen)
 			n > 0 || error("Empty arguments not allowed.")
 			($_minf)(1, n, $(h.args...))
 		end
 
 		global $nnminf
 		function ($nnminf)($(h.aparams...))
-			n = maplength($(h.args[2:end]...))
+			n = $(h.inputlen)
 			n == 0 ? 0.0 : ($_minf)(1, n, $(h.args...))
 		end
 	end
