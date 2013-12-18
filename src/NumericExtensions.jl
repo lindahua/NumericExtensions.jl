@@ -67,11 +67,10 @@ module NumericExtensions
 		# reducedims
 		foldl!, foldr!, sum!, maximum!, minimum!, mean!, dot!,
 
-		# mapreducedims
 		sumfdiff!, maxfdiff!, minfdiff!, meanfdiff!,
 		sumabs!, maxabs!, minabs!, meanabs!, sumsq!, meansq!,
 		sumabsdiff!, maxabsdiff!, minabsdiff!, meanabsdiff!,
-		sumsqdiff!, meansqdiff!, sumxlogx!, sumxlogy!,
+		sumsqdiff!, meansqdiff!, sumxlogx!, sumxlogy!, entropy!,
 
 		# norms
 		vnorm, vnorm!, vnormdiff, vnormdiff!, normalize, normalize!,
@@ -80,11 +79,9 @@ module NumericExtensions
 		scan, scan!, mapscan, mapscan!, 
 		cumsum!, cummax!, cummin!,
 
-		# # statistics
-		# mean!, meanabs, meanabs!, meansq, meansq!,
-		# meanfdiff, meanfdiff!, meanabsdiff, meanabsdiff!, meansqdiff, meansqdiff!,
-		# var!, varm!, std!, stdm!, entropy, entropy!,
-		# logsumexp, logsumexp!, softmax, softmax!,
+		# statistics
+		var!, varm!, std!, stdm!, 
+		logsumexp, logsumexp!, softmax, softmax!,
 
 		# # weightsum
 		# wsum, wsum!, wsumfdiff, wsumfdiff!,

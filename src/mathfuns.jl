@@ -21,6 +21,8 @@ invlogistic(y::Real) = -log(one(y) / y - one(y))
 softplus(x::Real) = log(one(x) + exp(x))
 invsoftplus(x::Real) = log(exp(x) - one(x))
 
+logsumexp{T<:Real}(x::T, y::T) = x > y ? x + log(one(T) + exp(y - x)) : y + log(one(T) + exp(x - y))
+
 @vectorize_1arg Number sqr
 @vectorize_1arg Number rcp
 @vectorize_1arg Real rsqrt
