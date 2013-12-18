@@ -527,3 +527,19 @@ do_minimum!(a::Array, dim::Int) = minimum!(zeros(reduced_shape(size(a), dim)), a
 @test_approx_eq entropy(p4, 4) sum(-p4 .* log(p4), 4)
 
 
+# reduce on fma
+
+@test_approx_eq sum(FMA(), a1, b1, p1, 1) sum(a1 + b1 .* p1, 1)
+
+@test_approx_eq sum(FMA(), a2, b2, p2, 1) sum(a2 + b2 .* p2, 1)
+@test_approx_eq sum(FMA(), a2, b2, p2, 2) sum(a2 + b2 .* p2, 2)
+
+@test_approx_eq sum(FMA(), a3, b3, p3, 1) sum(a3 + b3 .* p3, 1)
+@test_approx_eq sum(FMA(), a3, b3, p3, 2) sum(a3 + b3 .* p3, 2)
+@test_approx_eq sum(FMA(), a3, b3, p3, 3) sum(a3 + b3 .* p3, 3)
+
+@test_approx_eq sum(FMA(), a4, b4, p4, 1) sum(a4 + b4 .* p4, 1)
+@test_approx_eq sum(FMA(), a4, b4, p4, 2) sum(a4 + b4 .* p4, 2)
+@test_approx_eq sum(FMA(), a4, b4, p4, 3) sum(a4 + b4 .* p4, 3)
+@test_approx_eq sum(FMA(), a4, b4, p4, 4) sum(a4 + b4 .* p4, 4)
+
