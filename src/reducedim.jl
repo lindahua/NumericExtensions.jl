@@ -130,16 +130,16 @@ function generate_sumdim_codes(AN::Int, accum::Symbol)
 		global $(_accum_eachrow!)
 		function $(_accum_eachrow!){R<:Number}(m::Int, n::Int, r::ContiguousArray{R}, $(h.aparams...))
 			if n > 0
-				for idx = 1 : m
-					@inbounds vi = $(h.term)
-					@inbounds r[idx] = vi
+				for i = 1 : m
+					@inbounds vi = $(h.term(:i))
+					@inbounds r[i] = vi
 				end
 
 				offset = m
 				for j = 2 : n			
 					for i = 1 : m
 						idx = offset + i
-						@inbounds vi = $(h.term)
+						@inbounds vi = $(h.term(:idx))
 						@inbounds r[i] += vi
 					end
 					offset += m
@@ -244,16 +244,16 @@ function generate_maxmindim_codes(AN::Int, accum::Symbol, comp::Symbol)
 		global $(_accum_eachrow!)
 		function $(_accum_eachrow!){R<:Number}(m::Int, n::Int, r::ContiguousArray{R}, $(h.aparams...))
 			if n > 0
-				for idx = 1 : m
-					@inbounds vi = $(h.term)
-					@inbounds r[idx] = vi
+				for i = 1 : m
+					@inbounds vi = $(h.term(:i))
+					@inbounds r[i] = vi
 				end
 
 				offset = m
 				for j = 2 : n			
 					for i = 1 : m
 						idx = offset + i
-						@inbounds vi = $(h.term)
+						@inbounds vi = $(h.term(:idx))
 						@inbounds ri = r[i]
 						if $(comparef(:vi, :ri)) || (ri != ri)
 							@inbounds r[i] = vi
