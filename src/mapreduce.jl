@@ -60,6 +60,8 @@ macro code_mapreducfuns(N)
 	ti1 = functor_evalexpr(:f, args, :i1; usediff=udiff)
 	ti2 = functor_evalexpr(:f, args, :i2; usediff=udiff)
 
+	fn = N > 0 ? N : 1
+
 	# function names
 
 	_sumf = :_sum
@@ -92,7 +94,7 @@ macro code_mapreducfuns(N)
 		# sum & mean
 
 		global $_sumf
-		function ($_sumf)(ifirst::Int, ilast::Int, f::Functor, $(aparams...))
+		function ($_sumf)(ifirst::Int, ilast::Int, f::Functor{$fn}, $(aparams...))
 			i1 = ifirst
 			i2 = ifirst + 1
 
@@ -120,13 +122,13 @@ macro code_mapreducfuns(N)
 		end
 
 		global $sumf
-		function ($sumf)(f::Functor, $(aparams...))
+		function ($sumf)(f::Functor{$fn}, $(aparams...))
 			n = maplength($(args...))
 			n == 0 ? 0.0 : ($_sumf)(1, n, f, $(args...))
 		end
 
 		global $meanf
-		function ($meanf)(f::Functor, $(aparams...))
+		function ($meanf)(f::Functor{$fn}, $(aparams...))
 			n = maplength($(args...))
 			n == 0 ? NaN : ($_sumf)(1, n, f, $(args...)) / n
 		end
@@ -134,7 +136,7 @@ macro code_mapreducfuns(N)
 		# maximum & minimum
 
 		global $_maxf
-		function ($_maxf)(ifirst::Int, ilast::Int, f::Functor, $(aparams...))
+		function ($_maxf)(ifirst::Int, ilast::Int, f::Functor{$fn}, $(aparams...))
 			i = ifirst
 			s = $(ti)
 
@@ -149,20 +151,20 @@ macro code_mapreducfuns(N)
 		end
 
 		global $maxf
-		function ($maxf)(f::Functor, $(aparams...))
+		function ($maxf)(f::Functor{$fn}, $(aparams...))
 			n = maplength($(args...))
 			n > 0 || error("Empty arguments not allowed.")
 			($_maxf)(1, n, f, $(args...))
 		end
 
 		global $nnmaxf
-		function ($nnmaxf)(f::Functor, $(aparams...))
+		function ($nnmaxf)(f::Functor{$fn}, $(aparams...))
 			n = maplength($(args...))
 			n == 0 ? 0.0 : ($_maxf)(1, n, f, $(args...))
 		end
 
 		global $_minf
-		function ($_minf)(ifirst::Int, ilast::Int, f::Functor, $(aparams...))
+		function ($_minf)(ifirst::Int, ilast::Int, f::Functor{$fn}, $(aparams...))
 			i = ifirst
 			s = $(ti)
 
@@ -177,14 +179,14 @@ macro code_mapreducfuns(N)
 		end
 
 		global $minf
-		function ($minf)(f::Functor, $(aparams...))
+		function ($minf)(f::Functor{$fn}, $(aparams...))
 			n = maplength($(args...))
 			n > 0 || error("Empty arguments not allowed.")
 			($_minf)(1, n, f, $(args...))
 		end
 
 		global $nnminf
-		function ($nnminf)(f::Functor, $(aparams...))
+		function ($nnminf)(f::Functor{$fn}, $(aparams...))
 			n = maplength($(args...))
 			n == 0 ? 0.0 : ($_minf)(1, n, f, $(args...))
 		end

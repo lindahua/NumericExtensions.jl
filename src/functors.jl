@@ -1,6 +1,6 @@
 # common functors
 
-abstract Functor
+abstract Functor{N}  # N is the number of arguments
 
 ####################################### 
 #
@@ -11,7 +11,7 @@ abstract Functor
 macro functor1(F, T, f)
     quote
         global evaluate
-        type $F <: Functor end
+        type $F <: Functor{1} end
         evaluate(::($F), x::($T)) = ($f)(x)
     end
 end
@@ -19,8 +19,16 @@ end
 macro functor2(F, T, f)
     quote
         global evaluate
-        type $F <: Functor end
+        type $F <: Functor{2} end
         evaluate(::($F), x::($T), y::($T)) = ($f)(x, y)
+    end
+end
+
+macro functor3(F, T, f)
+    quote
+        global evaluate
+        type $F <: Functor{3} end
+        evaluate(::($F), x::($T), y::($T), z::($T)) = ($f)(x, y, z)
     end
 end
 
@@ -39,68 +47,68 @@ export
 
 # arithmetic operators
 
-type Negate <: Functor end
+type Negate <: Functor{1} end
 evaluate(::Negate, x::Number) = -x
 
-type Add <: Functor end
+type Add <: Functor{2} end
 evaluate(::Add, x::Number, y::Number) = x + y
 
-type Subtract <: Functor end
+type Subtract <: Functor{2} end
 evaluate(::Subtract, x::Number, y::Number) = x - y
 
-type Multiply <: Functor end
+type Multiply <: Functor{2} end
 evaluate(::Multiply, x::Number, y::Number) = x * y
 
-type Divide <: Functor end
+type Divide <: Functor{2} end
 evaluate(::Divide, x::Number, y::Number) = x / y
 
-type Pow <: Functor end
+type Pow <: Functor{2} end
 evaluate(::Pow, x::Number, y::Number) = x ^ y
 
-type Modulo <: Functor end
+type Modulo <: Functor{2} end
 evaluate(::Modulo, x::Real, y::Real) = x % y
 
 # comparison operators
 
-type Greater <: Functor end
+type Greater <: Functor{2} end
 evaluate(::Greater, x::Real, y::Real) = x > y
 
-type GreaterEqual <: Functor end
+type GreaterEqual <: Functor{2} end
 evaluate(::GreaterEqual, x::Real, y::Real) = x >= y
 
-type Less <: Functor end
+type Less <: Functor{2} end
 evaluate(::Less, x::Real, y::Real) = x < y
 
-type LessEqual <: Functor end
+type LessEqual <: Functor{2} end
 evaluate(::LessEqual, x::Real, y::Real) = x <= y
 
-type Equal <: Functor end
+type Equal <: Functor{2} end
 evaluate(::Equal, x::Number, y::Number) = x == y
 
-type NotEqual <: Functor end
+type NotEqual <: Functor{2} end
 evaluate(::NotEqual, x::Number, y::Number) = x != y
 
 # logical operators
 
-type Not <: Functor end
+type Not <: Functor{1} end
 evaluate(::Not, x::Bool) = !x
 
-type And <: Functor end 
+type And <: Functor{2} end 
 evaluate(::And, x::Bool, y::Bool) = (x && y)
 
-type Or <: Functor end
+type Or <: Functor{2} end
 evaluate(::Or, x::Bool, y::Bool) = (x || y)
 
-type BitwiseNot <: Functor end
+type BitwiseNot <: Functor{1} end
 evaluate(::BitwiseNot, x::Real) = (~x)
 
-type BitwiseAnd <: Functor end
+type BitwiseAnd <: Functor{2} end
 evaluate(::BitwiseAnd, x::Real, y::Real) = (x & y)
 
-type BitwiseOr <: Functor end
+type BitwiseOr <: Functor{2} end
 evaluate(::BitwiseOr, x::Real, y::Real) = (x | y)
 
-type BitwiseXor <: Functor end
+type BitwiseXor <: Functor{2} end
 evaluate(::BitwiseXor, x::Real, y::Real) = (x $ y)
 
 
@@ -145,12 +153,12 @@ export
 @functor1 RcbrtFun Real   rcbrt
 @functor2 HypotFun Real   hypot
 
-immutable FixPow{T<:Real} <: Functor
+immutable FixPow{T<:Real} <: Functor{1}
     p::T
 end
 evaluate(f::FixPow, x::Real) = (x ^ f.p)
 
-immutable FixAbsPow{T<:Real} <: Functor
+immutable FixAbsPow{T<:Real} <: Functor{1}
     p::T
 end
 evaluate(f::FixAbsPow, x::Real) = (abs(x) ^ f.p)
@@ -194,7 +202,7 @@ evaluate(f::FixAbsPow, x::Real) = (abs(x) ^ f.p)
 @functor1 Expm1Fun Real expm1
 @functor1 Log1pFun Real log1p
 
-type LdexpFun <: Functor end
+type LdexpFun <: Functor{2} end
 evaluate(::LdexpFun, x::Real, n::Integer) = ldexp(x, n)
 
 # trigonometric & hyperbolic
@@ -275,8 +283,9 @@ export ErfFun, ErfcFun, ErfInvFun, ErfcInvFun,
 
 # beta functors
 
-@functor1 BetaFun  Real beta
-@functor1 LbetaFun Real lbeta
+@functor2 BetaFun  Real beta
+@functor2 LbetaFun Real lbeta
+@functor1 EtaFun   Real eta
 @functor1 ZetaFun  Real zeta
 
 # airy functors
@@ -287,8 +296,6 @@ export ErfFun, ErfcFun, ErfInvFun, ErfcInvFun,
 @functor1 AiryaiprimeFun Real airyaiprime
 @functor1 AirybiFun      Real airybi
 @functor1 AirybiprimeFun Real airybiprime
-
-evaluate(::AiryFun, k::Integer, x::Real) = airy(k, x)
 
 # bessel functors
 
@@ -317,10 +324,10 @@ evaluate(::AiryFun, k::Integer, x::Real) = airy(k, x)
 
 export FMA, IfelseFun
 
-type FMA <: Functor end
+type FMA <: Functor{3} end
 evaluate(::FMA, x::Number, y::Number, z::Number) = (x + y * z)
 
-type IfelseFun <: Functor end
+type IfelseFun <: Functor{3} end
 evaluate{T<:Number}(::IfelseFun, c::Bool, x::T, y::T) = ifelse(c, x, y)
 
 

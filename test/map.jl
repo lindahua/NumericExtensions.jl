@@ -72,7 +72,7 @@ mapdiff!(Abs2Fun(), r, 2, x)
 
 # customized functions
 
-type MyFun <: Functor end
+type MyFun <: Functor{2} end
 NumericExtensions.evaluate(::MyFun, x, y) = abs2(x) + y
 
 @test_approx_eq map(MyFun(), x, y) abs2(x) + y
