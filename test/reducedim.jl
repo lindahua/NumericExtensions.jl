@@ -54,6 +54,11 @@ a2 = 2 * rand(5, 6) - 1.0
 a3 = 2 * rand(5, 4, 3) - 1.0
 a4 = 2 * rand(5, 4, 3, 2) - 1.0
 
+b1 = 2 * rand(6) - 1.0
+b2 = 2 * rand(5, 6) - 1.0
+b3 = 2 * rand(5, 4, 3) - 1.0
+b4 = 2 * rand(5, 4, 3, 2) - 1.0
+
 p1 = rand(6)
 p2 = rand(5, 6)
 p3 = rand(5, 4, 3)
@@ -174,6 +179,21 @@ do_sum!(a::Array, dim::Int) = sum!(zeros(reduced_shape(size(a), dim)), a, dim)
 @test_approx_eq sumxlogy(p4, q4, 3) sum(p4 .* log(q4), 3)
 @test_approx_eq sumxlogy(p4, q4, 4) sum(p4 .* log(q4), 4)
 
+# testing dot
+
+@test_approx_eq dot(a1, b1, 1) sum(a1 .* b1, 1)
+
+@test_approx_eq dot(a2, b2, 1) sum(a2 .* b2, 1)
+@test_approx_eq dot(a2, b2, 2) sum(a2 .* b2, 2)
+
+@test_approx_eq dot(a3, b3, 1) sum(a3 .* b3, 1)
+@test_approx_eq dot(a3, b3, 2) sum(a3 .* b3, 2)
+@test_approx_eq dot(a3, b3, 3) sum(a3 .* b3, 3)
+
+@test_approx_eq dot(a4, b4, 1) sum(a4 .* b4, 1)
+@test_approx_eq dot(a4, b4, 2) sum(a4 .* b4, 2)
+@test_approx_eq dot(a4, b4, 3) sum(a4 .* b4, 3)
+@test_approx_eq dot(a4, b4, 4) sum(a4 .* b4, 4)
 
 
 

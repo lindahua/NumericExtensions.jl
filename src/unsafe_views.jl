@@ -9,6 +9,10 @@ typealias ContiguousCube{T<:Number} ContiguousArray{T, 3}
 
 typealias ContiguousArrOrNum{T<:Number} Union(ContiguousArray{T}, T)
 
+typealias ContiguousRealArray{T<:Real,N} ContiguousArray{T,N}
+typealias ContiguousRealArrOrNum{T<:Real} Union(ContiguousArray{T}, T)
+
+
 similar(a::AbstractUnsafeView, T::DataType, shape::NTuple) = Array(T, shape)
 similar{T}(a::AbstractUnsafeView{T}) = Array(T, size(a))
 

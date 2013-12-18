@@ -199,17 +199,36 @@ end
 
 # derived functions
 
-sumabs(a::ContiguousArray, dim::Int) = sum(AbsFun(), a, dim)
-sumsq(a::ContiguousArray, dim::Int) = sum(Abs2Fun(), a, dim)
+macro mapreduce_fun1(fname, accum, F, AT, RT)
+	fname! = symbol("$(fname)!")
+	accum! = symbol("$(accum)!")
 
-sumxlogx(a::ContiguousArray, dim::Int) = sum(XlogxFun(), a, dim)
-sumxlogy(a::ContiguousArray, b::ContiguousArray, dim::Int) = sum(XlogyFun(), a, b, dim)
+	quote
+		global $(fname)
+		$(fname)(a::$(AT), dim::Int) = $(accum)(($F)(), a, dim)
 
+		global $(fname!)
+		$(fname!)(r::$(RT), a::$(AT), dim::Int) = $(accum!)(r, ($F)(), a, dim) 
+	end
+end
 
+macro mapreduce_fun2(fname, accum, F, AT, RT)
+	fname! = symbol("$(fname)!")
+	accum! = symbol("$(accum)!")
 
+	quote
+		global $(fname)
+		$(fname)(a::$(AT), b::$(AT), dim::Int) = $(accum)(($F)(), a, b, dim)
 
+		global $(fname!)
+		$(fname!)(r::$(RT), a::$(AT), b::$(AT), dim::Int) = $(accum!)(r, ($F)(), a, b, dim) 
+	end
+end
 
-
-
+@mapreduce_fun1 sumabs   sum AbsFun   ContiguousArray ContiguousRealArray
+@mapreduce_fun1 sumsq    sum Abs2Fun  ContiguousArray ContiguousRealArray
+@mapreduce_fun1 sumxlogx sum XlogxFun ContiguousRealArray ContiguousRealArray
+@mapreduce_fun2 sumxlogy sum XlogyFun ContiguousRealArray ContiguousRealArray
+@mapreduce_fun2 dot      sum Multiply ContiguousRealArray ContiguousRealArray
 
 
