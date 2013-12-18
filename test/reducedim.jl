@@ -269,6 +269,39 @@ do_minimum!(a::Array, dim::Int) = minimum!(zeros(reduced_shape(size(a), dim)), a
 @test_approx_eq meanabs(a4, 3) mean(abs(a4), 3)
 @test_approx_eq meanabs(a4, 4) mean(abs(a4), 4)
 
+# testing maxabs
+
+@test_approx_eq maxabs(a1, 1) maximum(abs(a1), 1)
+
+@test_approx_eq maxabs(a2, 1) maximum(abs(a2), 1)
+@test_approx_eq maxabs(a2, 2) maximum(abs(a2), 2)
+
+@test_approx_eq maxabs(a3, 1) maximum(abs(a3), 1)
+@test_approx_eq maxabs(a3, 2) maximum(abs(a3), 2)
+@test_approx_eq maxabs(a3, 3) maximum(abs(a3), 3)
+
+@test_approx_eq maxabs(a4, 1) maximum(abs(a4), 1)
+@test_approx_eq maxabs(a4, 2) maximum(abs(a4), 2)
+@test_approx_eq maxabs(a4, 3) maximum(abs(a4), 3)
+@test_approx_eq maxabs(a4, 4) maximum(abs(a4), 4)
+
+# testing minabs
+
+@test_approx_eq minabs(a1, 1) minimum(abs(a1), 1)
+
+@test_approx_eq minabs(a2, 1) minimum(abs(a2), 1)
+@test_approx_eq minabs(a2, 2) minimum(abs(a2), 2)
+
+@test_approx_eq minabs(a3, 1) minimum(abs(a3), 1)
+@test_approx_eq minabs(a3, 2) minimum(abs(a3), 2)
+@test_approx_eq minabs(a3, 3) minimum(abs(a3), 3)
+
+@test_approx_eq minabs(a4, 1) minimum(abs(a4), 1)
+@test_approx_eq minabs(a4, 2) minimum(abs(a4), 2)
+@test_approx_eq minabs(a4, 3) minimum(abs(a4), 3)
+@test_approx_eq minabs(a4, 4) minimum(abs(a4), 4)
+
+
 # testing sumsq
 
 @test_approx_eq sumsq(a1, 1) sum(abs2(a1), 1)
@@ -317,6 +350,37 @@ do_minimum!(a::Array, dim::Int) = minimum!(zeros(reduced_shape(size(a), dim)), a
 @test_approx_eq sumabsdiff(a4, b4, 3) sum(abs(a4 - b4), 3)
 @test_approx_eq sumabsdiff(a4, b4, 4) sum(abs(a4 - b4), 4)
 
+
+@test_approx_eq sumabsdiff(a1, 0.5, 1) sum(abs(a1 - 0.5), 1)
+
+@test_approx_eq sumabsdiff(a2, 0.5, 1) sum(abs(a2 - 0.5), 1)
+@test_approx_eq sumabsdiff(a2, 0.5, 2) sum(abs(a2 - 0.5), 2)
+
+@test_approx_eq sumabsdiff(a3, 0.5, 1) sum(abs(a3 - 0.5), 1)
+@test_approx_eq sumabsdiff(a3, 0.5, 2) sum(abs(a3 - 0.5), 2)
+@test_approx_eq sumabsdiff(a3, 0.5, 3) sum(abs(a3 - 0.5), 3)
+
+@test_approx_eq sumabsdiff(a4, 0.5, 1) sum(abs(a4 - 0.5), 1)
+@test_approx_eq sumabsdiff(a4, 0.5, 2) sum(abs(a4 - 0.5), 2)
+@test_approx_eq sumabsdiff(a4, 0.5, 3) sum(abs(a4 - 0.5), 3)
+@test_approx_eq sumabsdiff(a4, 0.5, 4) sum(abs(a4 - 0.5), 4)
+
+
+@test_approx_eq sumabsdiff(0.5, b1, 1) sum(abs(0.5 - b1), 1)
+
+@test_approx_eq sumabsdiff(0.5, b2, 1) sum(abs(0.5 - b2), 1)
+@test_approx_eq sumabsdiff(0.5, b2, 2) sum(abs(0.5 - b2), 2)
+
+@test_approx_eq sumabsdiff(0.5, b3, 1) sum(abs(0.5 - b3), 1)
+@test_approx_eq sumabsdiff(0.5, b3, 2) sum(abs(0.5 - b3), 2)
+@test_approx_eq sumabsdiff(0.5, b3, 3) sum(abs(0.5 - b3), 3)
+
+@test_approx_eq sumabsdiff(0.5, b4, 1) sum(abs(0.5 - b4), 1)
+@test_approx_eq sumabsdiff(0.5, b4, 2) sum(abs(0.5 - b4), 2)
+@test_approx_eq sumabsdiff(0.5, b4, 3) sum(abs(0.5 - b4), 3)
+@test_approx_eq sumabsdiff(0.5, b4, 4) sum(abs(0.5 - b4), 4)
+
+
 # testing sumsqdiff
 
 @test_approx_eq sumsqdiff(a1, b1, 1) sum(abs2(a1 - b1), 1)
@@ -332,6 +396,38 @@ do_minimum!(a::Array, dim::Int) = minimum!(zeros(reduced_shape(size(a), dim)), a
 @test_approx_eq sumsqdiff(a4, b4, 2) sum(abs2(a4 - b4), 2)
 @test_approx_eq sumsqdiff(a4, b4, 3) sum(abs2(a4 - b4), 3)
 @test_approx_eq sumsqdiff(a4, b4, 4) sum(abs2(a4 - b4), 4)
+
+# testing maxabsdiff
+
+@test_approx_eq maxabsdiff(a1, b1, 1) maximum(abs(a1 - b1), 1)
+
+@test_approx_eq maxabsdiff(a2, b2, 1) maximum(abs(a2 - b2), 1)
+@test_approx_eq maxabsdiff(a2, b2, 2) maximum(abs(a2 - b2), 2)
+
+@test_approx_eq maxabsdiff(a3, b3, 1) maximum(abs(a3 - b3), 1)
+@test_approx_eq maxabsdiff(a3, b3, 2) maximum(abs(a3 - b3), 2)
+@test_approx_eq maxabsdiff(a3, b3, 3) maximum(abs(a3 - b3), 3)
+
+@test_approx_eq maxabsdiff(a4, b4, 1) maximum(abs(a4 - b4), 1)
+@test_approx_eq maxabsdiff(a4, b4, 2) maximum(abs(a4 - b4), 2)
+@test_approx_eq maxabsdiff(a4, b4, 3) maximum(abs(a4 - b4), 3)
+@test_approx_eq maxabsdiff(a4, b4, 4) maximum(abs(a4 - b4), 4)
+
+# testing minabsdiff
+
+@test_approx_eq minabsdiff(a1, b1, 1) minimum(abs(a1 - b1), 1)
+
+@test_approx_eq minabsdiff(a2, b2, 1) minimum(abs(a2 - b2), 1)
+@test_approx_eq minabsdiff(a2, b2, 2) minimum(abs(a2 - b2), 2)
+
+@test_approx_eq minabsdiff(a3, b3, 1) minimum(abs(a3 - b3), 1)
+@test_approx_eq minabsdiff(a3, b3, 2) minimum(abs(a3 - b3), 2)
+@test_approx_eq minabsdiff(a3, b3, 3) minimum(abs(a3 - b3), 3)
+
+@test_approx_eq minabsdiff(a4, b4, 1) minimum(abs(a4 - b4), 1)
+@test_approx_eq minabsdiff(a4, b4, 2) minimum(abs(a4 - b4), 2)
+@test_approx_eq minabsdiff(a4, b4, 3) minimum(abs(a4 - b4), 3)
+@test_approx_eq minabsdiff(a4, b4, 4) minimum(abs(a4 - b4), 4)
 
 # testing meanabsdiff
 

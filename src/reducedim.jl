@@ -23,6 +23,8 @@ function reduced_length{D}(s::SizeTuple{D}, dim::Int)
 	error("Invalid value of dim.")
 end
 
+offset_view(a::Number, ::Int, ::Int, ::Int) = a
+
 #################################################
 #
 #    codegen facilities
@@ -341,6 +343,8 @@ end
 #
 #################################################
 
+# macros to generate derived functions
+
 macro mapreduce_fun1(fname, accum, F, AT, RT)
 	fname! = symbol("$(fname)!")
 	accum! = symbol("$(accum)!")
@@ -367,14 +371,20 @@ macro mapreduce_fun2(fname, accum, F, AT, RT)
 	end
 end
 
-@mapreduce_fun1 sumabs  sum  AbsFun ContiguousArray ContiguousRealArray
-@mapreduce_fun1 meanabs mean AbsFun ContiguousArray ContiguousRealArray
+# derived functions
+
+@mapreduce_fun1 sumabs  sum     AbsFun ContiguousArray ContiguousRealArray
+@mapreduce_fun1 meanabs mean    AbsFun ContiguousArray ContiguousRealArray
+@mapreduce_fun1 maxabs  maximum AbsFun ContiguousArray ContiguousRealArray
+@mapreduce_fun1 minabs  minimum AbsFun ContiguousArray ContiguousRealArray
 
 @mapreduce_fun1 sumsq  sum  Abs2Fun ContiguousArray ContiguousRealArray
 @mapreduce_fun1 meansq mean Abs2Fun ContiguousArray ContiguousRealArray
 
-@mapreduce_fun2 sumabsdiff  sumfdiff  AbsFun ContiguousArray ContiguousRealArray
-@mapreduce_fun2 meanabsdiff meanfdiff AbsFun ContiguousArray ContiguousRealArray
+@mapreduce_fun2 sumabsdiff  sumfdiff  AbsFun ContiguousArrOrNum ContiguousRealArray
+@mapreduce_fun2 meanabsdiff meanfdiff AbsFun ContiguousArrOrNum ContiguousRealArray
+@mapreduce_fun2 maxabsdiff  maxfdiff  AbsFun ContiguousArrOrNum ContiguousRealArray
+@mapreduce_fun2 minabsdiff  minfdiff  AbsFun ContiguousArrOrNum ContiguousRealArray
 
 @mapreduce_fun2 sumsqdiff  sumfdiff  Abs2Fun ContiguousArray ContiguousRealArray
 @mapreduce_fun2 meansqdiff meanfdiff Abs2Fun ContiguousArray ContiguousRealArray
