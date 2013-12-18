@@ -216,6 +216,71 @@ do_mean!(a::Array, dim::Int) = mean!(zeros(reduced_shape(size(a), dim)), a, dim)
 @test_approx_eq meansq(a4, 3) mean(abs2(a4), 3)
 @test_approx_eq meansq(a4, 4) mean(abs2(a4), 4)
 
+# testing sumabsdiff
+
+@test_approx_eq sumabsdiff(a1, b1, 1) sum(abs(a1 - b1), 1)
+
+@test_approx_eq sumabsdiff(a2, b2, 1) sum(abs(a2 - b2), 1)
+@test_approx_eq sumabsdiff(a2, b2, 2) sum(abs(a2 - b2), 2)
+
+@test_approx_eq sumabsdiff(a3, b3, 1) sum(abs(a3 - b3), 1)
+@test_approx_eq sumabsdiff(a3, b3, 2) sum(abs(a3 - b3), 2)
+@test_approx_eq sumabsdiff(a3, b3, 3) sum(abs(a3 - b3), 3)
+
+@test_approx_eq sumabsdiff(a4, b4, 1) sum(abs(a4 - b4), 1)
+@test_approx_eq sumabsdiff(a4, b4, 2) sum(abs(a4 - b4), 2)
+@test_approx_eq sumabsdiff(a4, b4, 3) sum(abs(a4 - b4), 3)
+@test_approx_eq sumabsdiff(a4, b4, 4) sum(abs(a4 - b4), 4)
+
+# testing sumsqdiff
+
+@test_approx_eq sumsqdiff(a1, b1, 1) sum(abs2(a1 - b1), 1)
+
+@test_approx_eq sumsqdiff(a2, b2, 1) sum(abs2(a2 - b2), 1)
+@test_approx_eq sumsqdiff(a2, b2, 2) sum(abs2(a2 - b2), 2)
+
+@test_approx_eq sumsqdiff(a3, b3, 1) sum(abs2(a3 - b3), 1)
+@test_approx_eq sumsqdiff(a3, b3, 2) sum(abs2(a3 - b3), 2)
+@test_approx_eq sumsqdiff(a3, b3, 3) sum(abs2(a3 - b3), 3)
+
+@test_approx_eq sumsqdiff(a4, b4, 1) sum(abs2(a4 - b4), 1)
+@test_approx_eq sumsqdiff(a4, b4, 2) sum(abs2(a4 - b4), 2)
+@test_approx_eq sumsqdiff(a4, b4, 3) sum(abs2(a4 - b4), 3)
+@test_approx_eq sumsqdiff(a4, b4, 4) sum(abs2(a4 - b4), 4)
+
+# testing meanabsdiff
+
+@test_approx_eq meanabsdiff(a1, b1, 1) mean(abs(a1 - b1), 1)
+
+@test_approx_eq meanabsdiff(a2, b2, 1) mean(abs(a2 - b2), 1)
+@test_approx_eq meanabsdiff(a2, b2, 2) mean(abs(a2 - b2), 2)
+
+@test_approx_eq meanabsdiff(a3, b3, 1) mean(abs(a3 - b3), 1)
+@test_approx_eq meanabsdiff(a3, b3, 2) mean(abs(a3 - b3), 2)
+@test_approx_eq meanabsdiff(a3, b3, 3) mean(abs(a3 - b3), 3)
+
+@test_approx_eq meanabsdiff(a4, b4, 1) mean(abs(a4 - b4), 1)
+@test_approx_eq meanabsdiff(a4, b4, 2) mean(abs(a4 - b4), 2)
+@test_approx_eq meanabsdiff(a4, b4, 3) mean(abs(a4 - b4), 3)
+@test_approx_eq meanabsdiff(a4, b4, 4) mean(abs(a4 - b4), 4)
+
+# testing meansqdiff
+
+@test_approx_eq meansqdiff(a1, b1, 1) mean(abs2(a1 - b1), 1)
+
+@test_approx_eq meansqdiff(a2, b2, 1) mean(abs2(a2 - b2), 1)
+@test_approx_eq meansqdiff(a2, b2, 2) mean(abs2(a2 - b2), 2)
+
+@test_approx_eq meansqdiff(a3, b3, 1) mean(abs2(a3 - b3), 1)
+@test_approx_eq meansqdiff(a3, b3, 2) mean(abs2(a3 - b3), 2)
+@test_approx_eq meansqdiff(a3, b3, 3) mean(abs2(a3 - b3), 3)
+
+@test_approx_eq meansqdiff(a4, b4, 1) mean(abs2(a4 - b4), 1)
+@test_approx_eq meansqdiff(a4, b4, 2) mean(abs2(a4 - b4), 2)
+@test_approx_eq meansqdiff(a4, b4, 3) mean(abs2(a4 - b4), 3)
+@test_approx_eq meansqdiff(a4, b4, 4) mean(abs2(a4 - b4), 4)
+
+
 # testing dot
 
 @test_approx_eq dot(a1, b1, 1) sum(a1 .* b1, 1)

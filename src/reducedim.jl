@@ -54,8 +54,8 @@ end
 
 function prepare_reducedim_args(::_RDArgs{-2})
 	aparams = [:(f::Functor{1}), :(a1::ContiguousArrOrNum), :(a2::ContiguousArrOrNum)]
-	args = [:a1, :a2]
-	offset_args = [:(offset_view(a1, ao, m, n)), :(offset_view(a2, ao, m, n))]
+	args = [:f, :a1, :a2]
+	offset_args = [:f, :(offset_view(a1, ao, m, n)), :(offset_view(a2, ao, m, n))]
 	term = :(evaluate(f, getvalue(a1, idx) - getvalue(a2, idx)))
 	inputsize = :(mapshape(a1, a2))
 	termtype = :(result_type(f, promote_type(eltype(a1), eltype(a2))))
@@ -89,6 +89,7 @@ function generate_sumdim_codes(AN::Int, accum::Symbol)
 	# function names
 	_accum_eachcol! = symbol("_$(accum)_eachcol!")
 	_accum_eachrow! = symbol("_$(accum)_eachrow!")
+	_accum = symbol("_$(accum)")
 	_accum! = symbol("_$(accum)!")
 	accum! = symbol("$(accum)!")
 
@@ -104,7 +105,7 @@ function generate_sumdim_codes(AN::Int, accum::Symbol)
 			offset = 0
 			if m > 0
 				for j = 1 : n
-					rj = _sum(offset+1, offset+m, $(h.args...))
+					rj = ($_accum)(offset+1, offset+m, $(h.args...))
 					@inbounds r[j] = rj
 					offset += m
 				end
@@ -148,7 +149,7 @@ function generate_sumdim_codes(AN::Int, accum::Symbol)
 			if dim == 1
 				m = shp[1]
 				n = succ_length(shp, 1)
-				_sum_eachcol!(m, n, r, $(h.args...))
+				$(_accum_eachcol!)(m, n, r, $(h.args...))
 
 			else
 				m = prec_length(shp, dim)
@@ -156,13 +157,13 @@ function generate_sumdim_codes(AN::Int, accum::Symbol)
 				k = succ_length(shp, dim)
 
 				if k == 1
-					_sum_eachrow!(m, n, r, $(h.args...))
+					$(_accum_eachrow!)(m, n, r, $(h.args...))
 				else
 					mn = m * n
 					ro = 0
 					ao = 0
 					for l = 1 : k
-						_sum_eachrow!(m, n, offset_view(r, ro, m), $(h.offset_args...))
+						$(_accum_eachrow!)(m, n, offset_view(r, ro, m), $(h.offset_args...))
 						ro += m
 						ao += mn
 					end
@@ -174,13 +175,13 @@ function generate_sumdim_codes(AN::Int, accum::Symbol)
 		global $(accum!)
 		function $(accum!)(r::ContiguousArray, $(h.aparams...), dim::Int)
 			length(r) == reduced_length($(h.inputsize), dim) || error("Invalid argument dimensions.")
-			_sum!(r, $(h.args...), dim)
+			$(_accum!)(r, $(h.args...), dim)
 		end
 
 		global $(accum)
 		function $(accum)($(h.aparams...), dim::Int)
 			rshp = reduced_shape($(h.inputsize), dim)
-			_sum!(Array(sumtype($(h.termtype)), rshp), $(h.args...), dim)
+			$(_accum!)(Array(sumtype($(h.termtype)), rshp), $(h.args...), dim)
 		end		
 	end
 end
@@ -275,8 +276,11 @@ end
 @mapreduce_fun1 sumxlogx sum XlogxFun ContiguousRealArray ContiguousRealArray
 @mapreduce_fun2 sumxlogy sum XlogyFun ContiguousRealArray ContiguousRealArray
 
+@mapreduce_fun2 sumabsdiff  sumfdiff  AbsFun ContiguousArray ContiguousRealArray
+@mapreduce_fun2 meanabsdiff meanfdiff AbsFun ContiguousArray ContiguousRealArray
 
-
+@mapreduce_fun2 sumsqdiff  sumfdiff  Abs2Fun ContiguousArray ContiguousRealArray
+@mapreduce_fun2 meansqdiff meanfdiff Abs2Fun ContiguousArray ContiguousRealArray
 
 
 
