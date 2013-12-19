@@ -107,164 +107,153 @@ function stdm!(dst::ContiguousRealArray, x::ContiguousRealArray, mu::ContiguousR
 end
 
 
-# ###################
-# #
-# #  Var & Std
-# #
-# ###################
+###################
+#
+#  Var & Std
+#
+###################
 
-# var{T<:Real}(x::ContiguousArray{T}) = varm(x, mean(x))
+var(x::ContiguousRealArray) = varm(x, mean(x))
 
-# function var!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, x::ContiguousVector{T}, dim::Int)
-# 	if dim == 1
-# 		dst[1] = var(x)
-# 	else
-# 		error("var: dim must be 1 for vector.")
-# 	end
-# 	dst
-# end
+function var!(dst::ContiguousRealArray, x::ContiguousRealArray, dim::Int)
+	!isempty(dst) || error("var: empty array is not allowed.")
+	nd = ndims(x)
+	1 <= dim <= nd || error("var: invalid value of dim.")
+	shp = size(x)
 
-# function var!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, dim::Int)
-# 	@check_nonempty("var")
-# 	nd = ndims(x)
-# 	if !(1 <= dim <= nd)
-# 		error("var: invalid value for the dim argument.")
-# 	end
-# 	siz = size(x)
+	if dim == 1
+		m = shp[1]
+		n = succ_length(shp, 1)
+		ao = 0
+		for j in 1 : n
+			dst[j] = var(offset_view(x, ao, m))
+			ao += m
+		end		
+	else
+		varm!(dst, x, mean(x, dim), dim)
+	end
+	dst
+end
 
-# 	if dim == 1
-# 		m = siz[1]
-# 		n = succ_length(siz, 1)
-# 		for j in 1 : n
-# 			dst[j] = var(unsafe_view(x, :, j))
-# 		end		
-# 	else
-# 		varm!(dst, x, mean(x, dim), dim)
-# 	end
-# 	dst
-# end
+function var(x::ContiguousRealArray, dim::Int)
+	var!(Array(fptype(eltype(x)), reduced_shape(size(x), dim)), x, dim)
+end
 
-# function var{T<:Real}(x::ContiguousArray{T}, dim::Int)
-# 	var!(Array(to_fptype(T), reduced_size(size(x), dim)), x, dim)
-# end
+# std
 
-# # std
-
-# std{T<:Real}(x::ContiguousArray{T}) = sqrt(var(x))
-# std{T<:Real}(x::ContiguousArray{T}, dim::Int) = sqrt!(var(x, dim))
-# std!{R<:FloatingPoint, T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, dim::Int) = sqrt!(var!(dst, x, dim))
+std(x::ContiguousRealArray) = sqrt(var(x))
+std(x::ContiguousRealArray, dim::Int) = sqrt!(var(x, dim))
+std!(dst::ContiguousRealArray, x::ContiguousRealArray, dim::Int) = sqrt!(var!(dst, x, dim))
 
 
-# ###################
-# #
-# #  LogFunsumexp
-# #
-# ###################
+###################
+#
+#  LogFunsumexp
+#
+###################
 
-# function logsumexp{T<:Real}(x::ContiguousArray{T})
-# 	@check_nonempty("logsumexp")
-# 	u = maximum(x)
-# 	log(sumfdiff(ExpFun(), x, u)) + u
-# end
+function logsumexp(x::ContiguousRealArray)
+	!isempty(x) || error("logsumexp: empty array not allowed.")
+	u = maximum(x)
+	log(sumfdiff(ExpFun(), x, u)) + u
+end
 
-# function logsumexp!{R<:FloatingPoint, T<:Real}(dst::ContiguousArray{R}, x::ContiguousVector{T}, dim::Int)
-# 	if dim == 1
-# 		dst[1] = logsumexp(x)
-# 	else
-# 		error("logsumexp: dim must be 1 for vector.")
-# 	end
-# 	dst
-# end
+function _logsumexp_eachcol!(m::Int, n::Int, dst::ContiguousRealArray, x::ContiguousRealArray)
+	o = 0
+	for j in 1 : n
+		# compute max
+		u = x[o + 1]
+		for i in 2 : m
+			@inbounds xi = x[o + i]
+			if xi > u
+				u = xi
+			end
+		end
 
-# function _logsumexp_firstdim!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, m::Int, n::Int)
-# 	o = 0
-# 	for j in 1 : n
-# 		# compute max
-# 		u = x[o + 1]
-# 		for i in 2 : m
-# 			@inbounds xi = x[o + i]
-# 			if xi > u
-# 				u = xi
-# 			end
-# 		end
+		# sum exp
+		@inbounds s = exp(x[o + 1] - u)
+		for i in 2 : m
+			@inbounds s += exp(x[o + i] - u)
+		end
 
-# 		# sum exp
-# 		@inbounds s = exp(x[o + 1] - u)
-# 		for i in 2 : m
-# 			@inbounds s += exp(x[o + i] - u)
-# 		end
+		# compute log
+		dst[j] = log(s) + u
+		o += m
+	end
+end
 
-# 		# compute log
-# 		dst[j] = log(s) + u
-# 		o += m
-# 	end
-# end
+function _logsumexp_eachrow!(m::Int, n::Int, dst::ContiguousRealArray, 
+	u::ContiguousRealArray, x::ContiguousRealArray)
 
-# function _logsumexp_lastdim!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, 
-# 	u::ContiguousArray{T}, x::ContiguousArray{T}, m::Int, n::Int)
+	# compute max
+	for i in 1 : m
+		@inbounds u[i] = x[i]
+	end
+	o = m
+	for j in 2 : n
+		for i in 1 : m
+			@inbounds ui = u[i]
+			@inbounds xi = x[o+i]
+			if xi > ui
+				@inbounds u[i] = xi
+			end
+		end
+		o += m
+	end
 
-# 	# compute max
-# 	for i in 1 : m
-# 		@inbounds u[i] = x[i]
-# 	end
-# 	o = m
-# 	for j in 2 : n
-# 		for i in 1 : m
-# 			@inbounds u[i] = max(u[i], x[o + i])
-# 		end
-# 		o += m
-# 	end
+	# sum exp
+	for i in 1 : m
+		@inbounds dst[i] = exp(x[i] - u[i])
+	end
+	o = m
+	for j in 2 : n
+		for i in 1 : m
+			@inbounds dst[i] += exp(x[o + i] - u[i])
+		end
+		o += m
+	end
 
-# 	# sum exp
-# 	for i in 1 : m
-# 		@inbounds dst[i] = exp(x[i] - u[i])
-# 	end
-# 	o = m
-# 	for j in 2 : n
-# 		for i in 1 : m
-# 			@inbounds dst[i] += exp(x[o + i] - u[i])
-# 		end
-# 		o += m
-# 	end
-
-# 	# compute log
-# 	for i in 1 : m
-# 		@inbounds dst[i] = log(dst[i]) + u[i]
-# 	end
-# end
-
-# function _logsumexp_middim!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, 
-# 	u::ContiguousArray{T}, x::ContiguousArray{T}, m::Int, n::Int, k::Int)
-
-# 	for l in 1 : k
-# 		_logsumexp_lastdim!(unsafe_view(dst, :, l), u, unsafe_view(x, :, :, l), m, n)
-# 	end
-# end
+	# compute log
+	for i in 1 : m
+		@inbounds dst[i] = log(dst[i]) + u[i]
+	end
+end
 
 
-# function logsumexp!{R<:FloatingPoint,T<:Real}(dst::ContiguousArray{R}, x::ContiguousArray{T}, dim::Int)
-# 	@check_nonempty("logsumexp")
-# 	nd = ndims(x)
-# 	if !(1 <= dim <= nd)
-# 		error("logsumexp: invalid value for the dim argument.")
-# 	end
-# 	siz = size(x)
+function logsumexp!{R<:Real,T<:Real}(dst::ContiguousArray{R}, x::ContiguousRealArray{T}, dim::Int)
+	!isempty(x) || error("logsumexp!: empty array not allowed.")
+	nd = ndims(x)
+	1 <= dim <= nd || error("logsumexp!: invalid value of dim.")
+	shp = size(x)
 
-# 	if dim == 1
-# 		_logsumexp_firstdim!(dst, x, siz[1], succ_length(siz, dim))
-# 	elseif dim == nd
-# 		prelen = prec_length(siz, dim)
-# 		_logsumexp_lastdim!(dst, Array(T, prelen), x, prelen, siz[dim])
-# 	else
-# 		prelen = prec_length(siz, dim)
-# 		_logsumexp_middim!(dst, Array(T, prelen), x, prelen, siz[dim], succ_length(siz, dim))
-# 	end
-# 	dst
-# end
+	if dim == 1
+		m = shp[1]
+		n = succ_length(shp, dim)
+		_logsumexp_eachcol!(m, n, dst, x)
+	else
+		m = prec_length(shp, dim)
+		n = shp[dim]
+		k = succ_length(shp, dim)
 
-# function logsumexp{T<:Real}(x::ContiguousArray{T}, dim::Int)
-# 	logsumexp!(Array(to_fptype(T), reduced_size(size(x), dim)), x, dim)
-# end
+		u = Array(T, m)
+		_logsumexp_eachrow!(m, n, dst, u, x)
+		if k > 1
+			mn = m * n
+			ro = m
+			ao = mn
+			for l = 2 : k
+				_logsumexp_eachrow!(m, n, offset_view(dst, ro, m), u, offset_view(x, ao, m, n))
+				ro += m
+				ao += mn
+			end
+		end
+	end
+	dst
+end
+
+function logsumexp{T<:Real}(x::ContiguousArray{T}, dim::Int)
+	logsumexp!(Array(fptype(T), reduced_shape(size(x), dim)), x, dim)
+end
 
 
 # ###################

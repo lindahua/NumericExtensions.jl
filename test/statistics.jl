@@ -60,59 +60,73 @@ safe_stdm(x, u, d::Int) = sqrt(safe_varm(x, u, d))
 @test_approx_eq stdm(x4, mean(y4,3), 3) safe_stdm(x4, mean(y4,3), 3)
 @test_approx_eq stdm(x4, mean(y4,4), 4) safe_stdm(x4, mean(y4,4), 4)
 
-# # var
+# var
 
-# safe_var(x) = safe_varm(x, mean(x))
-# safe_var(x, d::Int) = safe_varm(x, mean(x, d), d)
+safe_var(x) = safe_varm(x, mean(x))
+safe_var(x, d::Int) = safe_varm(x, mean(x, d), d)
 
-# @test_approx_eq var(x) safe_var(x)
-# @test_approx_eq var(x1, 1) safe_var(x1, 1) 
-# @test_approx_eq var(x2, 1) safe_var(x2, 1)
-# @test_approx_eq var(x2, 2) safe_var(x2, 2)
-# @test_approx_eq var(x3, 1) safe_var(x3, 1)
-# @test_approx_eq var(x3, 2) safe_var(x3, 2)
-# @test_approx_eq var(x3, 3) safe_var(x3, 3)
+@test_approx_eq var(x) safe_var(x)
+@test_approx_eq var(x1, 1) safe_var(x1, 1)
 
-# r = zeros(size(x2, 2)); var!(r, x2, 1) 
-# @test_approx_eq r vec(var(x2, 1))
+@test_approx_eq var(x2, 1) safe_var(x2, 1)
+@test_approx_eq var(x2, 2) safe_var(x2, 2)
 
-# # std
+@test_approx_eq var(x3, 1) safe_var(x3, 1)
+@test_approx_eq var(x3, 2) safe_var(x3, 2)
+@test_approx_eq var(x3, 3) safe_var(x3, 3)
 
-# safe_std(x) = sqrt(var(x))
-# safe_std(x, d) = sqrt(var(x, d))
+@test_approx_eq var(x4, 1) safe_var(x4, 1)
+@test_approx_eq var(x4, 2) safe_var(x4, 2)
+@test_approx_eq var(x4, 3) safe_var(x4, 3)
+@test_approx_eq var(x4, 4) safe_var(x4, 4)
 
-# @test_approx_eq std(x) safe_std(x)
-# @test_approx_eq std(x1, 1) safe_std(x1, 1) 
-# @test_approx_eq std(x2, 1) safe_std(x2, 1)
-# @test_approx_eq std(x2, 2) safe_std(x2, 2)
-# @test_approx_eq std(x3, 1) safe_std(x3, 1)
-# @test_approx_eq std(x3, 2) safe_std(x3, 2)
-# @test_approx_eq std(x3, 3) safe_std(x3, 3)
+r = zeros(size(x2, 2)); var!(r, x2, 1) 
+@test_approx_eq r vec(var(x2, 1))
 
-# r = zeros(size(x2, 2)); std!(r, x2, 1) 
-# @test_approx_eq r vec(std(x2, 1))
+# std
+
+safe_std(x) = sqrt(var(x))
+safe_std(x, d) = sqrt(var(x, d))
+
+@test_approx_eq std(x) safe_std(x)
+@test_approx_eq std(x1, 1) safe_std(x1, 1)
+
+@test_approx_eq std(x2, 1) safe_std(x2, 1)
+@test_approx_eq std(x2, 2) safe_std(x2, 2)
+
+@test_approx_eq std(x3, 1) safe_std(x3, 1)
+@test_approx_eq std(x3, 2) safe_std(x3, 2)
+@test_approx_eq std(x3, 3) safe_std(x3, 3)
+
+@test_approx_eq std(x4, 1) safe_std(x4, 1)
+@test_approx_eq std(x4, 2) safe_std(x4, 2)
+@test_approx_eq std(x4, 3) safe_std(x4, 3)
+@test_approx_eq std(x4, 4) safe_std(x4, 4)
+
+r = zeros(size(x2, 2)); std!(r, x2, 1) 
+@test_approx_eq r vec(std(x2, 1))
 
 
-# # logsumexp
+# logsumexp
 
-# safe_logsumexp(x) = log(sum(exp(x)))
-# safe_logsumexp(x, d::Int) = log(sum(exp(x), d))
+safe_logsumexp(x) = log(sum(exp(x)))
+safe_logsumexp(x, d::Int) = log(sum(exp(x), d))
 
-# @test_approx_eq logsumexp(x) safe_logsumexp(x)
-# @test_approx_eq logsumexp(x1, 1) safe_logsumexp(x1, 1) 
-# @test_approx_eq logsumexp(x2, 1) safe_logsumexp(x2, 1)
-# @test_approx_eq logsumexp(x2, 2) safe_logsumexp(x2, 2)
-# @test_approx_eq logsumexp(x3, 1) safe_logsumexp(x3, 1)
-# @test_approx_eq logsumexp(x3, 2) safe_logsumexp(x3, 2)
-# @test_approx_eq logsumexp(x3, 3) safe_logsumexp(x3, 3)
+@test_approx_eq logsumexp(x) safe_logsumexp(x)
+@test_approx_eq logsumexp(x1, 1) safe_logsumexp(x1, 1) 
+@test_approx_eq logsumexp(x2, 1) safe_logsumexp(x2, 1)
+@test_approx_eq logsumexp(x2, 2) safe_logsumexp(x2, 2)
+@test_approx_eq logsumexp(x3, 1) safe_logsumexp(x3, 1)
+@test_approx_eq logsumexp(x3, 2) safe_logsumexp(x3, 2)
+@test_approx_eq logsumexp(x3, 3) safe_logsumexp(x3, 3)
 
-# r = zeros(size(x2, 2)); logsumexp!(r, x2, 1) 
-# @test_approx_eq r vec(logsumexp(x2, 1))
+r = zeros(size(x2, 2)); logsumexp!(r, x2, 1) 
+@test_approx_eq r vec(logsumexp(x2, 1))
 
-# @test_approx_eq logsumexp(x + 1000.) logsumexp(x) + 1000.
-# @test_approx_eq logsumexp(x2 + 1000., 1) logsumexp(x2, 1) + 1000.
-# @test_approx_eq logsumexp(x2 + 1000., 2) logsumexp(x2, 2) + 1000.
-# @test_approx_eq logsumexp(x3 + 1000., 2) logsumexp(x3, 2) + 1000.
+@test_approx_eq logsumexp(x + 1000.) logsumexp(x) + 1000.
+@test_approx_eq logsumexp(x2 + 1000., 1) logsumexp(x2, 1) + 1000.
+@test_approx_eq logsumexp(x2 + 1000., 2) logsumexp(x2, 2) + 1000.
+@test_approx_eq logsumexp(x3 + 1000., 2) logsumexp(x3, 2) + 1000.
 
 # # softmax
 
