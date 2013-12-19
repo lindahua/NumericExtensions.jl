@@ -132,36 +132,27 @@ You can also use functors to generate terms for folding.
     foldl(op, f3, x1, x2, x3)   # fold over f3(x1, x2, x3) from left to right
     foldr(op, f3, x1, x2, x3)   # fold over f3(x1, x2, x3) from right to left
 
-You may also perform folding along a specific dimension:
+    foldl_fdiff(op, f, x, y)   # fold over f(x - y) from left to right
+    foldr_fdiff(op, f, x, y)   # fold over f(x - y) from right to left
+
+You may also provide an initial value ``s0`` for folding.
 
 .. code-block:: julia
 
-    foldl(op, x, dim)
-    foldr(op, x, dim)
+    foldl(op, s0, x)
+    foldr(op, s0, x)
 
-    foldl(op, f1, x, dim)
-    foldr(op, f1, x, dim)
+    foldl(op, s0, f1, x)
+    foldr(op, s0, f1, x)
 
-    foldl(op, f2, x1, x2, dim)
-    foldr(op, f2, x1, x2, dim)
+    foldl(op, s0, f2, x1, x2)
+    foldf(op, s0, f2, x1, x2)
 
-    foldl(op, f3, x1, x2, x3, dim)
-    foldr(op, f3, x1, x2, x3, dim)
+    foldl(op, s0, f3, x1, x2, x3)
+    foldr(op, s0, f3, x1, x2, x3)
 
-    # the following function allows writing to a pre-allocated array dst
-    # when folding along a specific dimension
-
-    foldl!(dst, op, x, dim)
-    foldr!(dst, op, x, dim)
-
-    foldl!(dst, op, f1, x, dim)
-    foldr!(dst, op, f1, x, dim)
-
-    foldl!(dst, op, f2, x1, x2, dim)
-    foldr!(dst, op, f2, x1, x2, dim)
-
-    foldl!(dst, op, f3, x1, x2, x3, dim)
-    foldr!(dst, op, f3, x1, x2, x3, dim)
+    foldl_fdiff(op, s0, f, x, y)
+    foldr_fdiff(op, s0, f, x, y)
 
 
 
