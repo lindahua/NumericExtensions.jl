@@ -1,147 +1,353 @@
 # common functors
 
-abstract Functor{N}  # N: the number of arguments
+abstract Functor{N}  # N is the number of arguments
 
 typealias UnaryFunctor Functor{1}
 typealias BinaryFunctor Functor{2}
 typealias TernaryFunctor Functor{3}
 
-# additional functions
+####################################### 
+#
+#  Macros to define functors
+#
+####################################### 
 
-logit{T<:FloatingPoint}(x::T) = log(x/(one(T)-x))
-xlogx{T<:FloatingPoint}(x::T) = x > 0 ? x * log(x) : zero(T)
-xlogy{T<:FloatingPoint}(x::T, y::T) = x > 0 ? x * log(y) : zero(T)
-
-relu{T<:FloatingPoint}(x::T) = max(zero(T), x)
-
-logistic{T<:FloatingPoint}(x::T) = one(T)/(one(T) + exp(-x))
-invlogistic{T<:FloatingPoint}(y::T) = -log(one(T) / y - one(T))
-
-softplus{T<:FloatingPoint}(x::T) = log(one(T) + exp(x))
-invsoftplus{T<:FloatingPoint}(y::T) = log(exp(y) - one(T))
-
-# unary functors 
-
-for e in [
-    (:Negate, :-), (:AbsFun, :abs), (:Abs2Fun, :abs2), (:SqrtFun, :sqrt), (:CbrtFun, :cbrt),
-    (:FloorFun, :floor), (:CeilFun, :ceil), (:RoundFun, :round), (:TruncFun, :trunc),
-    (:ExpFun, :exp), (:Exp2Fun, :exp2), (:Exp10Fun, :exp10), (:Expm1Fun, :expm1),
-    (:LogFun, :log), (:Log2Fun, :log2), (:Log10Fun, :log10), (:Log1pFun, :log1p), 
-    (:SinFun, :sin), (:CosFun, :cos), (:TanFun, :tan), 
-    (:AsinFun, :asin), (:AcosFun, :acos), (:AtanFun, :atan), 
-    (:SinhFun, :sinh), (:CoshFun, :cosh), (:TanhFun, :tanh),
-    (:AsinhFun, :asinh), (:AcoshFun, :acosh), (:AtanhFun, :atanh), 
-    (:ErfFun, :erf), (:ErfcFun, :erfc), 
-    (:GammaFun, :gamma), (:LgammaFun, :lgamma), (:DigammaFun, :digamma), 
-    (:IsfiniteFun, :isfinite), (:IsnanFun, :isnan), (:IsinfFun, :isinf)]
-
-    @eval type $(e[1]) <: UnaryFunctor end
-    @eval evaluate(::($(e[1])), x::Number) = ($(e[2]))(x)
+macro functor1(F, T, f)
+    quote
+        global evaluate
+        type $F <: Functor{1} end
+        evaluate(::($F), x::($T)) = ($f)(x)
+    end
 end
 
-# binary functors
-
-for e in [
-    (:Add, :+), (:Subtract, :-), (:Multiply, :*), (:Divide, :/), (:Pow, :^), 
-    (:Greater, :>), (:GreaterEqual, :>=), (:Less, :<), (:LessEqual, :<=), 
-    (:Equal, :(==)), (:NotEqual, :(!=)),
-    (:MaxFun, :max), (:MinFun, :min), (:HypotFun, :hypot), (:Atan2Fun, :atan2)]
-
-    @eval type $(e[1]) <: BinaryFunctor end
-    @eval evaluate(::($(e[1])), x::Number, y::Number) = ($(e[2]))(x, y)
+macro functor2(F, T, f)
+    quote
+        global evaluate
+        type $F <: Functor{2} end
+        evaluate(::($F), x::($T), y::($T)) = ($f)(x, y)
+    end
 end
 
-### Note: this special code is needed to get performance 
-# due to compiler issues, the functions are not properly inlined without this
-# in some cases
+macro functor3(F, T, f)
+    quote
+        global evaluate
+        type $F <: Functor{3} end
+        evaluate(::($F), x::($T), y::($T), z::($T)) = ($f)(x, y, z)
+    end
+end
 
-evaluate{T<:Integer}(::MaxFun, x::T, y::T) = (x > y ? x : y)
-evaluate{T<:Integer}(::MinFun, x::T, y::T) = (x < y ? x : y)
 
-immutable FixAbsPow{T<:Real} <: UnaryFunctor 
+####################################### 
+#
+#  Functors for operators
+#
+####################################### 
+
+export 
+    Negate, Add, Subtract, Multiply, Divide, Pow, Modulo,
+    Greater, GreaterEqual, Less, LessEqual, Equal, NotEqual,
+    Not, And, Or,
+    BitwiseNot, BitwiseAnd, BitwiseOr, BitwiseXor
+
+# arithmetic operators
+
+type Negate <: Functor{1} end
+evaluate(::Negate, x::Number) = -x
+
+type Add <: Functor{2} end
+evaluate(::Add, x::Number, y::Number) = x + y
+
+type Subtract <: Functor{2} end
+evaluate(::Subtract, x::Number, y::Number) = x - y
+
+type Multiply <: Functor{2} end
+evaluate(::Multiply, x::Number, y::Number) = x * y
+
+type Divide <: Functor{2} end
+evaluate(::Divide, x::Number, y::Number) = x / y
+
+type Pow <: Functor{2} end
+evaluate(::Pow, x::Number, y::Number) = x ^ y
+
+type Modulo <: Functor{2} end
+evaluate(::Modulo, x::Real, y::Real) = x % y
+
+# comparison operators
+
+type Greater <: Functor{2} end
+evaluate(::Greater, x::Real, y::Real) = x > y
+
+type GreaterEqual <: Functor{2} end
+evaluate(::GreaterEqual, x::Real, y::Real) = x >= y
+
+type Less <: Functor{2} end
+evaluate(::Less, x::Real, y::Real) = x < y
+
+type LessEqual <: Functor{2} end
+evaluate(::LessEqual, x::Real, y::Real) = x <= y
+
+type Equal <: Functor{2} end
+evaluate(::Equal, x::Number, y::Number) = x == y
+
+type NotEqual <: Functor{2} end
+evaluate(::NotEqual, x::Number, y::Number) = x != y
+
+# logical operators
+
+type Not <: Functor{1} end
+evaluate(::Not, x::Bool) = !x
+
+type And <: Functor{2} end 
+evaluate(::And, x::Bool, y::Bool) = (x && y)
+
+type Or <: Functor{2} end
+evaluate(::Or, x::Bool, y::Bool) = (x || y)
+
+type BitwiseNot <: Functor{1} end
+evaluate(::BitwiseNot, x::Real) = (~x)
+
+type BitwiseAnd <: Functor{2} end
+evaluate(::BitwiseAnd, x::Real, y::Real) = (x & y)
+
+type BitwiseOr <: Functor{2} end
+evaluate(::BitwiseOr, x::Real, y::Real) = (x | y)
+
+type BitwiseXor <: Functor{2} end
+evaluate(::BitwiseXor, x::Real, y::Real) = (x $ y)
+
+
+####################################### 
+#
+#  Functors for elementary math
+#
+####################################### 
+
+export 
+    MaxFun, MinFun,
+    AbsFun, Abs2Fun, SqrFun, RcpFun, SqrtFun, RsqrtFun,
+    CbrtFun, RcbrtFun, HypotFun, FixPow, FixAbsPow,
+    IsfiniteFun, IsinfFun, IsnanFun, IsequalFun,
+    FloorFun, CeilFun, RoundFun, TruncFun,
+    IfloorFun, IceilFun, IroundFun, ItruncFun,
+    ModFun, FldFun, RemFun, DivFun, 
+    ExpFun, Exp2Fun, Exp10Fun, Expm1Fun, 
+    LogFun, Log2Fun, Log10Fun, Log1pFun, LdexpFun,
+    SinFun, CosFun, TanFun, CotFun, SecFun, CscFun,
+    SindFun, CosdFun, TandFun, CotdFun, SecdFun, CscdFun,
+    SinhFun, CoshFun, TanhFun, CothFun, SechFun, CschFun,
+    AsinFun, AcosFun, AtanFun, AcotFun, AsecFun, AcscFun,
+    AsindFun, AcosdFun, AtandFun, AcotdFun, AsecdFun, AcscdFun,
+    AsinhFun, AcoshFun, AtanhFun, AcothFun, AsechFun, AcschFun,
+    Atan2Fun
+
+# basic functors
+
+@functor2 MaxFun Real max
+@functor2 MinFun Real min
+
+# absolute value & power
+
+@functor1 AbsFun   Number abs
+@functor1 Abs2Fun  Number abs2
+@functor1 SqrFun   Number sqr
+@functor1 RcpFun   Number rcp
+@functor1 SqrtFun  Number sqrt
+@functor1 RsqrtFun Number rsqrt
+@functor1 CbrtFun  Real   cbrt
+@functor1 RcbrtFun Real   rcbrt
+@functor2 HypotFun Real   hypot
+
+immutable FixPow{T<:Real} <: Functor{1}
     p::T
 end
-evaluate(op::FixAbsPow, x::Number) = abs(x) ^ op.p
+evaluate(f::FixPow, x::Real) = (x ^ f.p)
 
-type Recip <: UnaryFunctor end
-type LogitFun <: UnaryFunctor end
-type LogisticFun <: UnaryFunctor end
-type XlogxFun <: UnaryFunctor end
-type XlogyFun <: BinaryFunctor end
+immutable FixAbsPow{T<:Real} <: Functor{1}
+    p::T
+end
+evaluate(f::FixAbsPow, x::Real) = (abs(x) ^ f.p)
 
-const RecipFun = Recip
+# number classifying functors
 
-evaluate{T<:FloatingPoint}(::Recip, x::T) = one(T) / x
-evaluate{T<:FloatingPoint}(::LogitFun, x::T) = log(x/(one(T)-x))
-evaluate{T<:FloatingPoint}(::LogisticFun, x::T) = one(T)/(one(T) + exp(-x))
-evaluate{T<:FloatingPoint}(::XlogxFun, x::T) = x > 0 ? x * log(x) : zero(T)
-evaluate{T<:FloatingPoint}(::XlogyFun, x::T, y::T) = x > 0 ? x * log(y) : zero(T)
+@functor1 IsfiniteFun Real   isfinite
+@functor1 IsnanFun    Real   isnan
+@functor1 IsinfFun    Real   isinf
+@functor2 IsequalFun  Number isequal
 
-# ternary functors
+# rounding functors
 
-type FMA <: TernaryFunctor end
+@functor1 FloorFun Real floor
+@functor1 CeilFun  Real ceil
+@functor1 RoundFun Real round
+@functor1 TruncFun Real trunc
 
-evaluate(op::FMA, a::Number, b::Number, c::Number) = a + b * c
+@functor1 IfloorFun Real ifloor
+@functor1 IceilFun  Real iceil
+@functor1 IroundFun Real iround
+@functor1 ItruncFun Real itrunc
+
+# division & modulus functors
+
+@functor2 ModFun Real mod
+@functor2 FldFun Real fld
+@functor2 RemFun Real rem
+@functor2 DivFun Real div
+
+# exponentiation & logarithm
+
+@functor1 ExpFun   Number exp
+@functor1 Exp2Fun  Number exp2
+@functor1 Exp10Fun Number exp10
+
+@functor1 LogFun   Number log
+@functor1 Log2Fun  Number log2
+@functor1 Log10Fun Number log10
+
+@functor1 Expm1Fun Real expm1
+@functor1 Log1pFun Real log1p
+
+type LdexpFun <: Functor{2} end
+evaluate(::LdexpFun, x::Real, n::Integer) = ldexp(x, n)
+
+# trigonometric & hyperbolic
+
+@functor1 SinFun Number sin
+@functor1 CosFun Number cos
+@functor1 TanFun Number tan
+@functor1 CotFun Number cot
+@functor1 SecFun Number sec
+@functor1 CscFun Number csc
+
+@functor1 SindFun Real sind
+@functor1 CosdFun Real cosd
+@functor1 TandFun Real tand
+@functor1 CotdFun Real cotd
+@functor1 SecdFun Real secd
+@functor1 CscdFun Real cscd
+
+@functor1 SinhFun Number sinh
+@functor1 CoshFun Number cosh
+@functor1 TanhFun Number tanh
+@functor1 CothFun Number coth
+@functor1 SechFun Number sech
+@functor1 CschFun Number csch
+
+@functor1 AsinFun Number asin
+@functor1 AcosFun Number acos
+@functor1 AtanFun Number atan
+@functor1 AcotFun Number acot
+@functor1 AsecFun Number asec
+@functor1 AcscFun Number acsc
+
+@functor1 AsindFun Real asind
+@functor1 AcosdFun Real acosd
+@functor1 AtandFun Real atand
+@functor1 AcotdFun Real acotd
+@functor1 AsecdFun Real asecd
+@functor1 AcscdFun Real acscd
+
+@functor1 AsinhFun Number asinh
+@functor1 AcoshFun Number acosh
+@functor1 AtanhFun Number atanh
+@functor1 AcothFun Number acoth
+@functor1 AsechFun Number asech
+@functor1 AcschFun Number acsch
+
+@functor2 Atan2Fun Real atan2
 
 
-#################################################
+####################################### 
 #
-#  Result type inference
+#  Functors for special functions
 #
-#################################################
+####################################### 
 
-to_fptype{T<:Number}(x::Type{T}) = typeof(convert(FloatingPoint, zero(T)))
+export ErfFun, ErfcFun, ErfInvFun, ErfcInvFun,
+    GammaFun, LgammaFun, LfactFun, DigammaFun,
+    BetaFun, LbetaFun, ZetaFun,
+    AiryFun, AiryprimeFun, AiryaiFun, AiryaiprimeFun,
+    AirybiFun, AirybiprimeFun,
+    BesseljFun, Besselj0Fun, Besselj1Fun, BesseliFun, BesselkFun,
+    LogitFun, LogisticFun, InvLogisticFun,
+    XlogxFun, XlogyFun
 
-for Op in [:Add, :Subtract, :Multiply, :Pow, :MaxFun, :MinFun]
-    @eval result_type{T1<:Number, T2<:Number}(::($Op), ::Type{T1}, ::Type{T2}) = promote_type(T1, T2)
-    @eval result_type{T<:Number}(::($Op), ::Type{T}, ::Type{T}) = T
-end
+# error functors
 
-result_type(::Add, ::Type{Bool}, ::Type{Bool}) = Int
-result_type(::Subtract, ::Type{Bool}, ::Type{Bool}) = Int
+@functor1 ErfFun     Real erf
+@functor1 ErfcFun    Real erfc
+@functor1 ErfInvFun  Real erfinv
+@functor1 ErfcInvFun Real erfcinv
 
-for Op in [:Divide, :HypotFun, :Atan2Fun]
-    @eval result_type{T1<:Number, T2<:Number}(::$(Op), ::Type{T1}, ::Type{T2}) = to_fptype(promote_type(T1, T2))
-    @eval result_type{T<:Number}(::$(Op), ::Type{T}, ::Type{T}) = to_fptype(T)
-    @eval result_type{T<:FloatingPoint}(::$(Op), ::Type{T}, ::Type{T}) = T
-end
+# gamma functors
 
-for Op in [:Negate, :FloorFun, :CeilFun, :RoundFun, :TruncFun]
-    @eval result_type{T<:Number}(::$(Op), ::Type{T}) = T
-end
+@functor1 GammaFun   Real gamma
+@functor1 LgammaFun  Real lgamma
+@functor1 LfactFun   Real lfact
+@functor1 DigammaFun Real digamma
 
-for Op in [:SqrtFun, :CbrtFun, 
-    :ExpFun, :Exp2Fun, :Exp10Fun, :Expm1Fun, 
-    :LogFun, :Log2Fun, :Log10Fun, :Log1pFun, 
-    :SinFun, :CosFun, :TanFun, :AsinFun, :AcosFun, :AtanFun, 
-    :SinhFun, :CoshFun, :TanhFun, :AsinhFun, :AcoshFun, :AtanhFun, 
-    :ErfFun, :ErfcFun, :GammaFun, :LgammaFun, :DigammaFun]
+# beta functors
 
-    @eval result_type{T<:Number}(::$(Op), ::Type{T}) = to_fptype(T)
-end
+@functor2 BetaFun  Real beta
+@functor2 LbetaFun Real lbeta
+@functor1 EtaFun   Real eta
+@functor1 ZetaFun  Real zeta
 
-for Op in [:Greater, :GreaterEqual, :Less, :LessEqual, :Equal, :NotEqual]
-    @eval result_type{T1, T2}(::$(Op), ::Type{T1}, ::Type{T2}) = Bool
-end
+# airy functors
 
-for Op in [:IsfiniteFun, :IsnanFun, :IsinfFun]
-    @eval result_type{T<:Real}(::$(Op), ::Type{T}) = Bool
-end
+@functor1 AiryFun        Real airy
+@functor1 AiryprimeFun   Real airyprime
+@functor1 AiryaiFun      Real airyai
+@functor1 AiryaiprimeFun Real airyaiprime
+@functor1 AirybiFun      Real airybi
+@functor1 AirybiprimeFun Real airybiprime
 
-result_type{T<:Real}(::AbsFun, ::Type{T}) = T
-result_type{T<:Real}(::AbsFun, ::Type{Complex{T}}) = to_fptype(T)
-result_type{T<:Real}(::Abs2Fun, ::Type{T}) = T
-result_type{T<:Real}(::Abs2Fun, ::Type{Complex{T}}) = T
-result_type{Tp<:Real, T<:Number}(::FixAbsPow{Tp}, ::Type{T}) = promote_type(Tp, T)
+# bessel functors
 
-result_type{T1<:Number,T2<:Number,T3<:Number}(::FMA, ::Type{T1}, ::Type{T2}, ::Type{T3}) = promote_type(T1, promote_type(T2, T3))
-result_type{T<:Number}(::FMA, ::Type{T}, ::Type{T}, ::Type{T}) = T
+@functor2 BesseljFun  Real besselj
+@functor1 Besselj0Fun Real besselj0
+@functor1 Besselj1Fun Real besselj1
+@functor2 BesseliFun  Real besseli
+@functor2 BesselkFun  Real besselk
 
-result_type{T<:FloatingPoint}(::Recip, ::Type{T}) = T
-result_type{T<:FloatingPoint}(::LogitFun, ::Type{T}) = T
-result_type{T<:FloatingPoint}(::LogisticFun, ::Type{T}, ::Type{T}) = T
-result_type{T<:FloatingPoint}(::XlogxFun, ::Type{T}) = T
-result_type{T<:FloatingPoint}(::XlogyFun, ::Type{T}, ::Type{T}) = T
+# stats-related functors
+
+@functor1 LogitFun       Real logit
+@functor1 LogisticFun    Real logistic
+@functor1 InvLogisticFun Real invlogistic
+
+@functor1 XlogxFun Real xlogx
+@functor2 XlogyFun Real xlogy
 
 
+
+####################################### 
+#
+#  Ternary functors
+#
+####################################### 
+
+export FMA, IfelseFun
+
+type FMA <: Functor{3} end
+evaluate(::FMA, x::Number, y::Number, z::Number) = (x + y * z)
+
+type IfelseFun <: Functor{3} end
+evaluate{T<:Number}(::IfelseFun, c::Bool, x::T, y::T) = ifelse(c, x, y)
+
+
+####################################### 
+#
+#  type inference facility
+#
+####################################### 
+
+fptype{T<:FloatingPoint}(::Type{T}) = T
+fptype{T<:Integer}(::Type{T}) = Float64
+fptype{T<:Union(Bool,Uint8,Int8,Uint16,Int16)}(::Type{T}) = Float32
+
+result_type(f::Functor{1}, t1::Type) = typeof(evaluate(f, one(t1)))
+result_type(f::Functor{2}, t1::Type, t2::Type) = typeof(evaluate(f, one(t1), one(t2)))
+result_type(f::Functor{3}, t1::Type, t2::Type, t3::Type) = typeof(evaluate(f, one(t1), one(t2), one(t3)))
+
+typealias BlasFP Union(Float32,Float64)
 

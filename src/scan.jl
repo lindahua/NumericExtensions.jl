@@ -6,46 +6,76 @@
 #
 #################################################
 
-function code_vecscan_functions{KType<:EwiseKernel}(fname::Symbol, ktype::Type{KType})
-	fname! = symbol(string(fname, '!'))
-	plst = reduc_paramlist(ktype, :ContiguousVector)
-	alst = reduc_arglist(ktype)
-	ker_i = kernel(ktype, :i)
-	len = length_inference(ktype)
+macro code_scan(AN)
 
-	vtype = eltype_inference(ktype)
-	len = length_inference(ktype)
+	h = codegen_helper(AN)
+	t1 = h.term(1)
+	ti = h.term(:i)
 
 	quote
-		function ($fname!)(dst::ContiguousVector, $(plst...))
-			n::Int = $len
+		# generic scanning functions
+
+		global _scan!
+		function _scan!(s, r::AbstractArray, op::Functor{2}, $(h.aparams...))
 			i = 1
-			@inbounds dst[1] = v = $ker_i
-			for i in 2 : n
-				@inbounds dst[i] = v = evaluate(op, v, $ker_i)
+			@inbounds r[1] = s
+
+			for i = 2 : length(r)
+				@inbounds vi = $(ti)
+				s = evaluate(op, s, vi)
+				@inbounds r[i] = s
 			end
-			dst
 		end
 
-		function ($fname)($(plst...))
-			dst = Array($vtype, $len)
-			($fname!)(dst, $(alst...))
+		global scan!
+		function scan!(r::AbstractArray, op::Functor{2}, $(h.aparams...))
+			n = $(h.inputlen)
+			if n > 0
+				@inbounds s = $(t1)
+				_scan!(s, r, op, $(h.args...))
+			end
+			return r
 		end
+
+		global scan
+		function scan(op::Functor{2}, $(h.aparams...))
+			shp = $(h.inputsize)
+			n = prod(shp)
+			if n > 0
+				@inbounds s = $(t1)
+				r = Array(typeof(s), shp)
+				_scan!(s, r, op, $(h.args...))
+				return r
+			else
+				Any[]
+			end
+		end
+
+		# specific scanning functions
+		global cumsum!, cummax!, cummin!
+		cumsum!(r::AbstractArray, $(h.aparams...)) = scan!(r, Add(), $(h.args...))
+		cummax!(r::AbstractArray, $(h.aparams...)) = scan!(r, MaxFun(), $(h.args...))
+		cummin!(r::AbstractArray, $(h.aparams...)) = scan!(r, MinFun(), $(h.args...))
+
+		global cumsum, cummax, cummin
+		cumsum($(h.aparams...)) = scan(Add(), $(h.args...))
+		cummax($(h.aparams...)) = scan(MaxFun(), $(h.args...))
+		cummin($(h.aparams...)) = scan(MinFun(), $(h.args...))
 	end
 end
 
-macro vecscan_functions(fname, ktype)
-	esc(code_vecscan_functions(fname, eval(ktype)))
-end
+@code_scan 0
+@code_scan 1
+@code_scan 2
+@code_scan 3
 
-@vecscan_functions scan DirectKernel
-@vecscan_functions mapscan UnaryFunKernel
-@vecscan_functions mapscan BinaryFunKernel
-@vecscan_functions mapscan TernaryFunKernel
+# inplace scanning
 
-# inplace scan
+scan!(op::Functor{2}, r::ContiguousArray) = scan!(r, op, r)
 
-scan!(op::BinaryFunctor, x::ContiguousVector) = scan!(x, op, x)
+cumsum!(r::ContiguousArray) = scan!(Add(), r)
+cummax!(r::ContiguousArray) = scan!(MaxFun(), r)
+cummin!(r::ContiguousArray) = scan!(MinFun(), r)
 
 
 #################################################
@@ -54,169 +84,124 @@ scan!(op::BinaryFunctor, x::ContiguousVector) = scan!(x, op, x)
 #
 #################################################
 
-function code_dimscan_functions{KType<:EwiseKernel}(fname::Symbol, ktype::Type{KType})
-	fname_impl! = symbol(string(fname, "_impl!"))
-	_fname! = symbol(string('_', fname, '!'))
-	fname! = symbol(string(fname, '!'))
+macro code_scandim(AN)
 
-	plst = reduc_paramlist(ktype, :ContiguousArray)
-	alst = reduc_arglist(ktype)
-	ker_idx = kernel(ktype, :idx)
-	len = length_inference(ktype)
-
-	vtype = eltype_inference(ktype)
-	shape = shape_inference(ktype)
+	h = codegen_helper(AN)
+	tidx = h.term(:idx)
 
 	quote
-		function ($fname_impl!)(dst::ContiguousArray, m::Int, n::Int, k::Int, $(plst...))
-			if n == 1  # each page has a single column (simply evaluate)
-				for idx = 1:m*k
-					@inbounds dst[idx] = $ker_idx
-				end
+		# generic scanning functions
 
-			elseif m == 1  # each page has a single row
-				idx = 0
-				for l = 1:k
-					idx += 1
-					@inbounds dst[idx] = s = $ker_idx
-					for j = 2:n
-						idx += 1
-						@inbounds dst[idx] = s = evaluate(op, s, $ker_idx)
-					end					
-				end
+		global _scan_eachcol!
+		function _scan_eachcol!(m::Int, n::Int, r::AbstractArray, op::Functor{2}, $(h.aparams...))
+			o = 0
+			for j = 1 : n
+				idx = o + 1
+				@inbounds s = $(tidx)
+				@inbounds r[idx] = s
 
-			elseif k == 1 # only one page
-				for idx = 1:m
-					@inbounds dst[idx] = $ker_idx
+				for i = 2 : m
+					idx = o + i
+					@inbounds vi = $(tidx)
+					s = evaluate(op, s, vi)
+					@inbounds r[idx] = s
 				end
-				idx = m
-				for j = 2:n
-					for i = 1:m
-						idx += 1
-						@inbounds dst[idx] = evaluate(op, dst[idx-m], $ker_idx)
-					end
-				end
+				o += m
+			end
+		end
 
-			else  # multiple generic pages
-				idx = 0
-				for l = 1:k					
-					for i = 1:m
-						idx += 1
-						@inbounds dst[idx] = $ker_idx
-					end
-					for j = 2:n
-						for i = 1:m
-							idx += 1
-							@inbounds dst[idx] = evaluate(op, dst[idx-m], $ker_idx)
+		global _scan_eachrow!
+		function _scan_eachrow!(m::Int, n::Int, r::AbstractArray, op::Functor{2}, $(h.aparams...))
+			o = 0
+			for idx = 1 : m
+				@inbounds r[idx] = $(tidx)
+			end
+
+			o = m
+			for j = 2 : n
+				for i = 1 : m
+					idx = o + i
+					@inbounds s = r[idx - m]
+					@inbounds vi = $(tidx)
+					s = evaluate(op, s, vi)
+					@inbounds r[idx] = s
+				end
+				o += m
+			end
+		end
+
+		global _scan!
+		function _scan!(r::ContiguousArray, op::Functor{2}, $(h.aparams...), dim::Int)
+			if !isempty(r)
+				shp = size(r)
+				if dim == 1
+					m = shp[1]
+					n = succ_length(shp, 1)
+					_scan_eachcol!(m, n, r, op, $(h.args...))
+
+				else
+					m = prec_length(shp, dim)
+					n = shp[dim]
+					k = succ_length(shp, dim)
+
+					if k == 1
+						_scan_eachrow!(m, n, r, op, $(h.args...))
+					else
+						mn = m * n
+						ro = 0
+						ao = 0
+						for l = 1 : k
+							_scan_eachrow!(m, n, offset_view(r, ro, m, n), op, $(h.offset_args...))
+							ro += mn
+							ao += mn
 						end
 					end
 				end
 			end
+			return r
 		end
 
-		function ($_fname!)(siz::NTuple, dst::ContiguousArray, $(plst...), dim::Int)
-			if 1 <= dim <= length(siz)
-				($fname_impl!)(dst, prec_length(siz, dim), siz[dim], succ_length(siz, dim), $(alst...))
-			else
-				throw(ArgumentError("The value of dim is invalid."))
-			end
-			dst			
+		global scan!
+		function scan!(r::ContiguousArray, op::Functor{2}, $(h.aparams...), dim::Int)
+			shp = $(h.inputsize)
+			size(r) == shp || error("Invalid argument dimensions.")
+			_scan!(r, op, $(h.args...), dim)
 		end
 
-		function ($fname!)(dst::ContiguousArray, $(plst...), dim::Int)
-			siz = $shape
-			if length(dst) != prod(siz)
-				throw(ArgumentError("Inconsistent argument dimensions."))
-			end
-			($_fname!)(siz, dst, $(alst...), dim)
+		global scan
+		function scan(op::Functor{2}, $(h.aparams...), dim::Int)
+			shp = $(h.inputsize)
+			tt = $(h.termtype)
+			rt = result_type(op, tt, tt)
+			_scan!(Array(rt, shp), op, $(h.args...), dim)
 		end
 
-		function ($fname)($(plst...), dim::Int)
-			siz = $shape
-			($_fname!)(siz, Array($vtype, siz), $(alst...), dim)
-		end
-	end	
-end
 
-macro dimscan_functions(fname, ktype)
-	esc(code_dimscan_functions(fname, eval(ktype)))
-end
+		# specific scanning functions
+		global cumsum!, cummax!, cummin!
+		cumsum!(r::AbstractArray, $(h.aparams...), dim::Int) = scan!(r, Add(), $(h.args...), dim)
+		cummax!(r::AbstractArray, $(h.aparams...), dim::Int) = scan!(r, MaxFun(), $(h.args...), dim)
+		cummin!(r::AbstractArray, $(h.aparams...), dim::Int) = scan!(r, MinFun(), $(h.args...), dim)
 
-@dimscan_functions scan DirectKernel
-@dimscan_functions mapscan UnaryFunKernel
-@dimscan_functions mapscan BinaryFunKernel
-@dimscan_functions mapscan TernaryFunKernel
-
-# inplace scan
-
-scan!(op::BinaryFunctor, x::ContiguousArray, dim::Int) = scan!(x, op, x, dim)
-
-
-#################################################
-#
-# 	Specific scanning functions
-#
-#################################################
-
-function code_cumfuns(fname::Symbol, op::Expr, ktype::Type{DirectKernel})
-	fname! = symbol(string(fname, '!'))
-
-	quote
-		($fname!)(dst::ContiguousVector, x::ContiguousVector) = scan!(dst, $op, x)
-
-		($fname!)(dst::ContiguousArray, x::ContiguousArray, dim::Int) = scan!(dst, $op, x, dim)
-
-		($fname!)(x::ContiguousVector) = scan!($op, x)
-
-		($fname!)(x::ContiguousArray, dim::Int) = scan!($op, x, dim)
-
-		($fname)(x::ContiguousVector) = scan($op, x)
-
-		($fname)(x::ContiguousArray, dim::Int) = scan($op, x, dim)
+		global cumsum, cummax, cummin
+		cumsum($(h.aparams...), dim::Int) = scan(Add(), $(h.args...), dim)
+		cummax($(h.aparams...), dim::Int) = scan(MaxFun(), $(h.args...), dim)
+		cummin($(h.aparams...), dim::Int) = scan(MinFun(), $(h.args...), dim)
 	end
 end
 
-function code_cumfuns{KType<:EwiseFunKernel}(fname::Symbol, op::Expr, ktype::Type{KType})
-	fname! = symbol(string(fname, '!'))
-	plst1 = paramlist(ktype, :ContiguousVector)
-	plst = paramlist(ktype, :ContiguousArray)
-	alst = arglist(ktype)
+@code_scandim 0
+@code_scandim 1
+@code_scandim 2
+@code_scandim 3
 
-	quote
-		function ($fname!)(dst::ContiguousVector, $(plst1...))
-			mapscan!(dst, $(alst[1]), $op, $(alst[2:]...))
-		end
+# inplace scanning
 
-		function ($fname!)(dst::ContiguousArray, $(plst...), dim::Int)
-			mapscan!(dst, $(alst[1]), $op, $(alst[2:]...), dim)
-		end
+scan!(op::Functor{2}, r::ContiguousArray, dim::Int) = scan!(r, op, r, dim)
 
-		function ($fname)($(plst...))
-			mapscan($(alst[1]), $op, $(alst[2:]...))
-		end
+cumsum!(r::ContiguousArray, dim::Int) = scan!(Add(), r, dim)
+cummax!(r::ContiguousArray, dim::Int) = scan!(MaxFun(), r, dim)
+cummin!(r::ContiguousArray, dim::Int) = scan!(MinFun(), r, dim)
 
-		function ($fname)($(plst...), dim::Int)
-			mapscan($(alst[1]), $op, $(alst[2:]...), dim)
-		end
-	end
-end
 
-function code_cumfuns(fname::Symbol, op::Expr)
-	fname! = symbol(string(fname, '!'))
-
-	F0 = code_cumfuns(fname, op, DirectKernel)
-	F1 = code_cumfuns(fname, op, UnaryFunKernel)
-	F2 = code_cumfuns(fname, op, BinaryFunKernel)
-	F3 = code_cumfuns(fname, op, TernaryFunKernel)
-
-	Expr(:block, F0.args..., F1.args..., F2.args..., F3.args...)
-end
-
-macro cumfuns(fname, op)
-	esc(code_cumfuns(fname, op))
-end
-
-@cumfuns cumsum Add()
-@cumfuns cummax MaxFun()
-@cumfuns cummin MinFun()
 

@@ -33,19 +33,19 @@ With this package, we can compute this efficiently without writing loops, as
 
 .. code-block:: julia
 
-    r = mapdiff_reduce(Abs2Fun(), Add(), x, y)
-
-    # or more concise:
-    r = sum_fdiff(Abs2Fun(), x, y)
+    r = sumfdiff(Abs2Fun(), x, y)
 
     # to compute this along a specific dimension
-    r = sum_fdiff(Abs2Fun(), x, y, dim)
+    r = sumfdiff(Abs2Fun(), x, y, dim)
+
+    # this package also provides sumsqdiff for this
+    r = sumabsdiff(x, y)
+    r = sumabsdiff(x, y, dim)
+
 	
-Here, ``Abs2Fun`` and ``Add`` are *typed functors* provided by this package, which, unlike normal functions, can still be properly inlined with passed into a higher order function (thus causing zero overhead). This package extends ``map``, ``reduce``, and ``mapreduce`` to accept typed functors and as well introduces additional high order functions like ``mapdiff``, ``mapdiff_reduce``, ``sum_fdiff`` etc to simplify the usage in common cases. 
+Here, ``Abs2Fun`` and ``Add`` are *typed functors* provided by this package, which, unlike normal functions, can still be properly inlined with passed into a higher order function (thus causing zero overhead). This package extends ``map``, ``foldl``, ``foldr``, ``sum``, and so on to accept typed functors and as well introduces additional high order functions like ``sumfdiff`` and ``scan`` etc to simplify the usage in common cases. 
 
-Benchmark shows that writing in this way is over *8x faster* than ``sum(abs2(x - y))``.
-
-This package also provides a collection of specific functions to directly support very common computation. For this particular example, you can write ``sqdiffsum(x, y)``, where ``sqdiffsum`` is one of such functions provided here.
+Benchmark shows that writing in this way is over *9x faster* than ``sum(abs2(x - y))``.
 
 
 Main features
@@ -55,8 +55,8 @@ Main features of this package are highlighted below:
 
 * Pre-defined functors that cover most typical mathematical computation;
 * A easy way for user to define customized functors;
-* Extended/specialized methods for ``map``, ``map!``, ``reduce``, and ``mapreduce``. These methods are carefully optimized, which often result in *2x - 10x* speed up;
-* Additional functions such as ``map1!``, ``reduce!``, and ``mapreduce!`` that allow inplace updating or writing results to preallocated arrays;
+* Extended/specialized methods for ``map``, ``map!``, ``foldl``, ``foldr``, and ``scan``. These methods are carefully optimized, which often result in *2x - 10x* speed up;
+* Additional functions such as ``map1!``, ``sum!``, and ``scan!`` that allow inplace updating or writing results to preallocated arrays;
 * Vector broadcasting computation (supporting both inplace updating and writing results to new arrays).
 * Fast shared-memory views of arrays.
 

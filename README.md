@@ -34,20 +34,17 @@ This is not too bad though, until you have more complex needs, e.g. computing th
 With this package, we can compute this efficiently without writing loops, as
 
 ```julia
-r = mapdiff_reduce(Abs2Fun(), Add(), x, y)
-
-# or more concise:
-r = sum_fdiff(Abs2Fun(), x, y)
+r = sumfdiff(Abs2Fun(), x, y)
 
 # to compute this along a specific dimension
-r = sum_fdiff(Abs2Fun(), x, y, dim)
+r = sumfdiff(Abs2Fun(), x, y, dim)
 ```
 	
-Here, ``Abs2Fun`` and ``Add`` are *typed functors* provided by this package, which, unlike normal functions, can still be properly inlined with passed into a higher order function (thus causing zero overhead). This package extends ``map``, ``reduce``, and ``mapreduce`` to accept typed functors and as well introduces additional high order functions like ``mapdiff``, ``mapdiff_reduce``, ``sum_fdiff`` etc to simplify the usage in common cases. 
+Here, ``Abs2Fun`` and ``Add`` are *typed functors* provided by this package, which, unlike normal functions, can still be properly inlined with passed into a higher order function (thus causing zero overhead). This package extends ``map``, ``foldl``, ``sum``, ``maximum`` etc to accept typed functors and as well introduces additional high order functions like ``sumfdiff`` and ``scan`` etc to simplify the usage in other common cases. 
 
-Benchmark shows that writing in this way is over *8x faster* than ``sum(abs2(x - y))``.
+Benchmark shows that writing in this way is over *9x faster* than ``sum(abs2(x - y))``.
 
-This package also provides a collection of specific functions to directly support very common computation. For this particular example, you can write ``sqdiffsum(x, y)``, where ``sqdiffsum`` is one of such functions provided here.
+This package also provides a collection of specific functions to directly support very common computation. For this particular example, you can write ``sumsqdiff(x, y)``, where ``sumsqdiff`` is one of such functions provided here.
 
 
 #### Main features
@@ -55,9 +52,12 @@ This package also provides a collection of specific functions to directly suppor
 Main features of this package are highlighted below:
 
 * Pre-defined functors that cover most typical mathematical computation;
-* A easy way for user to define customized functors;
-* Extended/specialized methods for ``map``, ``map!``, ``reduce``, and ``mapreduce``. These methods are carefully optimized, which often result in *2x - 10x* speed up;
+* Easy ways for user to define customized functors;
+* Extended/specialized methods for ``map``, ``map!``, ``foldl``, and ``foldr``. These methods are carefully optimized, which often result in *2x - 10x* speed up;
 * Additional functions such as ``map1!``, ``reduce!``, and ``mapreduce!`` that allow inplace updating or writing results to preallocated arrays;
+* Extended methods for ``sum``, ``maximum``, ``minimum`` that allow reduction over function values (e.g. ``sum(Abs2(), x)``). It also introduces ``sum!``, ``maximum!``, and ``minimum!`` that allows writing results to preallocated storage when performing reduction along a specific dimension. 
+* A collection of highly optimized numerical computation functions, e.g. ``sumabs``, ``sumsq``, ``sumabsdiff``, ``sumsqdiff``, etc.
+* Highly optimized statistical functions, e.g. ``varm``, ``var``, ``stdm``, ``std``, ``logsumexp``, and ``softmax``, etc.
 * Vector broadcasting computation (supporting both inplace updating and writing results to new arrays).
 * Fast shared-memory views of arrays.
 
@@ -76,25 +76,27 @@ Below is a table that compares the performance of several reduction/map-reductio
 
 |            | full reduction    | colwise reduction | rowwise reduction | 
 |------------|------------------:|------------------:|------------------:|
-| sum        |            1.0167 |            1.4736 |            8.0788 | 
-| mean       |            0.9970 |            1.0356 |            8.0300 | 
-| max        |            3.2179 |            3.2375 |            5.4292 | 
-| min        |            3.2659 |            3.1634 |            5.4276 | 
-| var        |            7.3342 |            7.5871 |           13.9887 | 
-| std        |            9.3873 |            6.3414 |           12.5393 | 
-| sumabs     |           15.6732 |            4.9506 |           10.0663 | 
-| maxabs     |            3.9600 |            3.4171 |            4.3049 | 
-| minabs     |            3.4851 |            3.4207 |            4.7011 | 
-| sumsq      |           30.8621 |            4.8748 |           12.9086 | 
-| dot        |           10.2508 |            3.9924 |            8.5912 | 
-| sumabsdiff |            9.7635 |            8.4295 |           12.1404 | 
-| maxabsdiff |            4.7714 |            4.7187 |            5.3950 | 
-| minabsdiff |            4.9776 |            4.7575 |            5.5193 | 
-| sumsqdiff  |           10.5738 |            9.0984 |           12.8125 | 
+| sum        |            2.0937 |            2.8078 |           10.4734 | 
+| mean       |            1.9904 |            2.1337 |           10.5682 | 
+| max        |            1.5099 |            1.8758 |            6.4157 | 
+| min        |            1.4989 |            1.8951 |            6.3920 | 
+| var        |            1.3661 |            7.8874 |           13.3508 | 
+| std        |            1.3478 |            7.6905 |           12.5884 | 
+| sumabs     |           15.3186 |           12.0027 |           11.9859 | 
+| maxabs     |            3.3363 |            3.3574 |            8.8502 |
+| minabs     |            3.9176 |            3.3089 |            8.1781 |
+| sumsq      |           28.4254 |           10.9547 |           12.9004 | 
+| dot        |           10.1431 |            6.1043 |            9.1512 |
+| sumabsdiff |            6.9483 |            8.1992 |           11.8763 | 
+| maxabsdiff |            4.9515 |            4.8702 |            8.6670 |
+| minabsdiff |            4.8202 |            4.8156 |            8.7172 | 
+| sumsqdiff  |            9.2721 |            8.9602 |           13.8102 |
+| logsumexp  |            4.8980 |            6.0000 |            6.0321 |
+| softmax    |            4.6224 |            4.8134 |            5.1364 | 
 
-(Updated on July 5, 2013)
+(Updated on Dec 19, 2013, Julia version 0.3.0-prerelease+579, NumericExtensions version 0.3.0)
 
-You can notice remarkable or even drastical speed up for many of these functions. 
+You can notice remarkable speed up for many of these functions. 
 
 #### Documentation
 

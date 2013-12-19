@@ -53,16 +53,16 @@ b3m = reshape(b3, 1, 1, 4)
 @bench_bsx "cube-dim(2)" 5000 a b2m b2 (.+) badd! 2
 @bench_bsx "cube-dim(3)" 5000 a b3m b3 (.+) badd! 3
 
-b12 = rand(100, 100)
-b13 = rand(100, 4)
-b23 = rand(100, 4)
-b12m = reshape(b12, 100, 100, 1)
-b13m = reshape(b13, 100, 1, 4)
-b23m = reshape(b23, 1, 100, 4)
+# b12 = rand(100, 100)
+# b13 = rand(100, 4)
+# b23 = rand(100, 4)
+# b12m = reshape(b12, 100, 100, 1)
+# b13m = reshape(b13, 100, 1, 4)
+# b23m = reshape(b23, 1, 100, 4)
 
-@bench_bsx "cube-dim(1,2)" 5000 a b12m b12 (.+) badd! (1,2)
-@bench_bsx "cube-dim(1,3)" 5000 a b13m b13 (.+) badd! (1,3)
-@bench_bsx "cube-dim(2,3)" 5000 a b23m b23 (.+) badd! (2,3)
+# @bench_bsx "cube-dim(1,2)" 5000 a b12m b12 (.+) badd! (1,2)
+# @bench_bsx "cube-dim(1,3)" 5000 a b13m b13 (.+) badd! (1,3)
+# @bench_bsx "cube-dim(2,3)" 5000 a b23m b23 (.+) badd! (2,3)
 
 # print results
 

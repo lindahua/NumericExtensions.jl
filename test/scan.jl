@@ -42,6 +42,7 @@ function safe_scan(x, f, dim)
 		for k=2:siz[3]
 			y[:,:,k] = f(y[:,:,k-1], x[:,:,k])
 		end
+
 	else
 		error("dim > 3 is not supported in safe_scan.")
 	end
@@ -91,21 +92,17 @@ cumsum!(dst, Abs2Fun(), x1)
 # scan along dimensions
 
 @test size(cumsum(x1, 1)) == size(x1)
-@test_approx_eq cumsum(x1, 1) safe_scan(x1, +, 1)
-
 @test size(cumsum(x2, 1)) == size(x2)
-@test_approx_eq cumsum(x2, 1) safe_scan(x2, +, 1)
-
 @test size(cumsum(x2, 2)) == size(x2)
-@test_approx_eq cumsum(x2, 2) safe_scan(x2, +, 2)
-
 @test size(cumsum(x3, 1)) == size(x3)
-@test_approx_eq cumsum(x3, 1) safe_scan(x3, +, 1)
-
 @test size(cumsum(x3, 2)) == size(x3)
-@test_approx_eq cumsum(x3, 2) safe_scan(x3, +, 2)
-
 @test size(cumsum(x3, 3)) == size(x3)
+
+@test_approx_eq cumsum(x1, 1) safe_scan(x1, +, 1)
+@test_approx_eq cumsum(x2, 1) safe_scan(x2, +, 1)
+@test_approx_eq cumsum(x2, 2) safe_scan(x2, +, 2)
+@test_approx_eq cumsum(x3, 1) safe_scan(x3, +, 1)
+@test_approx_eq cumsum(x3, 2) safe_scan(x3, +, 2)
 @test_approx_eq cumsum(x3, 3) safe_scan(x3, +, 3)
 
 @test_approx_eq cummax(x1, 1) safe_scan(x1, max, 1)

@@ -1,18 +1,24 @@
 # run all tests
 
-tests = [ "functors", 
-		  "views", 
-		  "map", 
-		  "vbroadcast", 
-		  "reduce", 
-		  "norms",
-		  "statistics", 
-		  "wsum", 
+tests = [ "shapes", 
+		  "unsafe_views", 
+		  "diagop",
+		  "mathfuns", 
+		  "functors",
+		  "map",
+		  "vbroadcast",
 		  "utils",
-		  "pdmat"]
+		  "reduce",
+		  "mapreduce",
+		  "reducedim",
+		  "norms",
+		  "scan",
+		  "statistics",
+		  "wsum",
+		  "pdmat" ]
 
 for t in tests
-	tf = joinpath("test", "test_$t.jl")
+	tf = joinpath("test", "$t.jl")
 	println("Running $tf ...")
 	include(tf)
 end
