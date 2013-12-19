@@ -119,7 +119,7 @@ module NumericExtensions
 
 	include("norms.jl")
 	include("scan.jl")
-	# include("statistics.jl")
+	include("statistics.jl")
 	# include("weightsum.jl")
 
 	include("utils.jl")
