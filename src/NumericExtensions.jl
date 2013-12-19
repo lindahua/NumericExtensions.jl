@@ -83,10 +83,10 @@ module NumericExtensions
 		var!, varm!, std!, stdm!, 
 		logsumexp, logsumexp!, softmax, softmax!,
 
-		# # weightsum
-		# wsum, wsum!, wsumfdiff, wsumfdiff!,
-		# wsumabs, wsumabs!, wsumabsdiff, wsumabsdiff!,
-		# wsumsq, wsumsq!, wsumsqdiff, wsumsqdiff!,
+		# weightsum
+		wsum, wsum!, wsumfdiff, wsumfdiff!,
+		wsumabs, wsumabs!, wsumabsdiff, wsumabsdiff!,
+		wsumsq, wsumsq!, wsumsqdiff, wsumsqdiff!,
 
 		# utils
 		eachrepeat, sortindexes, groupindexes,
@@ -120,7 +120,7 @@ module NumericExtensions
 	include("norms.jl")
 	include("scan.jl")
 	include("statistics.jl")
-	# include("weightsum.jl")
+	include("wsum.jl")
 
 	include("utils.jl")
 
