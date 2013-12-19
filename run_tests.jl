@@ -12,9 +12,9 @@ tests = [ "shapes",
 		  "mapreduce",
 		  "reducedim",
 		  "norms",
-		  "scan" ]
+		  "scan",
+		  "statistics" ]
  
-		  # "statistics", 
 		  # "wsum", 
 		  # "pdmat"
 

@@ -256,115 +256,112 @@ function logsumexp{T<:Real}(x::ContiguousArray{T}, dim::Int)
 end
 
 
-# ###################
-# #
-# #  Softmax
-# #
-# ###################
+###################
+#
+#  Softmax
+#
+###################
 
-# function softmax!{T<:FloatingPoint}(dst::ContiguousArray{T}, x::ContiguousArray{T})
-# 	@check_nonempty("softmax")
-# 	u = maximum(x)
-# 	s = dst[1] = exp(x[1] - u)
-# 	n = length(x)
-# 	for i in 2 : n
-# 		@inbounds s += (dst[i] = exp(x[i] - u))
-# 	end
-# 	c = inv(s)
-# 	for i in 1 : n
-# 		@inbounds dst[i] *= c
-# 	end
-# 	dst
-# end
+function softmax!(dst::ContiguousRealArray, x::ContiguousRealArray)
+	!isempty(x) || error("softmax!: empty array is not allowed.")
+	n = length(x)
+	length(dst) == n || error("Inconsistent argument dimensions.")
 
-# function softmax{T<:FloatingPoint}(x::ContiguousArray{T})
-# 	softmax!(Array(T, size(x)), x)
-# end
+	u = maximum(x)
+	@inbounds s = dst[1] = exp(x[1] - u)
+	for i in 2 : n
+		@inbounds s += (dst[i] = exp(x[i] - u))
+	end
+	c = inv(s)
+	for i in 1 : n
+		@inbounds dst[i] *= c
+	end
+	dst
+end
 
-# function softmax!{T<:FloatingPoint}(dst::ContiguousArray{T}, x::ContiguousVector{T}, dim::Int)
-# 	if dim == 1
-# 		softmax!(dst, x)
-# 	else
-# 		error("softmax: dim must be 1 for vector.")
-# 	end
-# 	dst	
-# end
+softmax(x::ContiguousArray) = softmax!(Array(fptype(eltype(x)), size(x)), x)
 
-# function _softmax_firstdim!{T<:FloatingPoint}(dst::ContiguousArray{T}, x::ContiguousArray{T}, m::Int, n::Int)
-# 	for j in 1 : n
-# 		softmax!(unsafe_view(dst, :, j), unsafe_view(x, :, j))
-# 	end
-# end
 
-# function _softmax_lastdim!{T<:FloatingPoint}(dst::ContiguousArray{T}, 
-# 	u::ContiguousArray{T}, x::ContiguousArray{T}, m::Int, n::Int)
+function _softmax_eachcol!(m::Int, n::Int, dst::ContiguousRealArray, x::ContiguousRealArray)
+	o = 0
+	for j in 1 : n
+		softmax!(offset_view(dst, o, m), offset_view(x, o, m))
+		o += m
+	end
+end
 
-# 	# compute max
-# 	for i in 1 : m
-# 		@inbounds u[i] = x[i]
-# 	end
-# 	o = m
-# 	for j in 2 : n
-# 		for i in 1 : m
-# 			@inbounds u[i] = max(u[i], x[o + i])
-# 		end
-# 		o += m
-# 	end
+function _softmax_eachrow!(m::Int, n::Int, dst::ContiguousRealArray, u::ContiguousRealArray, x::ContiguousRealArray)
 
-# 	# compute sum
-# 	s = unsafe_view(u, m+1:2*m)
+	# compute max
+	for i in 1 : m
+		@inbounds u[i] = x[i]
+	end
+	o = m
+	for j in 2 : n
+		for i in 1 : m
+			@inbounds ui = u[i]
+			@inbounds xi = x[o + i]
+			if xi > ui
+				@inbounds u[i] = xi
+			end
+		end
+		o += m
+	end
 
-# 	for i in 1 : m
-# 		@inbounds s[i] = dst[i] = exp(x[i] - u[i])
-# 	end
-# 	o = m
+	# compute sum
+	s = unsafe_view(u, m+1:2*m)
 
-# 	for j in 2 : n
-# 		for i in 1 : m
-# 			@inbounds s[i] += (dst[o + i] = exp(x[o + i] - u[i]))
-# 		end
-# 		o += m
-# 	end
+	for i in 1 : m
+		@inbounds s[i] = dst[i] = exp(x[i] - u[i])
+	end
+	o = m
 
-# 	rcp!(s)
-# 	o = 0
-# 	for j in 1 : n
-# 		for i in 1 : m
-# 			@inbounds dst[o + i] .*= s[i]
-# 		end
-# 		o += m
-# 	end
-# end
+	for j in 2 : n
+		for i in 1 : m
+			@inbounds s[i] += (dst[o + i] = exp(x[o + i] - u[i]))
+		end
+		o += m
+	end
 
-# function _softmax_middim!{T<:FloatingPoint}(dst::ContiguousArray{T}, 
-# 	u::ContiguousArray{T}, x::ContiguousArray{T}, m::Int, n::Int, k::Int)
+	rcp!(s)
+	o = 0
+	for j in 1 : n
+		for i in 1 : m
+			@inbounds dst[o + i] .*= s[i]
+		end
+		o += m
+	end
+end
 
-# 	for l in 1 : k
-# 		_softmax_lastdim!(unsafe_view(dst, :, :, l), u, unsafe_view(x, :, :, l), m, n)
-# 	end
-# end
+function softmax!{T<:Real}(dst::ContiguousRealArray, x::ContiguousArray{T}, dim::Int)
+	!isempty(x) || error("softmax!: empty array is not allowed.")
+	nd = ndims(x)
+	1 <= dim <= nd || error("softmax!: invalid value for the dim argument.")
+	shp = size(x)
 
-# function softmax!{T<:FloatingPoint}(dst::ContiguousArray{T}, x::ContiguousArray{T}, dim::Int)
-# 	@check_nonempty("softmax!")
-# 	nd = ndims(x)
-# 	if !(1 <= dim <= nd)
-# 		error("softmax: invalid value for the dim argument.")
-# 	end
-# 	siz = size(x)
+	if dim == 1
+		m = shp[1]
+		n = succ_length(shp, dim)
+		_softmax_eachcol!(m, n, dst, x)
 
-# 	if dim == 1
-# 		_softmax_firstdim!(dst, x, siz[1], succ_length(siz, dim))
-# 	elseif dim == nd
-# 		prelen = prec_length(siz, dim)
-# 		_softmax_lastdim!(dst, Array(T, prelen * 2), x, prelen, siz[dim])
-# 	else
-# 		prelen = prec_length(siz, dim)
-# 		_softmax_middim!(dst, Array(T, prelen * 2), x, prelen, siz[dim], succ_length(siz, dim))
-# 	end
-# 	dst	
-# end
+	else
+		m = prec_length(shp, dim)
+		n = shp[dim]
+		k = succ_length(shp, dim)
 
-# function softmax{T<:FloatingPoint}(x::ContiguousArray{T}, dim::Int)
-# 	softmax!(Array(T, size(x)), x, dim)
-# end
+		u = Array(fptype(T), 2*m)
+		_softmax_eachrow!(m, n, dst, u, x)
+		if k > 1
+			mn = m * n
+			o = mn
+			for l = 2 : k
+				_softmax_eachrow!(m, n, offset_view(dst, o, m, n), u, offset_view(x, o, m, n))
+				o += mn
+			end
+		end
+	end
+	dst	
+end
+
+softmax(x::ContiguousRealArray, dim::Int) = softmax!(Array(fptype(eltype(x)), size(x)), x, dim)
 

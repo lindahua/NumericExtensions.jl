@@ -128,26 +128,26 @@ r = zeros(size(x2, 2)); logsumexp!(r, x2, 1)
 @test_approx_eq logsumexp(x2 + 1000., 2) logsumexp(x2, 2) + 1000.
 @test_approx_eq logsumexp(x3 + 1000., 2) logsumexp(x3, 2) + 1000.
 
-# # softmax
+# softmax
 
-# safe_softmax(x) = exp(x) / sum(exp(x))
-# safe_softmax(x, d::Int) = exp(x) ./ sum(exp(x), d)
+safe_softmax(x) = exp(x) / sum(exp(x))
+safe_softmax(x, d::Int) = exp(x) ./ sum(exp(x), d)
 
-# @test_approx_eq softmax(x) safe_softmax(x)
-# @test_approx_eq softmax(x1, 1) safe_softmax(x1, 1) 
-# @test_approx_eq softmax(x2, 1) safe_softmax(x2, 1)
-# @test_approx_eq softmax(x2, 2) safe_softmax(x2, 2)
-# @test_approx_eq softmax(x3, 1) safe_softmax(x3, 1)
-# @test_approx_eq softmax(x3, 2) safe_softmax(x3, 2)
-# @test_approx_eq softmax(x3, 3) safe_softmax(x3, 3)
+@test_approx_eq softmax(x) safe_softmax(x)
+@test_approx_eq softmax(x1, 1) safe_softmax(x1, 1) 
+@test_approx_eq softmax(x2, 1) safe_softmax(x2, 1)
+@test_approx_eq softmax(x2, 2) safe_softmax(x2, 2)
+@test_approx_eq softmax(x3, 1) safe_softmax(x3, 1)
+@test_approx_eq softmax(x3, 2) safe_softmax(x3, 2)
+@test_approx_eq softmax(x3, 3) safe_softmax(x3, 3)
 
-# r = zeros(size(x2)); softmax!(r, x2, 1) 
-# @test_approx_eq r softmax(x2, 1)
+r = zeros(size(x2)); softmax!(r, x2, 1) 
+@test_approx_eq r softmax(x2, 1)
 
-# @test_approx_eq softmax(x + 1000.) softmax(x)
-# @test_approx_eq softmax(x2 + 1000., 1) softmax(x2, 1)
-# @test_approx_eq softmax(x2 + 1000., 2) softmax(x2, 2)
-# @test_approx_eq softmax(x3 + 1000., 2) softmax(x3, 2)
+@test_approx_eq softmax(x + 1000.) softmax(x)
+@test_approx_eq softmax(x2 + 1000., 1) softmax(x2, 1)
+@test_approx_eq softmax(x2 + 1000., 2) softmax(x2, 2)
+@test_approx_eq softmax(x3 + 1000., 2) softmax(x3, 2)
 
 
 

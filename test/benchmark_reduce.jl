@@ -142,8 +142,8 @@ println("Benchmark results on Base methods:")
 @bench_reduc2 oldperf "sumxlogy" 10 _sumxlogy b2 b2
 @bench_reduc1 oldperf "var" 10 var a2
 @bench_reduc1 oldperf "std" 10 std a2
-# @bench_reduc1 oldperf "logsumexp" 10 _logsumexp a2
-# @bench_reduc1 oldperf "softmax" 10 _softmax a2
+@bench_reduc1 oldperf "logsumexp" 10 _logsumexp a2
+@bench_reduc1 oldperf "softmax" 10 _softmax a2
 
 push!(oldperf, ("varm", [NaN, NaN, NaN]))
 
@@ -183,8 +183,8 @@ println("Benchmark results in New methods:")
 @bench_reduc2 newperf "sumxlogy" 10 sumxlogy b2 b2
 @bench_reduc1 newperf "var" 10 var a2
 @bench_reduc1 newperf "std" 10 std a2
-# @bench_reduc1 newperf "logsumexp" 10 logsumexp a2
-# @bench_reduc1 newperf "softmax" 10 softmax a2
+@bench_reduc1 newperf "logsumexp" 10 logsumexp a2
+@bench_reduc1 newperf "softmax" 10 softmax a2
 
 println("    on varm ...")
 varm(a2, 1.0) 
