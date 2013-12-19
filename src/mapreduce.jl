@@ -193,3 +193,24 @@ sumxlogy(a::ArrOrNum, b::ArrOrNum) = sum(XlogyFun(), a, b)
 entropy(a::NumericArray) = -sumxlogx(a)
 
 
+#################################################
+#
+#   BLAS acceleration
+#
+#################################################
+
+function _sum{T<:BlasFP}(ifirst::Int, ilast::Int, f::AbsFun, a::ContiguousArray{T})
+	Base.BLAS.asum(ilast - ifirst + 1, pointer(a, ifirst), 1)
+end
+
+function _sum{T<:BlasFP}(ifirst::Int, ilast::Int, f::Abs2Fun, a::ContiguousArray{T})
+	p = pointer(a, ifirst)
+	Base.BLAS.dot(ilast - ifirst + 1, p, 1, p, 1)
+end
+
+function _sum{T<:BlasFP}(ifirst::Int, ilast::Int, f::Multiply, a::ContiguousArray{T}, b::ContiguousArray{T})
+	Base.BLAS.dot(ilast - ifirst + 1, pointer(a, ifirst), 1, pointer(b, ifirst), 1)
+end
+
+
+
