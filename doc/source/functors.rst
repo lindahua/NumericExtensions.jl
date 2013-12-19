@@ -58,24 +58,22 @@ Below is an example that shows how to define a functor that computes the squared
 
 .. code-block:: julia
 
-    type SqrDiff <: BinaryFunctor end
-
+    type SqrDiff <: Functor{2} end
     NumericExtensions.evaluate(::SqrDiff, x, y) = abs2(x - y)
-    NumericExtensions.result_type(::SqrDiff, t1::Type, t2::Type) = promote_type(t1, t2)
 
 
-To define multiple functors, it would be more concise to first import ``evaluate`` and ``result_type`` before extending them, as follows:
+The package also provides macros ``@functor1`` and ``@functor2``, respectively for defining unary and binary functors. For example,
 
 .. code-block:: julia
 
-    import NumericExtensions.evaluate, NumericExtensions.result_type
+    # this defines a functor type MyAbs, which, 
+    # when evaluated, invokes abs
+    @functor1 MyAbsFun abs  
 
-    type SqrDiff <: BinaryFunctor end
+    # this defines a functor type SqrDiff
+    sqrdiff(x, y) = abs2(x - y)
+    @functor2 SqrDiff sqrdiff
 
-    evaluate(::SqrDiff, x, y) = abs2(x - y)
-    result_type(::SqrDiff, t1::Type, t2::Type) = promote_type(t1, t2)
-
-**Note:** Higher order functions such as ``map`` and ``reduce`` rely on the ``result_type`` method to determine the element type of the result. This is necessary, as Julia does not provide a generic mechanism to acquire the return type of a method.
 
 
 Pre-defined functors
@@ -83,19 +81,26 @@ Pre-defined functors
 
 *NumericExtensions.jl* has defined a series of functors as listed below:
 
-* Arithmetic functors: ``Add``, ``Subtract``, ``Multiply``, ``Divide``, ``Negate``, ``AbsFun``
-* MaxFun and MinFun functors: ``MaxFun``, ``MinFun``
-* RoundFuning functors: ``FloorFun``, ``CeilFun``, ``RoundFun``, ``TruncFun``
-* Power functors: ``Pow``, ``SqrtFun``, ``CbrtFun``, ``Abs2Fun``, ``HypotFun``
-* ExpFun and log functors: ``ExpFun``, ``Exp2Fun``, ``Exp10Fun``, ``LogFun``, ``Log2Fun``, ``Log10Fun``, ``Expm1Fun``, ``Log1pFun``
-* Trigonometric functors: ``SinFun``, ``CosFun``, ``TanFun``, ``AsinFun``, ``AcosFun``, ``AtanFun``, ``Atan2Fun``
-* Hyperbolic functors: ``SinhFun``, ``CoshFun``, ``TanhFun``, ``AsinhFun``, ``AcoshFun``, ``AtanhFun``
-* Error functors: ``ErfFun``, ``ErfcFun``
-* GammaFun functors: ``GammaFun``, ``LgammaFun``, ``DigammaFun``
-* Comparison functors: ``Greater``, ``GreaterEqual``, ``Less``, ``LessEqual``, ``Equal``, ``NotEqual``
-* Number class functors: ``IsfiniteFun``, ``IsinfFun``, ``IsnanFun``
+* Arithmetic operators: ``Add``, ``Subtract``, ``Multiply``, ``Divide``, ``Negate``, ``Pow``, ``Modulo``
+* Comparison operators: ``Greater``, ``GreaterEqual``, ``Less``, ``LessEqual``, ``Equal``, ``NotEqual``
+* Floating-point predicates: ``IsfiniteFun``, ``IsinfFun``, ``IsnanFun``, ``IsequalFun``
+* Logical operators: ``Not``, ``And``, ``Or``
+* Bitwise operators: ``BitwiseNot``, ``BitwiseAnd``, ``BitwiseOr``, ``BitwiseXor``
+* max and min: ``MaxFun``, ``MinFun``
+* Rounding functors: ``FloorFun``, ``CeilFun``, ``RoundFun``, ``TruncFun``, ``IfloorFun``, ``IceilFun``, ``IroundFun``, ``ItruncFun``
+* Algebraic functors: ``AbsFun``, ``Abs2Fun``, ``SqrFun``, ``SqrtFun``, ``CbrtFun``, ``RcpFun``, ``RsqrtFun``, ``RcbrtFun``, ``HypotFun``
+* exp and log functors: ``ExpFun``, ``Exp2Fun``, ``Exp10Fun``, ``LogFun``, ``Log2Fun``, ``Log10Fun``, ``Expm1Fun``, ``Log1pFun``
+* Trigonometric functors: ``SinFun``, ``CosFun``, ``TanFun``, ``CotFun``, ``CscFun``, ``SecFun``
+* Inverse Trigono functors: ``AsinFun``, ``AcosFun``, ``AtanFun``, ``Atan2Fun``, ``AcotFun``, ``AcscFun``, ``AsecFun``
+* Hyperbolic functors: ``SinhFun``, ``CoshFun``, ``TanhFun``, ``CothFun``, ``CschFun``, ``SechFun``
+* Inverse Hyperbolic functors: ``AsinhFun``, ``AcoshFun``, ``AtanhFun``, ``AcothFun``, ``AcschFun``, ``AsechFun``
+* Error functors: ``ErfFun``, ``ErfcFun``, ``ErfInvFun``, ``ErfcInvFun``
+* Gamma functors: ``GammaFun``, ``LgammaFun``, ``LfactFun``, ``DigammaFun``
+* Beta functors: ``BetaFun``, ``LbetaFun``, ``EtaFun``, ``ZetaFun``
+* Airy functors: ``AiryFun``, ``AiryprimeFun``, ``AiryaiFun``, ``AiryaiprimeFun``, ``AirybiFun``, ``AirybiprimeFun``
+* Bessel functors: ``BesseljFun``, ``Besselj0Fun``, ``Besselj1Fun``, ``BesseliFun``, ``BesselkFun``
 * Fused multiply and add: ``FMA`` (i.e. ``(a, b, c) -> a + b * c``)
-* Others: ``LogitFun``, ``LogisticFun``, ``XlogxFun``, ``XlogyFun``
+* Others: ``LogitFun``, ``LogisticFun``, ``InvLogisticFun``, ``XlogxFun``, ``XlogyFun``
 
 Except for several functors that corresponding to operators, most functors are named using the capitalized version of the corresponding math function. Therefore, you don't have to look up this list to find the names. The collection of pre-defined functors will be extended in future. Please refer to ``src/functors.jl`` for the most updated list.
 

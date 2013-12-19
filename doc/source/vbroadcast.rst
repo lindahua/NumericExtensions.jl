@@ -24,15 +24,6 @@ Here, ``f`` is a binary functor, and ``x`` and ``y`` are arrays such that ``leng
     vbroadcast1!(Add(), x, y, 1)   # x[:,i] += y[:,i] for each i
     vbroadcast1!(Mul(), x, y, 2)   # x[i,:] .*= y[i,:] for each i
 
-For cubes, it supports computation along two dimensions
-
-.. code-block:: julia
-
-    x = rand(2, 3, 4)
-    y = rand(2, 3)
-
-    vbroadcast(x, y, (1, 2))    # this adds y to each page of x
-
 **Difference from** ``broadcast``
 
 Unlike ``broadcast``, you have to specify the vector dimension for ``vbroadcast``. The benefit is two-fold: (1) the overhead of figuring out broadcasting shape information is elimintated; (2) the shape of ``y`` can be flexible. 

@@ -2,6 +2,10 @@
 
 abstract Functor{N}  # N is the number of arguments
 
+typealias UnaryFunctor Functor{1}
+typealias BinaryFunctor Functor{2}
+typealias TernaryFunctor Functor{3}
+
 ####################################### 
 #
 #  Macros to define functors
