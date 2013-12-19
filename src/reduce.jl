@@ -7,7 +7,7 @@
 #
 #################################################
 
-function foldl(op::Functor, s, a::NumericArray, ifirst::Int, ilast::Int)
+function foldl(op::Functor{2}, s::Number, a::NumericArray, ifirst::Int, ilast::Int)
 	i = ifirst
 	while i <= ilast
 		@inbounds ai = a[i]
@@ -17,11 +17,11 @@ function foldl(op::Functor, s, a::NumericArray, ifirst::Int, ilast::Int)
 	return s
 end
 
-foldl(op::Functor, s, a::NumericArray) = foldl(op, s, a, 1, length(a))
-foldl(op::Functor, a::NumericArray) = foldl(op, a[1], a, 2, length(a))
+foldl(op::Functor{2}, s::Number, a::NumericArray) = foldl(op, s, a, 1, length(a))
+foldl(op::Functor{2}, a::NumericArray) = foldl(op, a[1], a, 2, length(a))
 
 
-function foldr(op::Functor, s, a::NumericArray, ifirst::Int, ilast::Int)
+function foldr(op::Functor{2}, s::Number, a::NumericArray, ifirst::Int, ilast::Int)
 	i = ilast
 	while i >= ifirst
 		@inbounds ai = a[i]
@@ -31,8 +31,8 @@ function foldr(op::Functor, s, a::NumericArray, ifirst::Int, ilast::Int)
 	return s
 end
 
-foldr(op::Functor, s, a::NumericArray) = foldr(op, s, a, 1, length(a))
-foldr(op::Functor, a::NumericArray) = foldr(op, a[end], a, 1, length(a)-1)
+foldr(op::Functor{2}, s::Number, a::NumericArray) = foldr(op, s, a, 1, length(a))
+foldr(op::Functor{2}, a::NumericArray) = foldr(op, a[end], a, 1, length(a)-1)
 
 
 #################################################

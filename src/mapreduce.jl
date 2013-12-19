@@ -11,6 +11,11 @@ macro code_mapreducfuns(N)
 
 	# function names
 
+	_foldlf = :_foldl
+	 foldlf = :foldl
+	_foldrf = :_foldr
+	 foldrf = :foldr
+
 	_sumf = :_sum
 	 sumf = :sum
 	_maxf = :_maximum
@@ -23,6 +28,11 @@ macro code_mapreducfuns(N)
 	nnminf = :nonneg_minimum
 
 	if N == -2
+		_foldlf = :_foldl_fdiff
+		 foldlf = :foldl_fdiff
+		_foldrf = :_foldr_fdiff
+		 foldrf = :foldr_fdiff
+
 		_sumf = :_sumfdiff
 		 sumf = :sumfdiff
 		_maxf = :_maxfdiff
@@ -39,6 +49,7 @@ macro code_mapreducfuns(N)
 	# code-gen preparation
 
 	h = codegen_helper(N)
+	t1 = h.term(1)
 	ti = h.term(:i)
 	ti1 = h.term(:i1)
 	ti2 = h.term(:i2)
@@ -145,6 +156,51 @@ macro code_mapreducfuns(N)
 			n = $(h.inputlen)
 			n == 0 ? 0.0 : ($_minf)(1, n, $(h.args...))
 		end
+
+
+		# foldl & foldr
+
+		global $_foldlf 
+		function $(_foldlf)(ifirst::Int, ilast::Int, op::Functor{2}, s::Number, $(h.aparams...))
+			i = ifirst
+			while i <= ilast
+				@inbounds vi = $(ti)
+				s = evaluate(op, s, vi)
+				i += 1
+			end
+			return s
+		end
+
+		global $foldlf
+		$(foldlf)(op::Functor{2}, s::Number, $(h.aparams...)) = $(_foldlf)(1, $(h.inputlen), op, s, $(h.args...))
+		function $(foldlf)(op::Functor{2}, $(h.aparams...)) 
+			n = $(h.inputlen)
+			n > 0 || error("Empty argument not allowed.")
+			s = $(t1)
+			$(_foldlf)(2, n, op, s, $(h.args...))
+		end
+
+		global $_foldrf
+		function $(_foldrf)(ifirst::Int, ilast::Int, op::Functor{2}, s::Number, $(h.aparams...))
+			i = ilast
+			while i >= ifirst
+				@inbounds vi = $(ti)
+				s = evaluate(op, vi, s)
+				i -= 1
+			end
+			return s
+		end
+
+		global $foldrf
+		$(foldrf)(op::Functor{2}, s::Number, $(h.aparams...)) = $(_foldrf)(1, $(h.inputlen), op, s, $(h.args...))
+		function $(foldrf)(op::Functor{2}, $(h.aparams...))
+			n = $(h.inputlen)
+			n > 0 || error("Empty argument not allowed.")
+			i = n
+			s = $(ti)
+			$(_foldrf)(1, n-1, op, s, $(h.args...))
+		end
+
 	end
 end
 

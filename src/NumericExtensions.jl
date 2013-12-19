@@ -64,6 +64,8 @@ module NumericExtensions
 		sumabsdiff, maxabsdiff, minabsdiff, meanabsdiff,		
 		sumsqdiff, meansqdiff, sumxlogx, sumxlogy, entropy,
 
+		foldl_fdiff, foldr_fdiff,
+
 		# reducedims
 		foldl!, foldr!, sum!, maximum!, minimum!, mean!, dot!,
 

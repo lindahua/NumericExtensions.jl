@@ -101,3 +101,25 @@ q = rand(3, 4)
 @test_approx_eq minimum(FMA(), 2., x, 3.) minimum(2. + x * 3.)
 @test_approx_eq minimum(FMA(), 2., 3., x) minimum(2. + 3. * x)
 
+# folding
+
+@test_approx_eq foldl(Subtract(), 10, Abs2Fun(), [1:4]) (-20)
+@test_approx_eq foldr(Subtract(), 10, Abs2Fun(), [1:4]) 0
+
+@test_approx_eq foldl(Subtract(), 10, Multiply(), [1:4], [1:4]) (-20)
+@test_approx_eq foldr(Subtract(), 10, Multiply(), [1:4], [1:4]) 0
+
+@test_approx_eq foldl_fdiff(Subtract(), 10, Abs2Fun(), [1:4], zeros(Int,4)) (-20)
+@test_approx_eq foldr_fdiff(Subtract(), 10, Abs2Fun(), [1:4], zeros(Int,4)) 0
+
+@test_approx_eq foldl(Subtract(), Abs2Fun(), [1:4]) (-28)
+@test_approx_eq foldr(Subtract(), Abs2Fun(), [1:4]) (-10)
+
+@test_approx_eq foldl(Subtract(), Multiply(), [1:4], [1:4]) (-28)
+@test_approx_eq foldr(Subtract(), Multiply(), [1:4], [1:4]) (-10)
+
+@test_approx_eq foldl_fdiff(Subtract(), Abs2Fun(), [1:4], zeros(Int,4)) (-28)
+@test_approx_eq foldr_fdiff(Subtract(), Abs2Fun(), [1:4], zeros(Int,4)) (-10)
+
+
+
