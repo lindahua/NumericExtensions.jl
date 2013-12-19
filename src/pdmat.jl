@@ -2,6 +2,17 @@
 
 abstract AbstractPDMat
 
+macro check_argdims(cond)
+    quote
+        ($(cond)) || error("Inconsistent argument dimensions.")
+    end
+end
+
+import Base.BLAS.nrm2, Base.BLAS.axpy!
+import Base.BLAS.gemv!, Base.BLAS.gemm, Base.BLAS.gemm!
+import Base.BLAS.trmv, Base.BLAS.trmv!, Base.BLAS.trmm, Base.BLAS.trmm!
+import Base.LAPACK.trtrs!
+
 #################################################
 #
 #	PDMat: full pos. def. matrix
@@ -46,7 +57,7 @@ unwhiten(a::PDMat, x::Matrix{Float64}) = trmm('L', 'U', 'T', 'N', 1.0, a.chol.UL
 unwhiten!(a::PDMat, x::Matrix{Float64}) = (trmm!('L', 'U', 'T', 'N', 1.0, a.chol.UL, x); x)
 
 function unwhiten_winv!(J::PDMat, x::VecOrMat{Float64})
-    Base.LinAlg.LAPACK.trtrs!('U', 'N', 'N', J.chol.UL, x)
+    trtrs!('U', 'N', 'N', J.chol.UL, x)
     return x
 end
 

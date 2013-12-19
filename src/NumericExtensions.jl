@@ -19,7 +19,7 @@ module NumericExtensions
 		# reduction functions to be extended
 		Base.sum, Base.prod, Base.maximum, Base.minimum, Base.dot, 
 		Base.cumsum, Base.cummax, Base.cummin, Base.cumprod,
-		Base.norm, Base.LinAlg.BLAS.asum,
+		Base.norm, 
 
 		# statistics
 		Base.mean, Base.var, Base.varm, Base.std, Base.stdm,
@@ -91,11 +91,11 @@ module NumericExtensions
 		# utils
 		eachrepeat, sortindexes, groupindexes,
 
-		# # pdmat
-  #       AbstractPDMat, PDMat, PDiagMat, ScalMat, 
-  #       dim, full, whiten, whiten!, unwhiten, unwhiten!, add_scal!, add_scal,
-  #       quad, quad!, invquad, invquad!, X_A_Xt, Xt_A_X, X_invA_Xt, Xt_invA_X,
-  #       unwhiten_winv!, unwhiten_winv,
+		# pdmat
+		AbstractPDMat, PDMat, PDiagMat, ScalMat, 
+		dim, full, whiten, whiten!, unwhiten, unwhiten!, add_scal!, add_scal,
+		quad, quad!, invquad, invquad!, X_A_Xt, Xt_A_X, X_invA_Xt, Xt_invA_X,
+		unwhiten_winv!, unwhiten_winv,
 
 		# benchmark
 		BenchmarkTable, nrows, ncolumns, add_row!
@@ -124,7 +124,7 @@ module NumericExtensions
 
 	include("utils.jl")
 
-	# include("pdmat.jl")
+	include("pdmat.jl")
 
 	include("benchmark.jl")
 
