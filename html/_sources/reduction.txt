@@ -154,6 +154,23 @@ You may also provide an initial value ``s0`` for folding.
     foldl_fdiff(op, s0, f, x, y)
     foldr_fdiff(op, s0, f, x, y)
 
+The function ``foldl`` also supports reduction along a specific dim.
+
+.. code-block:: julia
+
+    foldl(op, s0, x, dim)                # fold op over x along dimension dim
+    foldl(op, s0, f1, x, dim)            # fold op over f1(x) along dimension dim
+    foldl(op, s0, f2, x1, x2, dim)       # fold op over f2(x1, x2) along dimension dim
+    foldl(op, s0, f3, x1, x2, x3, dim)   # fold op over f3(x1, x2, x3) along dimension dim
+    foldl_fdiff(op, s0, f, x, y, dim)    # fold op over f(x - y) along dimension dim
+
+    # the following statement write results to pre-allocated storage
+
+    foldl!(dst, op, s0, x, dim)
+    foldl!(dst, op, s0, f1, x, dim)
+    foldl!(dst, op, s0, f2, x1, x2, dim)
+    foldl!(dst, op, s0, f3, x1, x2, x3, dim)
+    foldl_fdiff!(dst, op, s0, f, x, y, dim)
 
 
 Derived reduction functions
