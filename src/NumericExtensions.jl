@@ -42,7 +42,7 @@ module NumericExtensions
 		logit, xlogx, xlogy, logistic, invlogistic, softplus, invsoftplus,
 
 		# functors
-		Functor, @functor1, @functor2, evaluate,
+		Functor, @functor1, @functor2, evaluate, fptype,
 
 		# map
 		map, map!, map1!, mapdiff, mapdiff!, 
