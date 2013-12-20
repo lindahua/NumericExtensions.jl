@@ -1,0 +1,174 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Package Overview &mdash; NumericExtensions.jl 0.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="NumericExtensions.jl 0.3 documentation" href="index.html" />
+    <link rel="next" title="Functors" href="functors.html" />
+    <link rel="prev" title="Documentation of NumericExtensions.jl" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="functors.html" title="Functors"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Documentation of NumericExtensions.jl"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">NumericExtensions.jl 0.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Package Overview</a><ul>
+<li><a class="reference internal" href="#motivating-example">Motivating example</a></li>
+<li><a class="reference internal" href="#main-features">Main features</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Documentation of NumericExtensions.jl</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="functors.html"
+                        title="next chapter">Functors</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/overview.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="package-overview">
+<h1>Package Overview<a class="headerlink" href="#package-overview" title="Permalink to this headline">¶</a></h1>
+<p>Julia provides a fantastic technical computing environment that allows you to write codes that are both performant and generic. However, as it is still at its early stage, some functions are not as performant as they can be and writing computational algorithms directly based on builtin functions may not give you the best performance. This package provides you with a variety of tools to address such issues.</p>
+<div class="section" id="motivating-example">
+<h2>Motivating example<a class="headerlink" href="#motivating-example" title="Permalink to this headline">¶</a></h2>
+<p>To see how this package may help you, let&#8217;s first consider a simple example, that is, to compute the sum of squared difference between two vectors. This can be easily done in Julia in one line as follows</p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="n">r</span> <span class="o">=</span> <span class="n">sum</span><span class="p">(</span><span class="n">abs2</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Whereas this is simple, this expression involves some unnecessary operations that would lead to suboptimal performance: (1) it creates two temporary arrays respectively to store <tt class="docutils literal"><span class="pre">x</span> <span class="pre">-</span> <span class="pre">y</span></tt> and <tt class="docutils literal"><span class="pre">abs(x</span> <span class="pre">-</span> <span class="pre">y)</span></tt>, (2) it completes the computation through three passes over the data &#8211; computing <tt class="docutils literal"><span class="pre">x</span> <span class="pre">-</span> <span class="pre">y</span></tt>, computing <tt class="docutils literal"><span class="pre">abs2(x</span> <span class="pre">-</span> <span class="pre">y)</span></tt>, and finally computing the sum. Julia provides a <tt class="docutils literal"><span class="pre">mapreduce</span></tt> function which allows you to complete the operation in a single pass without creating any temporaries:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="n">r</span> <span class="o">=</span> <span class="n">mapreduce</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">abs2</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">),</span> <span class="o">+</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>However, if you really run this you may probably find that this is even slower. The culprit here is that the anonymous function <tt class="docutils literal"><span class="pre">(x,</span> <span class="pre">y)</span> <span class="pre">-&gt;</span> <span class="pre">abs2(x</span> <span class="pre">-</span> <span class="pre">y)</span></tt> is not lined, which will be resolved and called at each iteration. Therefore, to compute this efficiently, one has to write loops as below</p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="mf">0.</span>
+<span class="k">for</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">:</span> <span class="n">length</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">s</span> <span class="o">+=</span> <span class="n">abs2</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+<span class="k">end</span>
+</pre></div>
+</div>
+<p>This is not too bad though, until you have more complex needs, e.g. computing this along each row/column of the matrix. Then writing the loops can become more involved, and it is more tricky to implement it in a cache-friendly way.</p>
+<p>With this package, we can compute this efficiently without writing loops, as</p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="n">r</span> <span class="o">=</span> <span class="n">sumfdiff</span><span class="p">(</span><span class="n">Abs2Fun</span><span class="p">(),</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+<span class="c"># to compute this along a specific dimension</span>
+<span class="n">r</span> <span class="o">=</span> <span class="n">sumfdiff</span><span class="p">(</span><span class="n">Abs2Fun</span><span class="p">(),</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+
+<span class="c"># this package also provides sumsqdiff for this</span>
+<span class="n">r</span> <span class="o">=</span> <span class="n">sumabsdiff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="n">r</span> <span class="o">=</span> <span class="n">sumabsdiff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Here, <tt class="docutils literal"><span class="pre">Abs2Fun</span></tt> and <tt class="docutils literal"><span class="pre">Add</span></tt> are <em>typed functors</em> provided by this package, which, unlike normal functions, can still be properly inlined with passed into a higher order function (thus causing zero overhead). This package extends <tt class="docutils literal"><span class="pre">map</span></tt>, <tt class="docutils literal"><span class="pre">foldl</span></tt>, <tt class="docutils literal"><span class="pre">foldr</span></tt>, <tt class="docutils literal"><span class="pre">sum</span></tt>, and so on to accept typed functors and as well introduces additional high order functions like <tt class="docutils literal"><span class="pre">sumfdiff</span></tt> and <tt class="docutils literal"><span class="pre">scan</span></tt> etc to simplify the usage in common cases.</p>
+<p>Benchmark shows that writing in this way is over <em>9x faster</em> than <tt class="docutils literal"><span class="pre">sum(abs2(x</span> <span class="pre">-</span> <span class="pre">y))</span></tt>.</p>
+</div>
+<div class="section" id="main-features">
+<h2>Main features<a class="headerlink" href="#main-features" title="Permalink to this headline">¶</a></h2>
+<p>Main features of this package are highlighted below:</p>
+<ul class="simple">
+<li>Pre-defined functors that cover most typical mathematical computation;</li>
+<li>A easy way for user to define customized functors;</li>
+<li>Extended/specialized methods for <tt class="docutils literal"><span class="pre">map</span></tt>, <tt class="docutils literal"><span class="pre">map!</span></tt>, <tt class="docutils literal"><span class="pre">foldl</span></tt>, <tt class="docutils literal"><span class="pre">foldr</span></tt>, and <tt class="docutils literal"><span class="pre">scan</span></tt>. These methods are carefully optimized, which often result in <em>2x - 10x</em> speed up;</li>
+<li>Additional functions such as <tt class="docutils literal"><span class="pre">map1!</span></tt>, <tt class="docutils literal"><span class="pre">sum!</span></tt>, and <tt class="docutils literal"><span class="pre">scan!</span></tt> that allow inplace updating or writing results to preallocated arrays;</li>
+<li>Vector broadcasting computation (supporting both inplace updating and writing results to new arrays).</li>
+<li>Fast shared-memory views of arrays.</li>
+</ul>
+<p>SinFunce many of the methods are extensions of base functions. Simply adding a statement <tt class="docutils literal"><span class="pre">using</span> <span class="pre">NumericExtensions</span></tt> is often enough for substantial performance improvement. Consider the following code snippet:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="k">using</span> <span class="n">NumericExtensions</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="n">r</span> <span class="o">=</span> <span class="n">sum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Here, when adding the statement <tt class="docutils literal"><span class="pre">using</span> <span class="pre">NumericExtensions</span></tt> <em>transparently replace</em> the method provided in the Base module by the specialized method in <em>NumericExtensions</em>. As a consequence, the statement <tt class="docutils literal"><span class="pre">r</span> <span class="pre">=</span> <span class="pre">sum(x,</span> <span class="pre">2)</span></tt> becomes <em>6x</em> faster. Using additional functions provided by this package can further improve the performance.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="functors.html" title="Functors"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Documentation of NumericExtensions.jl"
+             >previous</a> |</li>
+        <li><a href="index.html">NumericExtensions.jl 0.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Dahua Lin.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

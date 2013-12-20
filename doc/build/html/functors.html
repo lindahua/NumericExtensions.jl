@@ -1,0 +1,205 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Functors &mdash; NumericExtensions.jl 0.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="NumericExtensions.jl 0.3 documentation" href="index.html" />
+    <link rel="next" title="Mapping" href="map.html" />
+    <link rel="prev" title="Package Overview" href="overview.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="map.html" title="Mapping"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="overview.html" title="Package Overview"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">NumericExtensions.jl 0.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Functors</a><ul>
+<li><a class="reference internal" href="#motivating-example">Motivating example</a></li>
+<li><a class="reference internal" href="#functor-types">Functor types</a></li>
+<li><a class="reference internal" href="#pre-defined-functors">Pre-defined functors</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="overview.html"
+                        title="previous chapter">Package Overview</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="map.html"
+                        title="next chapter">Mapping</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/functors.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="functors">
+<h1>Functors<a class="headerlink" href="#functors" title="Permalink to this headline">¶</a></h1>
+<p>Passing functions as arguments are essential in writing generic algorithms. However, function arguments do not get inlined in Julia (at current version), usually resulting in suboptimal performance.</p>
+<div class="section" id="motivating-example">
+<h2>Motivating example<a class="headerlink" href="#motivating-example" title="Permalink to this headline">¶</a></h2>
+<p>Passing functions as arguments are essential in writing generic algorithms. However, function arguments do not get inlined in Julia (at current version), usually resulting in suboptimal performance. Consider the following example:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="n">plus</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
+<span class="n">map_plus</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">=</span> <span class="n">map</span><span class="p">(</span><span class="n">plus</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+
+ <span class="c"># warming up and get map_plus compiled</span>
+<span class="n">a</span> <span class="o">+</span> <span class="n">b</span>
+<span class="n">map_plus</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+
+ <span class="c"># benchmark</span>
+<span class="p">@</span><span class="n">time</span> <span class="k">for</span> <span class="n">i</span> <span class="k">in</span> <span class="mi">1</span> <span class="p">:</span> <span class="mi">10</span> <span class="n">map_plus</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="k">end</span>  <span class="c"># -- statement (1)</span>
+<span class="p">@</span><span class="n">time</span> <span class="k">for</span> <span class="n">i</span> <span class="k">in</span> <span class="mi">1</span> <span class="p">:</span> <span class="mi">10</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="k">end</span>           <span class="c"># -- statement (2)</span>
+</pre></div>
+</div>
+<p>Run this script in you computer, you will find that statement (1) is over <em>20+ times</em> slower than statement (2). The reason is that the function argument <tt class="docutils literal"><span class="pre">plus</span></tt> is resolved and called at each iteration of the inner loop within the <tt class="docutils literal"><span class="pre">map</span></tt> function.</p>
+<p>This package addresses this issue through <em>type functors</em> (<em>i.e.</em> function-like objects of specific types) and a set of highly optimized higher level functions for mapping and reduction. The codes above can be rewritten as</p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="k">using</span> <span class="n">NumericExtensions</span>
+
+ <span class="c"># benchmark</span>
+<span class="p">@</span><span class="n">time</span> <span class="k">for</span> <span class="n">i</span> <span class="k">in</span> <span class="mi">1</span> <span class="p">:</span> <span class="mi">10</span> <span class="n">map</span><span class="p">(</span><span class="n">Add</span><span class="p">(),</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="k">end</span>     <span class="c"># -- statement(1)</span>
+<span class="p">@</span><span class="n">time</span> <span class="k">for</span> <span class="n">i</span> <span class="k">in</span> <span class="mi">1</span> <span class="p">:</span> <span class="mi">10</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="k">end</span>                <span class="c"># -- statement(2)</span>
+</pre></div>
+</div>
+<p>Here, using a typed functor <tt class="docutils literal"><span class="pre">Add</span></tt> statement (1) is <em>10%</em> faster than statement (2) in my benchmark.</p>
+</div>
+<div class="section" id="functor-types">
+<h2>Functor types<a class="headerlink" href="#functor-types" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">Functor</span></tt> is the abstract base type for all functors, which are formally defined as below</p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="k">abstract</span><span class="nc"> Functor</span><span class="p">{</span><span class="n">N</span><span class="p">}</span>  <span class="c"># N: the number of arguments</span>
+
+<span class="k">typealias</span><span class="nc"> UnaryFunctor</span> <span class="n">Functor</span><span class="p">{</span><span class="mi">1</span><span class="p">}</span>
+<span class="k">typealias</span><span class="nc"> BinaryFunctor</span> <span class="n">Functor</span><span class="p">{</span><span class="mi">2</span><span class="p">}</span>
+<span class="k">typealias</span><span class="nc"> TernaryFunctor</span> <span class="n">Functor</span><span class="p">{</span><span class="mi">3</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Below is an example that shows how to define a functor that computes the squared difference:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="k">type</span><span class="nc"> SqrDiff</span> <span class="o">&lt;:</span> <span class="n">Functor</span><span class="p">{</span><span class="mi">2</span><span class="p">}</span> <span class="k">end</span>
+<span class="n">NumericExtensions</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(::</span><span class="n">SqrDiff</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">=</span> <span class="n">abs2</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The package also provides macros <tt class="docutils literal"><span class="pre">&#64;functor1</span></tt> and <tt class="docutils literal"><span class="pre">&#64;functor2</span></tt>, respectively for defining unary and binary functors. For example,</p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="c"># this defines a functor type MyAbs, which,</span>
+<span class="c"># when evaluated, invokes abs</span>
+<span class="p">@</span><span class="n">functor1</span> <span class="n">MyAbsFun</span> <span class="n">abs</span>
+
+<span class="c"># this defines a functor type SqrDiff</span>
+<span class="n">sqrdiff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">=</span> <span class="n">abs2</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span>
+<span class="p">@</span><span class="n">functor2</span> <span class="n">SqrDiff</span> <span class="n">sqrdiff</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="pre-defined-functors">
+<h2>Pre-defined functors<a class="headerlink" href="#pre-defined-functors" title="Permalink to this headline">¶</a></h2>
+<p><em>NumericExtensions.jl</em> has defined a series of functors as listed below:</p>
+<ul class="simple">
+<li>Arithmetic operators: <tt class="docutils literal"><span class="pre">Add</span></tt>, <tt class="docutils literal"><span class="pre">Subtract</span></tt>, <tt class="docutils literal"><span class="pre">Multiply</span></tt>, <tt class="docutils literal"><span class="pre">Divide</span></tt>, <tt class="docutils literal"><span class="pre">Negate</span></tt>, <tt class="docutils literal"><span class="pre">Pow</span></tt>, <tt class="docutils literal"><span class="pre">Modulo</span></tt></li>
+<li>Comparison operators: <tt class="docutils literal"><span class="pre">Greater</span></tt>, <tt class="docutils literal"><span class="pre">GreaterEqual</span></tt>, <tt class="docutils literal"><span class="pre">Less</span></tt>, <tt class="docutils literal"><span class="pre">LessEqual</span></tt>, <tt class="docutils literal"><span class="pre">Equal</span></tt>, <tt class="docutils literal"><span class="pre">NotEqual</span></tt></li>
+<li>Floating-point predicates: <tt class="docutils literal"><span class="pre">IsfiniteFun</span></tt>, <tt class="docutils literal"><span class="pre">IsinfFun</span></tt>, <tt class="docutils literal"><span class="pre">IsnanFun</span></tt>, <tt class="docutils literal"><span class="pre">IsequalFun</span></tt></li>
+<li>Logical operators: <tt class="docutils literal"><span class="pre">Not</span></tt>, <tt class="docutils literal"><span class="pre">And</span></tt>, <tt class="docutils literal"><span class="pre">Or</span></tt></li>
+<li>Bitwise operators: <tt class="docutils literal"><span class="pre">BitwiseNot</span></tt>, <tt class="docutils literal"><span class="pre">BitwiseAnd</span></tt>, <tt class="docutils literal"><span class="pre">BitwiseOr</span></tt>, <tt class="docutils literal"><span class="pre">BitwiseXor</span></tt></li>
+<li>max and min: <tt class="docutils literal"><span class="pre">MaxFun</span></tt>, <tt class="docutils literal"><span class="pre">MinFun</span></tt></li>
+<li>Rounding functors: <tt class="docutils literal"><span class="pre">FloorFun</span></tt>, <tt class="docutils literal"><span class="pre">CeilFun</span></tt>, <tt class="docutils literal"><span class="pre">RoundFun</span></tt>, <tt class="docutils literal"><span class="pre">TruncFun</span></tt>, <tt class="docutils literal"><span class="pre">IfloorFun</span></tt>, <tt class="docutils literal"><span class="pre">IceilFun</span></tt>, <tt class="docutils literal"><span class="pre">IroundFun</span></tt>, <tt class="docutils literal"><span class="pre">ItruncFun</span></tt></li>
+<li>Algebraic functors: <tt class="docutils literal"><span class="pre">AbsFun</span></tt>, <tt class="docutils literal"><span class="pre">Abs2Fun</span></tt>, <tt class="docutils literal"><span class="pre">SqrFun</span></tt>, <tt class="docutils literal"><span class="pre">SqrtFun</span></tt>, <tt class="docutils literal"><span class="pre">CbrtFun</span></tt>, <tt class="docutils literal"><span class="pre">RcpFun</span></tt>, <tt class="docutils literal"><span class="pre">RsqrtFun</span></tt>, <tt class="docutils literal"><span class="pre">RcbrtFun</span></tt>, <tt class="docutils literal"><span class="pre">HypotFun</span></tt></li>
+<li>exp and log functors: <tt class="docutils literal"><span class="pre">ExpFun</span></tt>, <tt class="docutils literal"><span class="pre">Exp2Fun</span></tt>, <tt class="docutils literal"><span class="pre">Exp10Fun</span></tt>, <tt class="docutils literal"><span class="pre">LogFun</span></tt>, <tt class="docutils literal"><span class="pre">Log2Fun</span></tt>, <tt class="docutils literal"><span class="pre">Log10Fun</span></tt>, <tt class="docutils literal"><span class="pre">Expm1Fun</span></tt>, <tt class="docutils literal"><span class="pre">Log1pFun</span></tt></li>
+<li>Trigonometric functors: <tt class="docutils literal"><span class="pre">SinFun</span></tt>, <tt class="docutils literal"><span class="pre">CosFun</span></tt>, <tt class="docutils literal"><span class="pre">TanFun</span></tt>, <tt class="docutils literal"><span class="pre">CotFun</span></tt>, <tt class="docutils literal"><span class="pre">CscFun</span></tt>, <tt class="docutils literal"><span class="pre">SecFun</span></tt></li>
+<li>Inverse Trigono functors: <tt class="docutils literal"><span class="pre">AsinFun</span></tt>, <tt class="docutils literal"><span class="pre">AcosFun</span></tt>, <tt class="docutils literal"><span class="pre">AtanFun</span></tt>, <tt class="docutils literal"><span class="pre">Atan2Fun</span></tt>, <tt class="docutils literal"><span class="pre">AcotFun</span></tt>, <tt class="docutils literal"><span class="pre">AcscFun</span></tt>, <tt class="docutils literal"><span class="pre">AsecFun</span></tt></li>
+<li>Hyperbolic functors: <tt class="docutils literal"><span class="pre">SinhFun</span></tt>, <tt class="docutils literal"><span class="pre">CoshFun</span></tt>, <tt class="docutils literal"><span class="pre">TanhFun</span></tt>, <tt class="docutils literal"><span class="pre">CothFun</span></tt>, <tt class="docutils literal"><span class="pre">CschFun</span></tt>, <tt class="docutils literal"><span class="pre">SechFun</span></tt></li>
+<li>Inverse Hyperbolic functors: <tt class="docutils literal"><span class="pre">AsinhFun</span></tt>, <tt class="docutils literal"><span class="pre">AcoshFun</span></tt>, <tt class="docutils literal"><span class="pre">AtanhFun</span></tt>, <tt class="docutils literal"><span class="pre">AcothFun</span></tt>, <tt class="docutils literal"><span class="pre">AcschFun</span></tt>, <tt class="docutils literal"><span class="pre">AsechFun</span></tt></li>
+<li>Error functors: <tt class="docutils literal"><span class="pre">ErfFun</span></tt>, <tt class="docutils literal"><span class="pre">ErfcFun</span></tt>, <tt class="docutils literal"><span class="pre">ErfInvFun</span></tt>, <tt class="docutils literal"><span class="pre">ErfcInvFun</span></tt></li>
+<li>Gamma functors: <tt class="docutils literal"><span class="pre">GammaFun</span></tt>, <tt class="docutils literal"><span class="pre">LgammaFun</span></tt>, <tt class="docutils literal"><span class="pre">LfactFun</span></tt>, <tt class="docutils literal"><span class="pre">DigammaFun</span></tt></li>
+<li>Beta functors: <tt class="docutils literal"><span class="pre">BetaFun</span></tt>, <tt class="docutils literal"><span class="pre">LbetaFun</span></tt>, <tt class="docutils literal"><span class="pre">EtaFun</span></tt>, <tt class="docutils literal"><span class="pre">ZetaFun</span></tt></li>
+<li>Airy functors: <tt class="docutils literal"><span class="pre">AiryFun</span></tt>, <tt class="docutils literal"><span class="pre">AiryprimeFun</span></tt>, <tt class="docutils literal"><span class="pre">AiryaiFun</span></tt>, <tt class="docutils literal"><span class="pre">AiryaiprimeFun</span></tt>, <tt class="docutils literal"><span class="pre">AirybiFun</span></tt>, <tt class="docutils literal"><span class="pre">AirybiprimeFun</span></tt></li>
+<li>Bessel functors: <tt class="docutils literal"><span class="pre">BesseljFun</span></tt>, <tt class="docutils literal"><span class="pre">Besselj0Fun</span></tt>, <tt class="docutils literal"><span class="pre">Besselj1Fun</span></tt>, <tt class="docutils literal"><span class="pre">BesseliFun</span></tt>, <tt class="docutils literal"><span class="pre">BesselkFun</span></tt></li>
+<li>Fused multiply and add: <tt class="docutils literal"><span class="pre">FMA</span></tt> (i.e. <tt class="docutils literal"><span class="pre">(a,</span> <span class="pre">b,</span> <span class="pre">c)</span> <span class="pre">-&gt;</span> <span class="pre">a</span> <span class="pre">+</span> <span class="pre">b</span> <span class="pre">*</span> <span class="pre">c</span></tt>)</li>
+<li>Others: <tt class="docutils literal"><span class="pre">LogitFun</span></tt>, <tt class="docutils literal"><span class="pre">LogisticFun</span></tt>, <tt class="docutils literal"><span class="pre">InvLogisticFun</span></tt>, <tt class="docutils literal"><span class="pre">XlogxFun</span></tt>, <tt class="docutils literal"><span class="pre">XlogyFun</span></tt></li>
+</ul>
+<p>Except for several functors that corresponding to operators, most functors are named using the capitalized version of the corresponding math function. Therefore, you don&#8217;t have to look up this list to find the names. The collection of pre-defined functors will be extended in future. Please refer to <tt class="docutils literal"><span class="pre">src/functors.jl</span></tt> for the most updated list.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="map.html" title="Mapping"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="overview.html" title="Package Overview"
+             >previous</a> |</li>
+        <li><a href="index.html">NumericExtensions.jl 0.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Dahua Lin.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

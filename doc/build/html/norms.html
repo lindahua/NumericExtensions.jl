@@ -1,0 +1,165 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Vector Norms and Normalization &mdash; NumericExtensions.jl 0.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="NumericExtensions.jl 0.3 documentation" href="index.html" />
+    <link rel="next" title="Array Scanning" href="scan.html" />
+    <link rel="prev" title="Reduction" href="reduction.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="scan.html" title="Array Scanning"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="reduction.html" title="Reduction"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">NumericExtensions.jl 0.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Vector Norms and Normalization</a><ul>
+<li><a class="reference internal" href="#vector-norm-evaluation">Vector Norm Evaluation</a></li>
+<li><a class="reference internal" href="#normalization">Normalization</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="reduction.html"
+                        title="previous chapter">Reduction</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="scan.html"
+                        title="next chapter">Array Scanning</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/norms.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="vector-norms-and-normalization">
+<h1>Vector Norms and Normalization<a class="headerlink" href="#vector-norms-and-normalization" title="Permalink to this headline">¶</a></h1>
+<p>This package provides functions for evaluating vector norms and normalizing vectors.</p>
+<div class="section" id="vector-norm-evaluation">
+<h2>Vector Norm Evaluation<a class="headerlink" href="#vector-norm-evaluation" title="Permalink to this headline">¶</a></h2>
+<p><strong>Synopsis</strong></p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="n">vnorm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>             <span class="c"># compute L-p norm of vec(x)</span>
+<span class="n">vnorm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>        <span class="c"># compute L-p norm of x along dimension dim</span>
+<span class="n">vnorm</span><span class="o">!</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>    <span class="c"># compute L-p norm along specific dimension and</span>
+                        <span class="c"># write results to r</span>
+
+<span class="n">vnormdiff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>             <span class="c"># compute L-p norm of vec(x - y)</span>
+<span class="n">vnormdiff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>        <span class="c"># compute L-p norm of x - y along dim</span>
+<span class="n">vnormdiff</span><span class="o">!</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>    <span class="c"># compute L-p norm of x - y along dim and write to r</span>
+</pre></div>
+</div>
+<p>Notes:</p>
+<ul class="simple">
+<li>For <tt class="docutils literal"><span class="pre">vnormdiff</span></tt> and <tt class="docutils literal"><span class="pre">vnormdiff!</span></tt>, <tt class="docutils literal"><span class="pre">x</span></tt> or <tt class="docutils literal"><span class="pre">y</span></tt> can be either an array or a scalar.</li>
+<li>When <tt class="docutils literal"><span class="pre">p</span></tt> is 1, 2, or Inf, specialized fast routines are used.</li>
+</ul>
+<p><strong>Examples</strong></p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="n">vnorm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>          <span class="c"># compute L-2 norm of x</span>
+<span class="n">vnorm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>       <span class="c"># compute L-2 norm of each column of x</span>
+<span class="n">vnorm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">Inf</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>     <span class="c"># compute L-inf norm of each row of x</span>
+<span class="n">vnorm</span><span class="o">!</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>   <span class="c"># compute L-2 norm of each column, and write results to r</span>
+
+<span class="n">vnormdiff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>    <span class="c"># compute L-2 norm of x - 2.5</span>
+<span class="n">vnormdiff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>   <span class="c"># compute L-1 norm of x - y for each column</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="normalization">
+<h2>Normalization<a class="headerlink" href="#normalization" title="Permalink to this headline">¶</a></h2>
+<p>Normalizing a vector w.r.t L-p norm means to scale a vector such that the L-p norm of the vector becomes 1.</p>
+<p><strong>Synopsis</strong></p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="n">normalize</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>         <span class="c"># returns a normalized vector w.r.t. L-p norm</span>
+<span class="n">normalize</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>        <span class="c"># normalize x w.r.t. L-p norm inplace</span>
+<span class="n">normalize</span><span class="o">!</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>     <span class="c"># write the normalized vector to a pre-allocated array r</span>
+
+<span class="n">normalize</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>       <span class="c"># returns an array comprised of normalized vectors along dim</span>
+<span class="n">normalize</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>      <span class="c"># normalize vectors of x along dim inplace w.r.t. L-p norm</span>
+<span class="n">normalize</span><span class="o">!</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>   <span class="c"># write the normalized vectors along dim to r</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="scan.html" title="Array Scanning"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="reduction.html" title="Reduction"
+             >previous</a> |</li>
+        <li><a href="index.html">NumericExtensions.jl 0.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Dahua Lin.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,280 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Positive Definite Matrices &mdash; NumericExtensions.jl 0.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="NumericExtensions.jl 0.3 documentation" href="index.html" />
+    <link rel="prev" title="Utilities for Data Manipulation" href="utils.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="utils.html" title="Utilities for Data Manipulation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">NumericExtensions.jl 0.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Positive Definite Matrices</a><ul>
+<li><a class="reference internal" href="#positive-definite-matrix-types">Positive definite matrix types</a></li>
+<li><a class="reference internal" href="#common-interface">Common interface</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="utils.html"
+                        title="previous chapter">Utilities for Data Manipulation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/pdmat.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="positive-definite-matrices">
+<h1>Positive Definite Matrices<a class="headerlink" href="#positive-definite-matrices" title="Permalink to this headline">¶</a></h1>
+<p>Positive definite matrices are widely used in machine learning and probabilistic modeling, especially in applications related to graph analysis and Gaussian models. It is not uncommon that positive definite matrices used in practice have special structures (e.g. diagonal), which can be exploited to accelerate computation.</p>
+<p><em>NumericExtensions.jl</em> supports efficient computation on positive definite matrices of various structures. In particular, it provides uniform interfaces to use positive definite matrices of various structures for writing generic algorithms, while ensuring that the most efficient implementation is used in actual computation.</p>
+<div class="section" id="positive-definite-matrix-types">
+<h2>Positive definite matrix types<a class="headerlink" href="#positive-definite-matrix-types" title="Permalink to this headline">¶</a></h2>
+<p>This package defines an abstract type <tt class="docutils literal"><span class="pre">AbstractPDMat</span></tt> to capture positive definite matrices of various structures, as well as three concrete sub-types: <tt class="docutils literal"><span class="pre">PDMat</span></tt>, <tt class="docutils literal"><span class="pre">PDiagMat</span></tt>, <tt class="docutils literal"><span class="pre">ScalMat</span></tt>, which can be constructed as follows</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">PDMat</span></tt>: representing a normal positive definite matrix in its full matrix form. <strong>Construction:</strong> <tt class="docutils literal"><span class="pre">PDMat(C)</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">PDiagMat</span></tt>: representing a positive diagonal matrix. <strong>Construction:</strong> <tt class="docutils literal"><span class="pre">PDiagMat(v)</span></tt>, where <tt class="docutils literal"><span class="pre">v</span></tt> is the vector of diagonal elements.</li>
+<li><tt class="docutils literal"><span class="pre">ScalMat(d,</span> <span class="pre">v)</span></tt>: representing a scaling matrix of the form <tt class="docutils literal"><span class="pre">v</span> <span class="pre">*</span> <span class="pre">eye(d)</span></tt>. <strong>Construction:</strong> <tt class="docutils literal"><span class="pre">ScalMat(d,</span> <span class="pre">v)</span></tt>, where <tt class="docutils literal"><span class="pre">d</span></tt> is the matrix dimension (the size of the matrix is <tt class="docutils literal"><span class="pre">d</span> <span class="pre">x</span> <span class="pre">d</span></tt>), and <tt class="docutils literal"><span class="pre">v</span></tt> is a scalar value.</li>
+</ul>
+<p><strong>Notes:</strong> Compact representation is used internally. For example, an instance of <tt class="docutils literal"><span class="pre">PDiagMat</span></tt> only contains a vector of diagonal elements instead of the full diagonal matrix, and <tt class="docutils literal"><span class="pre">ScalMat</span></tt> only contains a scalar value. While, for <tt class="docutils literal"><span class="pre">PDMat</span></tt>, a Cholesky factorization is computed and contained in the instance for efficient computation.</p>
+</div>
+<div class="section" id="common-interface">
+<h2>Common interface<a class="headerlink" href="#common-interface" title="Permalink to this headline">¶</a></h2>
+<p>Functions are defined to operate on positive definite matrices through a uniform interface. In the description below, We let <tt class="docutils literal"><span class="pre">a</span></tt> be a positive definite matrix, <em>i.e</em> an instance of a subtype of <tt class="docutils literal"><span class="pre">AbstractPDMat</span></tt>, <tt class="docutils literal"><span class="pre">x</span></tt> be a column vector or a matrix, and <tt class="docutils literal"><span class="pre">c</span></tt> be a positive scalar.</p>
+<dl class="function">
+<dt id="dim">
+<tt class="descname">dim</tt><big>(</big><em>a</em><big>)</big><a class="headerlink" href="#dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the dimension of the matrix. If it is a <tt class="docutils literal"><span class="pre">d</span> <span class="pre">x</span> <span class="pre">d</span></tt> matrix, this returns <tt class="docutils literal"><span class="pre">d</span></tt>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="full">
+<tt class="descname">full</tt><big>(</big><em>a</em><big>)</big><a class="headerlink" href="#full" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a copy of the matrix in full form.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="logdet">
+<tt class="descname">logdet</tt><big>(</big><em>a</em><big>)</big><a class="headerlink" href="#logdet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the log-determinant of the matrix.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="diag">
+<tt class="descname">diag</tt><big>(</big><em>a</em><big>)</big><a class="headerlink" href="#diag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a vector of diangonal elements.</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">a * x</tt></dt>
+<dd><p>Perform matrix-vector/matrix-matrix multiplication.</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">a \ x</tt></dt>
+<dd><p>Solve linear equation, equivalent to <tt class="docutils literal"><span class="pre">inv(a)</span> <span class="pre">*</span> <span class="pre">x</span></tt>, but implemented in a more efficient way.</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">a * c, c * a</tt></dt>
+<dd><p>Scalar product, multiply <tt class="docutils literal"><span class="pre">a</span></tt> with a scalar <tt class="docutils literal"><span class="pre">c</span></tt>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="unwhiten">
+<tt class="descname">unwhiten</tt><big>(</big><em>a</em>, <em>x</em><big>)</big><a class="headerlink" href="#unwhiten" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unwhitening transform.</p>
+<p>If <tt class="docutils literal"><span class="pre">x</span></tt> satisfies the standard Gaussian distribution, then <tt class="docutils literal"><span class="pre">unwhiten(a,</span> <span class="pre">x)</span></tt> has a distribution
+of covariance <tt class="docutils literal"><span class="pre">a</span></tt>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="whiten">
+<tt class="descname">whiten</tt><big>(</big><em>a</em>, <em>x</em><big>)</big><a class="headerlink" href="#whiten" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whitening transform.</p>
+<p>If <tt class="docutils literal"><span class="pre">x</span></tt> satisfies a distributiion of covariance <tt class="docutils literal"><span class="pre">a</span></tt>, then the covariance of <tt class="docutils literal"><span class="pre">whiten(a,</span> <span class="pre">x)</span></tt> is the identity matrix.</p>
+<p><strong>Note:</strong> <tt class="docutils literal"><span class="pre">whiten</span></tt> and <tt class="docutils literal"><span class="pre">unwhiten</span></tt> are mutually inverse operations.</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">unwhiten!(a, x)</tt></dt>
+<dd><p>Inplace unwhitening, <tt class="docutils literal"><span class="pre">x</span></tt> will be updated.</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">whiten!(a, x)</tt></dt>
+<dd><p>Inplace whitening, <tt class="docutils literal"><span class="pre">x</span></tt> will be updated.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="quad">
+<tt class="descname">quad</tt><big>(</big><em>a</em>, <em>x</em><big>)</big><a class="headerlink" href="#quad" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute <tt class="docutils literal"><span class="pre">x'</span> <span class="pre">*</span> <span class="pre">a</span> <span class="pre">*</span> <span class="pre">x</span></tt> in an efficient way. Here, <tt class="docutils literal"><span class="pre">x</span></tt> can be a vector or a matrix.</p>
+<p>If <tt class="docutils literal"><span class="pre">x</span></tt> is a vector, it returns a scalar value.
+If <tt class="docutils literal"><span class="pre">x</span></tt> is a matrix, is performs column-wise computation and returns a vector <tt class="docutils literal"><span class="pre">r</span></tt>,
+such that <tt class="docutils literal"><span class="pre">r[i]</span></tt> is <tt class="docutils literal"><span class="pre">x[:,i]'</span> <span class="pre">*</span> <span class="pre">a</span> <span class="pre">*</span> <span class="pre">x[:,i]</span></tt>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="invquad">
+<tt class="descname">invquad</tt><big>(</big><em>a</em>, <em>x</em><big>)</big><a class="headerlink" href="#invquad" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute <tt class="docutils literal"><span class="pre">x'</span> <span class="pre">*</span> <span class="pre">inv(a)</span> <span class="pre">*</span> <span class="pre">x</span></tt> in an efficient way (without computing <tt class="docutils literal"><span class="pre">inv(a)</span></tt>).
+Here, <tt class="docutils literal"><span class="pre">x</span></tt> can be a vector or a matrix (for column-wise computation).</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">quad!(r, a, x)</tt></dt>
+<dd><p>Inplace column-wise computation of <tt class="docutils literal"><span class="pre">quad</span></tt> on a matrix <tt class="docutils literal"><span class="pre">x</span></tt>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">invquad!(r, a, x)</tt></dt>
+<dd><p>Inplace column-wise computation of <tt class="docutils literal"><span class="pre">invquad</span></tt> on a matrix <tt class="docutils literal"><span class="pre">x</span></tt>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="X_A_Xt">
+<tt class="descname">X_A_Xt</tt><big>(</big><em>a</em>, <em>x</em><big>)</big><a class="headerlink" href="#X_A_Xt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes <tt class="docutils literal"><span class="pre">x</span> <span class="pre">*</span> <span class="pre">a</span> <span class="pre">*</span> <span class="pre">x'</span></tt> for matrix <tt class="docutils literal"><span class="pre">x</span></tt>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Xt_A_X">
+<tt class="descname">Xt_A_X</tt><big>(</big><em>a</em>, <em>x</em><big>)</big><a class="headerlink" href="#Xt_A_X" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes <tt class="docutils literal"><span class="pre">x'</span> <span class="pre">*</span> <span class="pre">a</span> <span class="pre">*</span> <span class="pre">x</span></tt> for matrix <tt class="docutils literal"><span class="pre">x</span></tt>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="X_invA_Xt">
+<tt class="descname">X_invA_Xt</tt><big>(</big><em>a</em>, <em>x</em><big>)</big><a class="headerlink" href="#X_invA_Xt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes <tt class="docutils literal"><span class="pre">x</span> <span class="pre">*</span> <span class="pre">inv(a)</span> <span class="pre">*</span> <span class="pre">x'</span></tt> for matrix <tt class="docutils literal"><span class="pre">x</span></tt>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Xt_invA_X">
+<tt class="descname">Xt_invA_X</tt><big>(</big><em>a</em>, <em>x</em><big>)</big><a class="headerlink" href="#Xt_invA_X" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes <tt class="docutils literal"><span class="pre">x'</span> <span class="pre">*</span> <span class="pre">inv(a)</span> <span class="pre">*</span> <span class="pre">x</span></tt> for matrix <tt class="docutils literal"><span class="pre">x</span></tt>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">a1 + a2</tt></dt>
+<dd><p>Add two positive definite matrices (promoted to a proper type).</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">a + x</tt></dt>
+<dd><p>Add a positive definite matrix and an ordinary square matrix (returns an ordinary matrix).</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">add!(x, a)</tt></dt>
+<dd><p>Add the positive definite matrix <tt class="docutils literal"><span class="pre">a</span></tt> to an ordinary matrix <tt class="docutils literal"><span class="pre">m</span></tt> (inplace).</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">add_scal!(x, a, c)</tt></dt>
+<dd><p>Add <tt class="docutils literal"><span class="pre">a</span> <span class="pre">*</span> <span class="pre">c</span></tt> to an ordinary matrix <tt class="docutils literal"><span class="pre">x</span></tt> (inplace).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="add_scal">
+<tt class="descname">add_scal</tt><big>(</big><em>a1</em>, <em>a2</em>, <em>c</em><big>)</big><a class="headerlink" href="#add_scal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return <tt class="docutils literal"><span class="pre">a1</span> <span class="pre">+</span> <span class="pre">a2</span> <span class="pre">*</span> <span class="pre">c</span></tt> (promoted to a proper type).</p>
+</dd></dl>
+
+<p><strong>Note:</strong> Specialized version of each of these functions are implemented for each specific postive matrix types using the most efficient routine (depending on the corresponding structures.)</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="utils.html" title="Utilities for Data Manipulation"
+             >previous</a> |</li>
+        <li><a href="index.html">NumericExtensions.jl 0.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Dahua Lin.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

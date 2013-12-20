@@ -1,0 +1,208 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Mapping &mdash; NumericExtensions.jl 0.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="NumericExtensions.jl 0.3 documentation" href="index.html" />
+    <link rel="next" title="Vector Broadcasting" href="vbroadcast.html" />
+    <link rel="prev" title="Functors" href="functors.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="vbroadcast.html" title="Vector Broadcasting"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="functors.html" title="Functors"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">NumericExtensions.jl 0.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Mapping</a><ul>
+<li><a class="reference internal" href="#general-usage">General usage</a></li>
+<li><a class="reference internal" href="#additional-functions">Additional functions</a></li>
+<li><a class="reference internal" href="#pre-defined-mapping-functions">Pre-defined mapping functions</a></li>
+<li><a class="reference internal" href="#performance">Performance</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="functors.html"
+                        title="previous chapter">Functors</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="vbroadcast.html"
+                        title="next chapter">Vector Broadcasting</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/map.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="mapping">
+<h1>Mapping<a class="headerlink" href="#mapping" title="Permalink to this headline">¶</a></h1>
+<p><em>NumericExtensions.jl</em> extends <tt class="docutils literal"><span class="pre">map</span></tt> and <tt class="docutils literal"><span class="pre">map!</span></tt> to accept functors for efficient element-wise mapping:</p>
+<div class="section" id="general-usage">
+<h2>General usage<a class="headerlink" href="#general-usage" title="Permalink to this headline">¶</a></h2>
+<p><strong>Synopsis:</strong></p>
+<p>Let <tt class="docutils literal"><span class="pre">f1</span></tt>, <tt class="docutils literal"><span class="pre">f2</span></tt>, and <tt class="docutils literal"><span class="pre">f3</span></tt> be respectively unary, binary, and ternary functors. Generic usage of <tt class="docutils literal"><span class="pre">map</span></tt> and <tt class="docutils literal"><span class="pre">map!</span></tt> is summarized as follows:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="n">map</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+<span class="n">map</span><span class="p">(</span><span class="n">f2</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>
+<span class="n">map</span><span class="p">(</span><span class="n">f3</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">x3</span><span class="p">)</span>
+
+<span class="n">map</span><span class="o">!</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+<span class="n">map</span><span class="o">!</span><span class="p">(</span><span class="n">f2</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>
+<span class="n">map</span><span class="o">!</span><span class="p">(</span><span class="n">f3</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">x3</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Here, <tt class="docutils literal"><span class="pre">map</span></tt> creates and returns the resultant array, while <tt class="docutils literal"><span class="pre">map!</span></tt> writes results to a pre-allocated <tt class="docutils literal"><span class="pre">dst</span></tt> and returns it. Each argument can be either an array or a scalar number. At least one argument should be an array, and all array arguments should have compatible sizes.</p>
+<p><strong>Examples:</strong></p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="n">map</span><span class="p">(</span><span class="n">AbsFun</span><span class="p">(),</span> <span class="n">x</span><span class="p">)</span>            <span class="c"># returns abs(x)</span>
+<span class="n">map</span><span class="p">(</span><span class="n">FMA</span><span class="p">(),</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>      <span class="c"># returns x + y .* z</span>
+<span class="n">map</span><span class="o">!</span><span class="p">(</span><span class="n">Add</span><span class="p">(),</span> <span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>   <span class="c"># writes x + 2 to dst</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="additional-functions">
+<h2>Additional functions<a class="headerlink" href="#additional-functions" title="Permalink to this headline">¶</a></h2>
+<p><em>NumericExtensions.jl</em> provides additional functions (<tt class="docutils literal"><span class="pre">map1!</span></tt>, <tt class="docutils literal"><span class="pre">mapdiff</span></tt>, and <tt class="docutils literal"><span class="pre">mapdiff!</span></tt>) to simplify common use:</p>
+<p><strong>Synopsis</strong></p>
+<p><tt class="docutils literal"><span class="pre">map1!</span></tt> updates the first argument inplace with the results, <tt class="docutils literal"><span class="pre">mapdiff</span></tt> maps a functor to the difference between two arguments, and <tt class="docutils literal"><span class="pre">mapdiff!</span></tt> writes the results of <tt class="docutils literal"><span class="pre">mapdiff</span></tt> to a pre-allocated array.</p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="n">map1</span><span class="o">!</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">x1</span><span class="p">)</span>             <span class="c"># x1 &lt;-- f1(x1)</span>
+<span class="n">map1</span><span class="o">!</span><span class="p">(</span><span class="n">f2</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>         <span class="c"># x1 &lt;-- f2(x1, x2)</span>
+<span class="n">map1</span><span class="o">!</span><span class="p">(</span><span class="n">f3</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">x3</span><span class="p">)</span>     <span class="c"># x1 &lt;-- f3(x1, x2, x3)</span>
+
+<span class="n">mapdiff</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>         <span class="c"># returns f1(x - y)</span>
+<span class="n">mapdiff</span><span class="o">!</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>   <span class="c"># dst &lt;-- f1(x - y)</span>
+</pre></div>
+</div>
+<p>Here, <tt class="docutils literal"><span class="pre">x1</span></tt> (<em>i.e.</em> the first argument to <tt class="docutils literal"><span class="pre">map1!</span></tt> must be an array, while <tt class="docutils literal"><span class="pre">x2</span></tt> and <tt class="docutils literal"><span class="pre">x3</span></tt> can be either an array or a number).</p>
+<p>Note that <tt class="docutils literal"><span class="pre">mapdiff</span></tt> and <tt class="docutils literal"><span class="pre">mapdiff!</span></tt> uses an efficient implementation, which completes the computation in one-pass and never creates the intermediate array <tt class="docutils literal"><span class="pre">x</span> <span class="pre">-</span> <span class="pre">y</span></tt>.</p>
+<p><strong>Examples</strong></p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="n">map1</span><span class="o">!</span><span class="p">(</span><span class="n">Mul</span><span class="p">(),</span> <span class="n">x</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>       <span class="c"># multiply x by 2 (inplace)</span>
+<span class="n">mapdiff</span><span class="p">(</span><span class="n">Abs2Fun</span><span class="p">(),</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>    <span class="c"># compute squared differences between x and y</span>
+<span class="n">mapdiff</span><span class="p">(</span><span class="n">AbsFun</span><span class="p">(),</span> <span class="n">x</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>     <span class="c"># compute |x - 1|</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="pre-defined-mapping-functions">
+<h2>Pre-defined mapping functions<a class="headerlink" href="#pre-defined-mapping-functions" title="Permalink to this headline">¶</a></h2>
+<p>Julia already provides vectorized function for most math computations. In this package, we additionally define several functions for vectorized inplace computation (based on <tt class="docutils literal"><span class="pre">map!</span></tt>), as follows</p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="n">add</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>        <span class="c"># x &lt;- x + y</span>
+<span class="n">subtract</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>   <span class="c"># x &lt;- x - y</span>
+<span class="n">multiply</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>   <span class="c"># x &lt;- x .* y</span>
+<span class="n">divide</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>     <span class="c"># x &lt;- x ./ y</span>
+<span class="n">negate</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>        <span class="c"># x &lt;- -x</span>
+<span class="n">pow</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>        <span class="c"># x &lt;- x .^ y</span>
+
+<span class="n">abs</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>           <span class="c"># x &lt;- abs(x)</span>
+<span class="n">abs2</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>          <span class="c"># x &lt;- abs2(x)</span>
+<span class="n">rcp</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>           <span class="c"># x &lt;- 1 ./ x</span>
+<span class="n">sqrt</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>          <span class="c"># x &lt;- sqrt(x)</span>
+<span class="n">exp</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>           <span class="c"># x &lt;- exp(x)</span>
+<span class="n">log</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>           <span class="c"># x &lt;- log(x)</span>
+
+<span class="n">floor</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>         <span class="c"># x &lt;- floor(x)</span>
+<span class="n">ceil</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>          <span class="c"># x &lt;- ceil(x)</span>
+<span class="n">round</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>         <span class="c"># x &lt;- round(x)</span>
+<span class="n">trunc</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>         <span class="c"># x &lt;- trunc(x)</span>
+</pre></div>
+</div>
+<p>In the codes above, <tt class="docutils literal"><span class="pre">x</span></tt> must be an array (<em>i.e.</em> an instance of <tt class="docutils literal"><span class="pre">AbstractArray</span></tt>), while <tt class="docutils literal"><span class="pre">y</span></tt> can be either an array or a scalar.</p>
+<p>In addition, this package also define some useful functions using compound functos:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span class="n">absdiff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>     <span class="c"># abs(x - y)</span>
+<span class="n">sqrdiff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>     <span class="c"># abs2(x - y)</span>
+<span class="n">fma</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>      <span class="c"># x + y .* c, where c can be array or scalar</span>
+<span class="n">fma</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>     <span class="c"># x &lt;- x + y .* c</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="performance">
+<h2>Performance<a class="headerlink" href="#performance" title="Permalink to this headline">¶</a></h2>
+<p>For simple functions, such as <tt class="docutils literal"><span class="pre">x</span> <span class="pre">+</span> <span class="pre">y</span></tt> or <tt class="docutils literal"><span class="pre">exp(x)</span></tt>, the performance of the map version such as <tt class="docutils literal"><span class="pre">map(Add(),</span> <span class="pre">x,</span> <span class="pre">y)</span></tt> and <tt class="docutils literal"><span class="pre">map(ExpFun(),</span> <span class="pre">x)</span></tt> is comparable to the Julia counter part. However, <tt class="docutils literal"><span class="pre">map</span></tt> can accelerate computation considerably in a variety of cases:</p>
+<ul class="simple">
+<li>When the result storage has been allocated (e.g. in iterative updating algorithms) or you want inplace update, then <tt class="docutils literal"><span class="pre">map!</span></tt> or the pre-defined inplace computation function can be used to avoid unnecessary memory allocation/garbage collection, which can sometimes be the performance killer.</li>
+<li>When the inner copy contains two or multiple steps, <tt class="docutils literal"><span class="pre">map</span></tt> and <tt class="docutils literal"><span class="pre">map!</span></tt> can complete the computation in one-pass without creating intermediate arrays, usually resulting in about <tt class="docutils literal"><span class="pre">2x</span></tt> or even more speed up. Benchmark shows that <tt class="docutils literal"><span class="pre">absdiff(x,</span> <span class="pre">y)</span></tt> and <tt class="docutils literal"><span class="pre">sqrdiff(x,</span> <span class="pre">y)</span></tt> are about <em>2.2x</em> faster than <tt class="docutils literal"><span class="pre">abs(x</span> <span class="pre">-</span> <span class="pre">y)</span></tt> and <tt class="docutils literal"><span class="pre">abs2(x</span> <span class="pre">-</span> <span class="pre">y)</span></tt>.</li>
+<li>The script <tt class="docutils literal"><span class="pre">test/benchmark_map.jl</span></tt> runs a series of benchmarks to compare the performance <tt class="docutils literal"><span class="pre">map</span></tt> and the Julia vectorized expressions for a variety of computation.</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="vbroadcast.html" title="Vector Broadcasting"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="functors.html" title="Functors"
+             >previous</a> |</li>
+        <li><a href="index.html">NumericExtensions.jl 0.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Dahua Lin.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
