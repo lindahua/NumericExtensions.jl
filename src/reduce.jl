@@ -123,6 +123,13 @@ mean(a::NumericArray) = cassum(a) / length(a)
 #
 #################################################
 
+gt_or_nan(s::Number, x) = (s > x)
+lt_or_nan(s::Number, x) = (s < x)
+
+gt_or_nan(s::FloatingPoint, x) = (s > x || s != s)
+lt_or_nan(s::FloatingPoint, x) = (s < x || s != s)
+
+
 function _maximum{T<:Integer}(ifirst::Int, ilast::Int, a::NumericArray{T})
 	if ifirst > ilast
 		error("Argument for maximum cannot be empty.")

@@ -100,116 +100,77 @@ end
 #
 #################################################
 
-macro code_mapreducfuns(N)
+macro code_mapmaxmin(AN, mf, ismax)
+	h = codegen_helper(AN)
+	_mf = symbol("_$(mf)")
+	nonneg_mf = symbol("nonneg_$(mf)")
+
+	ti = h.term(:i)
+	compexpr = ismax ? :(vi > s) : :(vi < s)
+
+	quote
+		global $(_mf)
+		function ($_mf)(ifirst::Int, ilast::Int, $(h.aparams...))
+			i = ifirst
+			s = $(ti)
+
+			while i < ilast
+				i += 1
+				@inbounds vi = $(ti)
+				if $(compexpr) || (s != s)
+					s = vi
+				end
+			end
+			return s
+		end
+
+		global $(mf)
+		function $(mf)($(h.aparams...))
+			n = $(h.inputlen)
+			n > 0 || error("Empty arguments not allowed.")
+			$(_mf)(1, n, $(h.args...))
+		end
+
+		global $(nonneg_mf)
+		function $(nonneg_mf)($(h.aparams...))
+			n = $(h.inputlen)
+			n > 0 ? $(_mf)(1, n, $(h.args...)) : 0.0
+		end
+	end
+end
+
+@code_mapmaxmin 1 maximum true
+@code_mapmaxmin 2 maximum true
+@code_mapmaxmin 3 maximum true
+@code_mapmaxmin (-2) maxfdiff true
+
+@code_mapmaxmin 1 minimum false
+@code_mapmaxmin 2 minimum false
+@code_mapmaxmin 3 minimum false
+@code_mapmaxmin (-2) minfdiff false 
+
+
+
+#################################################
+#
+#	folding functions
+#
+#################################################
+
+macro code_mapfold(AN, foldlf, foldrf)
 	# argument preparation
 
-	# function names
+	_foldlf = symbol("_$(foldlf)")
+	_foldrf = symbol("_$(foldrf)")
 
-	_foldlf = :_foldl
-	 foldlf = :foldl
-	_foldrf = :_foldr
-	 foldrf = :foldr
-
-	_sumf = :_sum
-	 sumf = :sum
-	_maxf = :_maximum
-	 maxf = :maximum
-	_minf = :_minimum
-	 minf = :minimum
-
-	meanf  = :mean
-	nnmaxf = :nonneg_maximum
-	nnminf = :nonneg_minimum
-
-	if N == -2
-		_foldlf = :_foldl_fdiff
-		 foldlf = :foldl_fdiff
-		_foldrf = :_foldr_fdiff
-		 foldrf = :foldr_fdiff
-
-		_sumf = :_sumfdiff
-		 sumf = :sumfdiff
-		_maxf = :_maxfdiff
-		 maxf = :maxfdiff
-		_minf = :_minfdiff
-		 minf = :minfdiff
-
-		meanf  = :meanfdiff
-		nnmaxf = :nonneg_maxfdiff
-		nnminf = :nonneg_minfdiff
-	end
-
-
-	# code-gen preparation
-
-	h = codegen_helper(N)
-	t1 = h.term(1)
+	h = codegen_helper(AN)
 	ti = h.term(:i)
-	ti1 = h.term(:i1)
-	ti2 = h.term(:i2)
+	t1 = h.term(1)
+	tn = h.term(:n)
 
 	# code skeletons
 
 	quote
-		# maximum & minimum
-
-		global $_maxf
-		function ($_maxf)(ifirst::Int, ilast::Int, $(h.aparams...))
-			i = ifirst
-			s = $(ti)
-
-			while i < ilast
-				i += 1
-				@inbounds vi = $(ti)
-				if vi > s || (s != s)
-					s = vi
-				end
-			end
-			return s
-		end
-
-		global $maxf
-		function ($maxf)($(h.aparams...))
-			n = $(h.inputlen)
-			n > 0 || error("Empty arguments not allowed.")
-			($_maxf)(1, n, $(h.args...))
-		end
-
-		global $nnmaxf
-		function ($nnmaxf)($(h.aparams...))
-			n = $(h.inputlen)
-			n == 0 ? 0.0 : ($_maxf)(1, n, $(h.args...))
-		end
-
-		global $_minf
-		function ($_minf)(ifirst::Int, ilast::Int, $(h.aparams...))
-			i = ifirst
-			s = $(ti)
-
-			while i < ilast
-				i += 1
-				@inbounds vi = $(ti)
-				if vi < s || (s != s)
-					s = vi
-				end
-			end
-			return s
-		end
-
-		global $minf
-		function ($minf)($(h.aparams...))
-			n = $(h.inputlen)
-			n > 0 || error("Empty arguments not allowed.")
-			($_minf)(1, n, $(h.args...))
-		end
-
-		global $nnminf
-		function ($nnminf)($(h.aparams...))
-			n = $(h.inputlen)
-			n == 0 ? 0.0 : ($_minf)(1, n, $(h.args...))
-		end
-
-
 		# foldl & foldr
 
 		global $_foldlf 
@@ -248,8 +209,7 @@ macro code_mapreducfuns(N)
 		function $(foldrf)(op::Functor{2}, $(h.aparams...))
 			n = $(h.inputlen)
 			n > 0 || error("Empty argument not allowed.")
-			i = n
-			s = $(ti)
+			s = $(tn)
 			$(_foldrf)(1, n-1, op, s, $(h.args...))
 		end
 
@@ -257,16 +217,10 @@ macro code_mapreducfuns(N)
 end
 
 
-#################################################
-#
-#   generate specific functions
-#
-#################################################
-
-@code_mapreducfuns 1
-@code_mapreducfuns 2
-@code_mapreducfuns 3
-@code_mapreducfuns (-2)  # for *fdiff
+@code_mapfold 1 foldl foldr
+@code_mapfold 2 foldl foldr
+@code_mapfold 3 foldl foldr
+@code_mapfold (-2) foldl_fdiff foldr_fdiff
 
 
 #################################################
