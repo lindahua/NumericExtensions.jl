@@ -38,6 +38,13 @@ abstract AbstractReduc
 type SumReduc <: AbstractReduc end
 type MaxReduc <: AbstractReduc end
 type MinReduc <: AbstractReduc end
+type FoldlReduc <: AbstractReduc end
+
+extra_params{Reduc<:AbstractReduc}(::Type{Reduc}) = []
+extra_args{Reduc<:AbstractReduc}(::Type{Reduc}) = []
+
+extra_params(::Type{FoldlReduc}) = [:(op::Functor{2}), :(s::Number)]
+extra_args(::Type{FoldlReduc}) = [:op, :s]
 
 update_code(R::Type{SumReduc}, s, x) = :( @inbounds $(s) += $(x) )
 
@@ -87,14 +94,16 @@ function generate_reducedim_codes{Reduc<:AbstractReduc}(AN::Int, accum::Symbol, 
 
 	# code preparation
 	h = codegen_helper(AN)
+	exparams = extra_params(Reduc)
+	exargs = extra_args(Reduc)
 
 	quote
 		global $(_accum_eachcol!)
-		function $(_accum_eachcol!){R<:Number}(m::Int, n::Int, r::ContiguousArray{R}, $(h.aparams...))
+		function $(_accum_eachcol!){R<:Number}(m::Int, n::Int, r::ContiguousArray{R}, $(exparams...), $(h.aparams...))
 			offset = 0
 			if m > 0
 				for j = 1 : n
-					rj = ($_accum)(offset+1, offset+m, $(h.args...))
+					rj = ($_accum)(offset+1, offset+m, $(exargs...), $(h.args...))
 					@inbounds r[j] = rj
 					offset += m
 				end
@@ -104,7 +113,7 @@ function generate_reducedim_codes{Reduc<:AbstractReduc}(AN::Int, accum::Symbol, 
 		end
 	
 		global $(_accum_eachrow!)
-		function $(_accum_eachrow!){R<:Number}(m::Int, n::Int, r::ContiguousArray{R}, $(h.aparams...))
+		function $(_accum_eachrow!){R<:Number}(m::Int, n::Int, r::ContiguousArray{R}, $(exparams...), $(h.aparams...))
 			if n > 0
 				for i = 1 : m
 					@inbounds vi = $(h.term(:i))
@@ -126,13 +135,13 @@ function generate_reducedim_codes{Reduc<:AbstractReduc}(AN::Int, accum::Symbol, 
 		end
 
 		global $(_accum!)
-		function $(_accum!)(r::ContiguousArray, $(h.aparams...), dim::Int)
+		function $(_accum!)(r::ContiguousArray, $(exparams...), $(h.aparams...), dim::Int)
 			shp = $(h.inputsize)
 			
 			if dim == 1
 				m = shp[1]
 				n = succ_length(shp, 1)
-				$(_accum_eachcol!)(m, n, r, $(h.args...))
+				$(_accum_eachcol!)(m, n, r, $(exargs...), $(h.args...))
 
 			else
 				m = prec_length(shp, dim)
@@ -140,13 +149,13 @@ function generate_reducedim_codes{Reduc<:AbstractReduc}(AN::Int, accum::Symbol, 
 				k = succ_length(shp, dim)
 
 				if k == 1
-					$(_accum_eachrow!)(m, n, r, $(h.args...))
+					$(_accum_eachrow!)(m, n, r, $(exargs...), $(h.args...))
 				else
 					mn = m * n
 					ro = 0
 					ao = 0
 					for l = 1 : k
-						$(_accum_eachrow!)(m, n, offset_view(r, ro, m), $(h.offset_args...))
+						$(_accum_eachrow!)(m, n, offset_view(r, ro, m), $(exargs...), $(h.offset_args...))
 						ro += m
 						ao += mn
 					end
@@ -156,15 +165,15 @@ function generate_reducedim_codes{Reduc<:AbstractReduc}(AN::Int, accum::Symbol, 
 		end
 
 		global $(accum!)
-		function $(accum!)(r::ContiguousArray, $(h.aparams...), dim::Int)
+		function $(accum!)(r::ContiguousArray, $(exparams...), $(h.aparams...), dim::Int)
 			length(r) == reduced_length($(h.inputsize), dim) || error("Invalid argument dimensions.")
-			$(_accum!)(r, $(h.args...), dim)
+			$(_accum!)(r, $(exargs...), $(h.args...), dim)
 		end
 
 		global $(accum)
-		function $(accum)($(h.aparams...), dim::Int)
+		function $(accum)($(exparams...), $(h.aparams...), dim::Int)
 			rshp = reduced_shape($(h.inputsize), dim)
-			$(_accum!)(Array(sumtype($(h.termtype)), rshp), $(h.args...), dim)
+			$(_accum!)(Array(sumtype($(h.termtype)), rshp), $(exargs...), $(h.args...), dim)
 		end	
 	end
 end
