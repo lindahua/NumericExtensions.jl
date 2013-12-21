@@ -31,16 +31,100 @@ offset_view(a::Number, ::Int, ::Int, ::Int) = a
 #
 #################################################
 
+# reduction type dependent codes
 
-function generate_reducedim_facets(h::CodegenHelper, accum::Symbol)
+abstract AbstractReduc 
+
+type SumReduc <: AbstractReduc end
+type MaxReduc <: AbstractReduc end
+type MinReduc <: AbstractReduc end
+
+update_code(R::Type{SumReduc}, s, x) = :( @inbounds $(s) += $(x) )
+
+function update_code(R::Type{MaxReduc}, s, x)
+	quote
+		if lt_or_nan($(s), $(x))
+			@inbounds $(s) = $(x)
+		end
+	end
+end
+
+function update_code(R::Type{MinReduc}, s, x)
+	quote
+		if gt_or_nan($(s), $(x))
+			@inbounds $(s) = $(x)
+		end
+	end
+end
+
+function emptyreduc_code(R::Type{SumReduc}, dst::Symbol, T::Symbol, n::Symbol)
+	quote
+		z = zero($T)
+		for i = 1 : $n
+			@inbounds ($dst)[i] = z
+		end
+	end
+end
+
+emptyreduc_code(R::Type{MaxReduc}, dst, T, n) = :(error("maximum along a zero-length dimension is not allowed."))
+emptyreduc_code(R::Type{MinReduc}, dst, T, n) = :(error("minimum along a zero-length dimension is not allowed."))
+
+reduce_result(R::Type{SumReduc}, ty) = Expr(:call, :sumtype, ty)
+reduce_result(R::Type{MaxReduc}, ty) = ty
+reduce_result(R::Type{MinReduc}, ty) = ty
+
+
+# core skeleton
+
+function generate_reducedim_codes{Reduc<:AbstractReduc}(AN::Int, accum::Symbol, reducty::Type{Reduc})
 
 	# function names
 	_accum_eachcol! = symbol("_$(accum)_eachcol!")
 	_accum_eachrow! = symbol("_$(accum)_eachrow!")
+	_accum = symbol("_$(accum)")
 	_accum! = symbol("_$(accum)!")
 	accum! = symbol("$(accum)!")	
 
+	# code preparation
+	h = codegen_helper(AN)
+
 	quote
+		global $(_accum_eachcol!)
+		function $(_accum_eachcol!){R<:Number}(m::Int, n::Int, r::ContiguousArray{R}, $(h.aparams...))
+			offset = 0
+			if m > 0
+				for j = 1 : n
+					rj = ($_accum)(offset+1, offset+m, $(h.args...))
+					@inbounds r[j] = rj
+					offset += m
+				end
+			else
+				$(emptyreduc_code(Reduc, :r, :R, :n))
+			end	
+		end
+	
+		global $(_accum_eachrow!)
+		function $(_accum_eachrow!){R<:Number}(m::Int, n::Int, r::ContiguousArray{R}, $(h.aparams...))
+			if n > 0
+				for i = 1 : m
+					@inbounds vi = $(h.term(:i))
+					@inbounds r[i] = vi
+				end
+
+				offset = m
+				for j = 2 : n			
+					for i = 1 : m
+						idx = offset + i
+						@inbounds vi = $(h.term(:idx))
+						$(update_code(Reduc, :(r[i]), :vi))
+					end
+					offset += m
+				end
+			else
+				$(emptyreduc_code(Reduc, :r, :R, :m))
+			end
+		end
+
 		global $(_accum!)
 		function $(_accum!)(r::ContiguousArray, $(h.aparams...), dim::Int)
 			shp = $(h.inputsize)
@@ -85,6 +169,11 @@ function generate_reducedim_facets(h::CodegenHelper, accum::Symbol)
 	end
 end
 
+macro code_reducedim(AN, fname, reducty)
+	R = eval(reducty)
+	esc(generate_reducedim_codes(AN, fname, R))
+end
+
 
 #################################################
 #
@@ -95,78 +184,13 @@ end
 sumtype{T<:Number}(::Type{T}) = T
 sumtype{T<:Integer}(::Type{T}) = promote_type(T, Int)
 
-function generate_sumdim_codes(AN::Int, accum::Symbol)
-
-	# function names
-	_accum_eachcol! = symbol("_$(accum)_eachcol!")
-	_accum_eachrow! = symbol("_$(accum)_eachrow!")
-	_accum = symbol("_$(accum)")
-
-	# parameter & argument preparation
-
-	h = codegen_helper(AN)
-	facets = generate_reducedim_facets(h, accum) 
-
-	# generate functions
-
-	quote
-		global $(_accum_eachcol!)
-		function $(_accum_eachcol!){R<:Number}(m::Int, n::Int, r::ContiguousArray{R}, $(h.aparams...))
-			offset = 0
-			if m > 0
-				for j = 1 : n
-					rj = ($_accum)(offset+1, offset+m, $(h.args...))
-					@inbounds r[j] = rj
-					offset += m
-				end
-			else
-				z = zero(R)
-				for j = 1 : n
-					@inbounds r[j] = z
-				end
-			end	
-		end
-	
-		global $(_accum_eachrow!)
-		function $(_accum_eachrow!){R<:Number}(m::Int, n::Int, r::ContiguousArray{R}, $(h.aparams...))
-			if n > 0
-				for i = 1 : m
-					@inbounds vi = $(h.term(:i))
-					@inbounds r[i] = vi
-				end
-
-				offset = m
-				for j = 2 : n			
-					for i = 1 : m
-						idx = offset + i
-						@inbounds vi = $(h.term(:idx))
-						@inbounds r[i] += vi
-					end
-					offset += m
-				end
-			else
-				z = zero(R)
-				for i = 1 : m
-					@inbounds r[i] = z
-				end
-			end
-		end
-
-		$(facets)
-	end
-end
-
-macro code_sumdim(AN, fname)
-	esc(generate_sumdim_codes(AN, fname))
-end
-
 # specific functions
 
-@code_sumdim 0 sum
-@code_sumdim 1 sum
-@code_sumdim 2 sum
-@code_sumdim 3 sum
-@code_sumdim (-2) sumfdiff
+@code_reducedim 0 sum SumReduc
+@code_reducedim 1 sum SumReduc
+@code_reducedim 2 sum SumReduc
+@code_reducedim 3 sum SumReduc
+@code_reducedim (-2) sumfdiff SumReduc
 
 
 #################################################
@@ -210,85 +234,17 @@ end
 #
 #################################################
 
-function generate_maxmindim_codes(AN::Int, accum::Symbol, comp::Symbol)
+@code_reducedim 0 maximum MaxReduc
+@code_reducedim 1 maximum MaxReduc
+@code_reducedim 2 maximum MaxReduc
+@code_reducedim 3 maximum MaxReduc
+@code_reducedim (-2) maxfdiff MaxReduc
 
-	# function names
-	_accum_eachcol! = symbol("_$(accum)_eachcol!")
-	_accum_eachrow! = symbol("_$(accum)_eachrow!")
-	_accum = symbol("_$(accum)")
-
-	# parameter & argument preparation
-
-	h = codegen_helper(AN)
-	facets = generate_reducedim_facets(h, accum) 
-
-	comparef = (v, s)->Expr(:comparison, v, comp, s)
-
-	# generate functions
-
-	quote
-		global $(_accum_eachcol!)
-		function $(_accum_eachcol!){R<:Number}(m::Int, n::Int, r::ContiguousArray{R}, $(h.aparams...))
-			offset = 0
-			if m > 0
-				for j = 1 : n
-					rj = ($_accum)(offset+1, offset+m, $(h.args...))
-					@inbounds r[j] = rj
-					offset += m
-				end
-			else
-				error("maximum/minimum along empty dimensions is not allowed.")
-			end	
-		end
-	
-		global $(_accum_eachrow!)
-		function $(_accum_eachrow!){R<:Number}(m::Int, n::Int, r::ContiguousArray{R}, $(h.aparams...))
-			if n > 0
-				for i = 1 : m
-					@inbounds vi = $(h.term(:i))
-					@inbounds r[i] = vi
-				end
-
-				offset = m
-				for j = 2 : n			
-					for i = 1 : m
-						idx = offset + i
-						@inbounds vi = $(h.term(:idx))
-						@inbounds ri = r[i]
-						if $(comparef(:vi, :ri)) || (ri != ri)
-							@inbounds r[i] = vi
-						end
-					end
-					offset += m
-				end
-			else
-				error("maximum/minimum along empty dimensions is not allowed.")
-			end
-		end
-
-		$(facets)
-	end
-end
-
-macro code_maximumdim(AN, fname)
-	esc(generate_maxmindim_codes(AN, fname, :>))
-end
-
-macro code_minimumdim(AN, fname)
-	esc(generate_maxmindim_codes(AN, fname, :<))
-end
-
-@code_maximumdim 0 maximum
-@code_maximumdim 1 maximum
-@code_maximumdim 2 maximum
-@code_maximumdim 3 maximum
-@code_maximumdim (-2) maxfdiff
-
-@code_minimumdim 0 minimum
-@code_minimumdim 1 minimum
-@code_minimumdim 2 minimum
-@code_minimumdim 3 minimum
-@code_minimumdim (-2) minfdiff
+@code_reducedim 0 minimum MinReduc
+@code_reducedim 1 minimum MinReduc
+@code_reducedim 2 minimum MinReduc
+@code_reducedim 3 minimum MinReduc
+@code_reducedim (-2) minfdiff MinReduc
 
 
 #################################################
@@ -309,8 +265,6 @@ function generate_foldldim_codes(AN::Int, accum::Symbol)
 	# parameter & argument preparation
 
 	h = codegen_helper(AN)
-	facets = generate_reducedim_facets(h, accum) 
-
 	comparef = (v, s)->Expr(:comparison, v, comp, s)
 
 	# generate functions
