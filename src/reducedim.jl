@@ -46,6 +46,8 @@ extra_args{Reduc<:AbstractReduc}(::Type{Reduc}) = []
 extra_params(::Type{FoldlReduc}) = [:(op::Functor{2}), :(s::Number)]
 extra_args(::Type{FoldlReduc}) = [:op, :s]
 
+# update code
+
 update_code(R::Type{SumReduc}, s, x) = :( @inbounds $(s) += $(x) )
 
 function update_code(R::Type{MaxReduc}, s, x)
@@ -64,6 +66,10 @@ function update_code(R::Type{MinReduc}, s, x)
 	end
 end
 
+update_code(R::Type{FoldlReduc}, s, x) = :( @inbounds $s = evaluate(op, $s, $x) )
+
+# code for empty reduction
+
 function emptyreduc_code(R::Type{SumReduc}, dst::Symbol, T::Symbol, n::Symbol)
 	quote
 		z = zero($T)
@@ -76,10 +82,20 @@ end
 emptyreduc_code(R::Type{MaxReduc}, dst, T, n) = :(error("maximum along a zero-length dimension is not allowed."))
 emptyreduc_code(R::Type{MinReduc}, dst, T, n) = :(error("minimum along a zero-length dimension is not allowed."))
 
+function emptyreduc_code(R::Type{FoldlReduc}, dst::Symbol, T::Symbol, n::Symbol)
+	quote
+		for i = 1 : $n
+			@inbounds ($dst)[i] = s
+		end
+	end
+end
+
+# reduce result
+
 reduce_result(R::Type{SumReduc}, ty) = Expr(:call, :sumtype, ty)
 reduce_result(R::Type{MaxReduc}, ty) = ty
 reduce_result(R::Type{MinReduc}, ty) = ty
-
+reduce_result(R::Type{FoldlReduc}, ty) = ty
 
 # core skeleton
 
@@ -262,116 +278,16 @@ end
 #
 #################################################
 
-function generate_foldldim_codes(AN::Int, accum::Symbol)
-
-	# function names
-	_accum_eachcol! = symbol("_$(accum)_eachcol!")
-	_accum_eachrow! = symbol("_$(accum)_eachrow!")
-	_accum = symbol("_$(accum)")
-	_accum! = symbol("_$(accum)!")
-	accum! = symbol("$(accum)!")	
-
-	# parameter & argument preparation
-
-	h = codegen_helper(AN)
-	comparef = (v, s)->Expr(:comparison, v, comp, s)
-
-	# generate functions
-
-	quote
-		global $(_accum_eachcol!)
-		function $(_accum_eachcol!){R<:Number}(m::Int, n::Int, r::ContiguousArray{R}, op::Functor{2}, s::Number, $(h.aparams...))
-			offset = 0
-			if m > 0
-				for j = 1 : n
-					rj = ($_accum)(offset+1, offset+m, op, s, $(h.args...))
-					@inbounds r[j] = rj
-					offset += m
-				end
-			else
-				for j = 1 : n
-					@inbounds r[j] = s
-				end
-			end	
-		end
-	
-		global $(_accum_eachrow!)
-		function $(_accum_eachrow!){R<:Number}(m::Int, n::Int, r::ContiguousArray{R}, op::Functor{2}, s::Number, $(h.aparams...))
-			if n > 0
-				for i = 1 : m
-					@inbounds vi = $(h.term(:i))
-					@inbounds r[i] = vi
-				end
-
-				offset = m
-				for j = 2 : n			
-					for i = 1 : m
-						idx = offset + i
-						@inbounds vi = $(h.term(:idx))
-						@inbounds r[i] = evaluate(op, r[i], vi)
-					end
-					offset += m
-				end
-			else
-				for i = 1 : m
-					@inbounds r[i] = s
-				end
-			end
-		end
-
-		global $(_accum!)
-		function $(_accum!)(r::ContiguousArray, op::Functor{2}, s::Number, $(h.aparams...), dim::Int)
-			shp = $(h.inputsize)
-			
-			if dim == 1
-				m = shp[1]
-				n = succ_length(shp, 1)
-				$(_accum_eachcol!)(m, n, r, op, s, $(h.args...))
-
-			else
-				m = prec_length(shp, dim)
-				n = shp[dim]
-				k = succ_length(shp, dim)
-
-				if k == 1
-					$(_accum_eachrow!)(m, n, r, op, s, $(h.args...))
-				else
-					mn = m * n
-					ro = 0
-					ao = 0
-					for l = 1 : k
-						$(_accum_eachrow!)(m, n, offset_view(r, ro, m), op, s, $(h.offset_args...))
-						ro += m
-						ao += mn
-					end
-				end
-			end
-			return r
-		end
-
-		global $(accum!)
-		function $(accum!)(r::ContiguousArray, op::Functor{2}, s::Number, $(h.aparams...), dim::Int)
-			length(r) == reduced_length($(h.inputsize), dim) || error("Invalid argument dimensions.")
-			$(_accum!)(r, op, s, $(h.args...), dim)
-		end
-
-		global $(accum)
-		function $(accum)(op::Functor{2}, s::Number, $(h.aparams...), dim::Int)
-			rshp = reduced_shape($(h.inputsize), dim)
-			$(_accum!)(Array(sumtype($(h.termtype)), rshp), op, s, $(h.args...), dim)
-		end			
-	end
-end
-
 macro code_foldldim(AN, fname)
 	esc(generate_foldldim_codes(AN, fname))
 end
 
-@code_foldldim 0 foldl
-@code_foldldim 1 foldl 
-@code_foldldim 2 foldl
-@code_foldldim 3 foldl
-@code_foldldim (-2) foldl_fdiff
+@code_reducedim 0 foldl FoldlReduc
+@code_reducedim 1 foldl FoldlReduc
+@code_reducedim 2 foldl FoldlReduc
+@code_reducedim 3 foldl FoldlReduc
+@code_reducedim (-2) foldl_fdiff FoldlReduc
+
 
 #################################################
 #
