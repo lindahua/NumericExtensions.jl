@@ -88,23 +88,24 @@ end
 
 seqsum(a::NumericArray) = seqsum(a, 1, length(a))
 
+const CASSUM_BLOCKLEN = 1024
+
 ##
 #
 #  cascade sum
 #
-function cassum{T}(a::NumericArray{T}, ifirst::Int, ilast::Int, bsiz::Int)
-	if ifirst + bsiz >= ilast
+function cassum(a::NumericArray, ifirst::Int, ilast::Int)
+	if ifirst + CASSUM_BLOCKLEN >= ilast
 		seqsum(a, ifirst, ilast)
 	else
 		imid = ifirst + ((ilast - ifirst) >> 1)
-		cassum(a, ifirst, imid, bsiz) + cassum(a, imid+1, ilast, bsiz)
+		cassum(a, ifirst, imid) + cassum(a, imid+1, ilast)
 	end
 end
 
-const CASSUM_BLOCKLEN = 1024
 
-cassum(a::NumericArray, ifirst::Integer, ilast::Integer) = cassum(a, int(ifirst), int(ilast), CASSUM_BLOCKLEN)
-cassum(a::NumericArray) = cassum(a, 1, length(a), CASSUM_BLOCKLEN)
+cassum(a::NumericArray, ifirst::Integer, ilast::Integer) = cassum(a, int(ifirst), int(ilast))
+cassum(a::NumericArray) = cassum(a, 1, length(a))
 
 _sum(ifirst::Int, ilast::Int, a::NumericArray) = cassum(a, ifirst, ilast)
 

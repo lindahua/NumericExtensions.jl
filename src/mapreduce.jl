@@ -2,9 +2,72 @@
 
 #################################################
 #
-#   macros to generate functions
+#   sum functions
 #
 #################################################
+
+macro code_mapsum(AN, sumf)
+	
+	_sumf = symbol("_$(sumf)")
+	_seqsumf = symbol("_seq$(sumf)")
+	_cassumf = symbol("_cas$(sumf)")
+
+	h = codegen_helper(AN)
+	ti1 = h.term(:i1)
+	ti2 = h.term(:i2)
+
+	quote
+		global $(_seqsumf)
+		function $(_seqsumf)(ifirst::Int, ilast::Int, $(h.aparams...))
+			i1 = ifirst
+			i2 = ifirst + 1
+
+			s1 = $(ti1)
+			if ilast > ifirst
+				@inbounds s2 = $(ti2)
+
+				i1 += 2
+				i2 += 2
+				while i1 < ilast
+					@inbounds s1 += $(ti1)
+					@inbounds s2 += $(ti2)
+					i1 += 2
+					i2 += 2
+				end
+
+				if i1 == ilast
+					@inbounds s1 += $(ti1)
+				end
+
+				return s1 + s2
+			else
+				return s1
+			end			
+		end
+
+		global $(_cassumf)
+		function $(_cassumf)(ifirst::Int, ilast::Int, $(h.aparams...))
+			if ifirst + CASSUM_BLOCKLEN >= ilast
+				$(_seqsumf)(ifirst, ilast, $(h.args...))
+			else
+				imid = ifirst + ((ilast - ifirst) >> 1)
+				$(_cassumf)(ifirst, imid, $(h.args...)) + $(_cassumf)(imid+1, ilast, $(h.args...))
+			end
+		end
+
+		global $(_sumf)
+		$(_sumf)(ifirst::Int, ilast::Int, $(h.aparams...)) = $(_cassumf)(ifirst, ilast, $(h.args...))
+
+		global $(sumf)
+		$(sumf)($(h.aparams...)) = $(_cassumf)(1, $(h.inputlen), $(h.args...))
+	end
+end
+
+@code_mapsum 1 sum
+@code_mapsum 2 sum
+@code_mapsum 3 sum
+@code_mapsum (-2) sumfdiff
+
 
 macro code_mapreducfuns(N)
 	# argument preparation
@@ -58,40 +121,6 @@ macro code_mapreducfuns(N)
 
 	quote
 		# sum & mean
-
-		global $_sumf
-		function ($_sumf)(ifirst::Int, ilast::Int, $(h.aparams...))
-			i1 = ifirst
-			i2 = ifirst + 1
-
-			s1 = $(ti1)
-			if ilast > ifirst
-				@inbounds s2 = $(ti2)
-
-				i1 += 2
-				i2 += 2
-				while i1 < ilast
-					@inbounds s1 += $(ti1)
-					@inbounds s2 += $(ti2)
-					i1 += 2
-					i2 += 2
-				end
-
-				if i1 == ilast
-					@inbounds s1 += $(ti1)
-				end
-
-				return s1 + s2
-			else
-				return s1
-			end			
-		end
-
-		global $sumf
-		function ($sumf)($(h.aparams...))
-			n = $(h.inputlen)
-			n == 0 ? 0.0 : ($_sumf)(1, n, $(h.args...))
-		end
 
 		global $meanf
 		function ($meanf)($(h.aparams...))
