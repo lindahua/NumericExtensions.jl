@@ -69,6 +69,37 @@ end
 @code_mapsum (-2) sumfdiff
 
 
+#################################################
+#
+#   mean functions
+#
+#################################################
+
+macro code_mapmean(AN, sumf, meanf)
+	h = codegen_helper(AN)
+	_sumf = symbol("_$(sumf)")
+
+	quote
+		global $(meanf)
+		function ($meanf)($(h.aparams...))
+			n = $(h.inputlen)
+			n == 0 ? NaN : ($_sumf)(1, n, $(h.args...)) / n
+		end	
+	end
+end
+
+@code_mapmean 1 sum mean
+@code_mapmean 2 sum mean
+@code_mapmean 3 sum mean
+@code_mapmean (-2) sumfdiff meanfdiff
+
+
+#################################################
+#
+#	max/min functions
+#
+#################################################
+
 macro code_mapreducfuns(N)
 	# argument preparation
 
@@ -120,14 +151,6 @@ macro code_mapreducfuns(N)
 	# code skeletons
 
 	quote
-		# sum & mean
-
-		global $meanf
-		function ($meanf)($(h.aparams...))
-			n = $(h.inputlen)
-			n == 0 ? NaN : ($_sumf)(1, n, $(h.args...)) / n
-		end
-
 		# maximum & minimum
 
 		global $_maxf
