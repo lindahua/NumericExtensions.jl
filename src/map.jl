@@ -14,7 +14,6 @@ function code_mapfuns(nargs::Int)
 	params = [Expr(:(::), a, :ArrOrNum) for a in asyms]
     sargs = [:(getvalue($a, i)) for a in asyms]
     sargs1 = [:(getvalue($a, 1)) for a in asyms]
-    kernel = 
 
     quote
     	function map!(f::Functor{$nargs}, dst::NumericArray, $(params...))
