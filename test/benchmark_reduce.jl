@@ -63,6 +63,12 @@ u = randn(1000)
 
 typealias DIMS Union(Int, (Int, Int))
 
+_sum(x::Array) = sum(x)
+_sum(x::Array, d::DIMS) = sum(x, d)
+
+_mean(x::Array) = mean(x)
+_mean(x::Array, d::DIMS) = mean(x, d)
+
 _maximum(x::Array) = maximum(x)
 _maximum(x::Array, d::DIMS) = maximum(x, d)
 
@@ -102,6 +108,12 @@ _entropy(x::Array, d::DIMS) = -sum(x .* log(x), d)
 _sumxlogy(x::Array, y::Array) = sum(x .* log(y)) 
 _sumxlogy(x::Array, y::Array, d::DIMS) = sum(x .* log(y), d)
 
+_var(x::Array) = var(x)
+_var(x::Array, d::DIMS) = var(x, d)
+
+_std(x::Array) = std(x)
+_std(x::Array, d::DIMS) = std(x, d)
+
 _logsumexp(x::Array) = (u = maximum(x); log(sum(exp(x - u))) + u)
 _logsumexp(x::Array, d::DIMS) = (u = maximum(x, d); log(sum(exp(x .- u))) .+ u)
 
@@ -123,8 +135,8 @@ const oldperf = Array((ASCIIString, Vector{Float64}), 0)
 
 println("Benchmark results on Base methods:")
 
-@bench_reduc1 oldperf "sum" 10 sum a2
-@bench_reduc1 oldperf "mean" 10 mean a2
+@bench_reduc1 oldperf "sum" 10 _sum a2
+@bench_reduc1 oldperf "mean" 10 _mean a2
 @bench_reduc1 oldperf "maximum" 10 _maximum a2
 @bench_reduc1 oldperf "minimum" 10 _minimum a2
 @bench_reduc1 oldperf "sumabs" 10 _sumabs a2
@@ -140,8 +152,8 @@ println("Benchmark results on Base methods:")
 
 @bench_reduc1 oldperf "entropy" 10 _entropy b2
 @bench_reduc2 oldperf "sumxlogy" 10 _sumxlogy b2 b2
-@bench_reduc1 oldperf "var" 10 var a2
-@bench_reduc1 oldperf "std" 10 std a2
+@bench_reduc1 oldperf "var" 10 _var a2
+@bench_reduc1 oldperf "std" 10 _std a2
 @bench_reduc1 oldperf "logsumexp" 10 _logsumexp a2
 @bench_reduc1 oldperf "softmax" 10 _softmax a2
 
