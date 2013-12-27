@@ -45,11 +45,12 @@ foldr(op::Functor{2}, a::NumericArray) = _foldr(1, length(a)-1, op, a[end], a)
 #  sequential sum
 # 
 function seqsum{T}(a::NumericArray{T}, ifirst::Int, ilast::Int)
-	if ifirst + 3 >= ilast
+
+	@inbounds if ifirst + 3 >= ilast
 		s = zero(T)
 		i = ifirst
 		while i <= ilast
-			@inbounds s += a[i]
+			s += a[i]
 			i += 1
 		end
 		return s
@@ -62,23 +63,23 @@ function seqsum{T}(a::NumericArray{T}, ifirst::Int, ilast::Int)
 		# this can lead to considerable performance
 		# improvement (nearly 2x).		
 
-		@inbounds s1 = a[ifirst]
-		@inbounds s2 = a[ifirst + 1]
-		@inbounds s3 = a[ifirst + 2]
-		@inbounds s4 = a[ifirst + 3]
+		s1 = a[ifirst]
+		s2 = a[ifirst + 1]
+		s3 = a[ifirst + 2]
+		s4 = a[ifirst + 3]
 
 		i = ifirst + 4
 		il = ilast - 3
 		while i <= il
-			@inbounds s1 += a[i]
-			@inbounds s2 += a[i+1]
-			@inbounds s3 += a[i+2]
-			@inbounds s4 += a[i+3]
+			s1 += a[i]
+			s2 += a[i+1]
+			s3 += a[i+2]
+			s4 += a[i+3]
 			i += 4
 		end
 
 		while i <= ilast
-			@inbounds s1 += a[i]
+			s1 += a[i]
 			i += 1
 		end
 
