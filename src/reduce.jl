@@ -114,8 +114,8 @@ _sum(ifirst::Int, ilast::Int, a::NumericArray) = cassum(a, ifirst, ilast)
 #
 #  default sum
 #
-sum(a::NumericArray) = cassum(a)
-mean(a::NumericArray) = cassum(a) / length(a)
+# sum(a::NumericArray) = cassum(a)
+# mean(a::NumericArray) = cassum(a) / length(a)
 
 
 #################################################
@@ -215,9 +215,9 @@ function _minimum{T<:FloatingPoint}(ifirst::Int, ilast::Int, a::NumericArray{T})
 	return s
 end
 
-maximum{T<:Integer}(a::NumericArray{T}) = _maximum(1, length(a), a)
-maximum{T<:FloatingPoint}(a::NumericArray{T}) = _maximum(1, length(a), a)
-minimum{T<:Integer}(a::NumericArray{T}) = _minimum(1, length(a), a)
-minimum{T<:FloatingPoint}(a::NumericArray{T}) = _minimum(1, length(a), a)
+# maximum{T<:Integer}(a::NumericArray{T}) = _maximum(1, length(a), a)
+# maximum{T<:FloatingPoint}(a::NumericArray{T}) = _maximum(1, length(a), a)
+# minimum{T<:Integer}(a::NumericArray{T}) = _minimum(1, length(a), a)
+# minimum{T<:FloatingPoint}(a::NumericArray{T}) = _minimum(1, length(a), a)
 
 
