@@ -6,6 +6,8 @@
 #
 #################################################
 
+import Base.PAIRWISE_SUM_BLOCKSIZE
+
 macro code_mapsum(AN, sumf)
 	
 	_sumf = symbol("_$(sumf)")
@@ -47,7 +49,7 @@ macro code_mapsum(AN, sumf)
 
 		global $(_cassumf)
 		function $(_cassumf)(ifirst::Int, ilast::Int, $(h.aparams...))
-			if ifirst + CASSUM_BLOCKLEN >= ilast
+			if ifirst + PAIRWISE_SUM_BLOCKSIZE >= ilast
 				$(_seqsumf)(ifirst, ilast, $(h.args...))
 			else
 				imid = ifirst + ((ilast - ifirst) >> 1)

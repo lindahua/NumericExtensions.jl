@@ -211,7 +211,6 @@ sumtype{T<:Integer}(::Type{T}) = promote_type(T, Int)
 
 # specific functions
 
-@code_reducedim 0 sum SumReduc
 @code_reducedim 1 sum SumReduc
 @code_reducedim 2 sum SumReduc
 @code_reducedim 3 sum SumReduc
@@ -259,7 +258,6 @@ end
 #
 #################################################
 
-@code_reducedim 0 maximum MaxReduc
 @code_reducedim 1 maximum MaxReduc
 @code_reducedim 2 maximum MaxReduc
 @code_reducedim 3 maximum MaxReduc

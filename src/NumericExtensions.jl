@@ -21,6 +21,8 @@ module NumericExtensions
 		Base.cumsum, Base.cummax, Base.cummin, Base.cumprod,
 		Base.norm, 
 
+		Base.sum!, Base.maximum!, Base.minimum!,
+
 		# statistics
 		Base.mean, Base.var, Base.varm, Base.std, Base.stdm,
 
