@@ -4,6 +4,15 @@
 
 Julia extensions to provide high performance computational support.
 
+**Notes:**
+
+Some of the implementations that were originally in this package has been migrated to the Julia base:
+
+- improved implementation of ``sum``.  [#5235](https://github.com/JuliaLang/julia/pull/5235)
+- improved implementation of ``maximum`` and ``minimum``. [#5256](https://github.com/JuliaLang/julia/pull/5256)
+- performant implementation of ``sum``, ``maximum``, and ``minimum`` along given dimensions. [#5294](https://github.com/JuliaLang/julia/pull/5294)
+
+
 -------------------------------------
 
 Julia is a fantastic technical computing environment that allows you to write codes that are both performant and generic. However, as it is still at its early stage, some functions are not as performant as they can be and writing computational algorithms directly based on builtin functions may not give you the best performance. This package provides you with a variety of tools to address such issues.
