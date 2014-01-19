@@ -6,7 +6,7 @@
 #
 #################################################
 
-import Base.PAIRWISE_SUM_BLOCKSIZE
+const PAIRWISE_SUM_BLOCKSIZE = 1024
 
 macro code_mapsum(AN, sumf)
 	
