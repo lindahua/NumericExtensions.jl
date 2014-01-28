@@ -37,7 +37,7 @@ module NumericExtensions
 		mapshape, maplength,
 
 		# views
-		unsafe_view,
+		view, unsafe_view,
 
 		# mathfuns
 		sqr, rcp, rsqrt, rcbrt, 
