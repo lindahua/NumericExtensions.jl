@@ -23,13 +23,13 @@ To see how this package may help you, let's first consider a simple example, tha
 r = sum(abs2(x - y))
 ```
 
-Whereas this is simple, this expression involves some unnecessary operations that would lead to suboptimal performance: (1) it creates two temporary arrays respectively to store ``x - y`` and ``abs(x - y)``, (2) it completes the computation through three passes over the data -- computing ``x - y``, computing ``abs2(x - y)``, and finally computing the sum. Julia provides a ``mapreduce`` function which allows you to complete the operation in a single pass without creating any temporaries:
+Whereas this expression is simple, it involves some unnecessary operations that lead to suboptimal performance: (1) it creates two temporary arrays respectively to store ``x - y`` and ``abs(x - y)``, (2) it completes the computation through three passes over the data -- computing ``x - y``, computing ``abs2(x - y)``, and finally computing the sum. Julia provides a ``mapreduce`` function which allows you to complete the operation in a single pass without creating any temporaries:
 
 ```julia
 r = mapreduce((x, y) -> abs2(x - y), +, x, y)
 ```
 
-However, if you really run this you may probably find that this is even slower. The culprit here is that the anonymous function ``(x, y) -> abs2(x - y)`` is not lined, which will be resolved and called at each iteration. Therefore, to compute this efficiently, one has to write loops as below
+However, if you really run this you may probably find that this is even slower. The culprit here is that the anonymous function ``(x, y) -> abs2(x - y)`` is not inlined, which will be resolved and called at each iteration. Therefore, to compute this efficiently, one has to write loops as below
 
 ```julia
 s = 0.
@@ -49,9 +49,9 @@ r = sumfdiff(Abs2Fun(), x, y)
 r = sumfdiff(Abs2Fun(), x, y, dim)
 ```
 	
-Here, ``Abs2Fun`` and ``Add`` are *typed functors* provided by this package, which, unlike normal functions, can still be properly inlined with passed into a higher order function (thus causing zero overhead). This package extends ``map``, ``foldl``, ``sum``, ``maximum`` etc to accept typed functors and as well introduces additional high order functions like ``sumfdiff`` and ``scan`` etc to simplify the usage in other common cases. 
+Here, ``Abs2Fun`` and ``Add`` are *typed functors* provided by this package, which, unlike normal functions, can still be properly inlined with passed into a higher order function (thus causing zero overhead). This package extends ``map``, ``foldl``, ``sum``, ``maximum`` etc to accept typed functors and as well introduces additional higher order functions like ``sumfdiff`` and ``scan`` etc to simplify their use in other common cases. 
 
-Benchmark shows that writing in this way is over *9x faster* than ``sum(abs2(x - y))``.
+Benchmarks show that writing in this way is over *9x faster* than ``sum(abs2(x - y))``.
 
 This package also provides a collection of specific functions to directly support very common computation. For this particular example, you can write ``sumsqdiff(x, y)``, where ``sumsqdiff`` is one of such functions provided here.
 
@@ -73,13 +73,13 @@ Main features of this package are highlighted below:
 
 #### Performance
 
-Functions in this package are carefully optimized. In particular, several tricks lead to performance improvement:
+Functions in this package are carefully optimized. In particular, several tricks lead to performance improvements:
 
 * computation is performed in a cache-friendly manner;
 * computation completes in a single pass without creating intermediate arrays;
 * kernels are inlined via the use of typed functors;
 * inner loops use linear indexing (with pre-computed offset);
-* opportunities of using BLAS are exploited.
+* opportunities for using BLAS are exploited.
 
 Below is a table that compares the performance of several reduction/map-reduction functions with vectorized Julia expressions (the numbers in the table are speed-up ratio of the functions in this package as opposed to the Julia expressions):
 
