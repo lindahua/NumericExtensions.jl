@@ -12,7 +12,8 @@ before_install:
     - git config --global user.email "travis@example.net"
 script:
     - julia -e 'versioninfo(); Pkg.init()'
+    - julia -e 'Pkg.add("ArrayViews")'
     - mkdir -p ~/.julia/NumericExtensions
     - cp -R ./* ~/.julia/NumericExtensions/
-    - julia ~/.julia/NumericExtensions/run_tests.jl
+    - julia ~/.julia/NumericExtensions/runtests.jl
     
