@@ -19,7 +19,7 @@ function safe_scan(x, f, dim)
 	y = similar(x)
 	siz = size(x)
 	if dim == 1
-		n = prod(siz[2:])
+		n = prod(siz[2:end])
 		for j=1:n
 			y[:,j] = safe_scan(x[:,j], f)
 		end

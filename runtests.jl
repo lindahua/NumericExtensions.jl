@@ -1,7 +1,6 @@
 # run all tests
 
 tests = [ "shapes", 
-		  "unsafe_views", 
 		  "diagop",
 		  "mathfuns", 
 		  "functors",

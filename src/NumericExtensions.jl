@@ -1,5 +1,7 @@
 module NumericExtensions
 
+	using ArrayViews
+
 	import 
 		# size information
 		Base.size, Base.length, Base.ndims, Base.isempty,
@@ -35,8 +37,6 @@ module NumericExtensions
 		mapshape, maplength,
 
 		# views
-		AbstractUnsafeView, UnsafeVectorView, UnsafeMatrixView, UnsafeCubeView,
-		ContiguousArray, ContiguousVector, ContiguousMatrix, ContiguousCube,
 		unsafe_view,
 
 		# mathfuns
