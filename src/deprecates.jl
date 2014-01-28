@@ -50,3 +50,5 @@
 
 @Base.deprecate vdiffnorm vnormdiff
 @Base.deprecate vdiffnorm! vnormdiff!
+
+@Base.deprecate unsafe_view view

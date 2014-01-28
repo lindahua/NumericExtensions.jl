@@ -23,7 +23,10 @@ function reduced_length{D}(s::SizeTuple{D}, dim::Int)
 	error("Invalid value of dim.")
 end
 
+import ArrayViews: parent, offset
 offset_view(a::Number, ::Int, ::Int, ::Int) = a
+offset_view(a::ContiguousArray, o::Int, m::Int) = contiguous_view(parent(a), offset(a) + o, (m,))
+offset_view(a::ContiguousArray, o::Int, m::Int, n::Int) = contiguous_view(parent(a), offset(a) + o, (m, n))
 
 #################################################
 #

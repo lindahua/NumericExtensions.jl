@@ -24,6 +24,14 @@ function _vbroadcast_eachrow!(m::Int, n::Int, f::Functor{2}, r::ContiguousArray,
 	end
 end
 
+function _vbroadcast3!{T}(m::Int, n::Int, k::Int, 
+	f::Functor{2}, r::ContiguousArray, a::ContiguousArray{T,3}, b::ContiguousArray)
+
+	for l = 1 : k
+		_vbroadcast_eachrow!(m, n, f, view(r,:,:,l), view(a,:,:,l), b)
+	end
+end
+
 function vbroadcast!(f::Functor{2}, r::ContiguousArray, a::ContiguousArray, b::ContiguousArray, dim::Int)
 	shp = size(a)
 	nd = ndims(a)
@@ -38,19 +46,12 @@ function vbroadcast!(f::Functor{2}, r::ContiguousArray, a::ContiguousArray, b::C
 		m = prec_length(shp, dim)
 		n = shp[dim]
 		k = succ_length(shp, dim)
-
-		_vbroadcast_eachrow!(m, n, f, r, a, b)
-
-		if k > 1
-			mn = m * n
-			o = mn
-			for l = 2 : k
-				_vbroadcast_eachrow!(m, n, f, offset_view(r, o, m, n), offset_view(a, o, m, n), b)
-				o += mn
-			end
+		if k == 1
+			_vbroadcast_eachrow!(m, n, f, r, a, b)
+		else
+			_vbroadcast3!(m, n, k, f, contiguous_view(r, (m,n,k)), a, b)
 		end
 	end
-
 	return r
 end
 

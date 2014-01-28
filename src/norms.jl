@@ -96,26 +96,26 @@ function normalize!(dst::ContiguousRealArray, x::ContiguousRealArray, p::Real, d
 
 		if p == 1
 			for j = 1:n			
-				xj = unsafe_view(x, :, j)
-				yj = unsafe_view(dst, :, j)
+				xj = view(x, :, j)
+				yj = view(dst, :, j)
 				map!(Multiply(), yj, xj, inv(sumabs(xj)))
 			end
 		elseif p == 2
 			for j = 1:n
-				xj = unsafe_view(x, :, j)
-				yj = unsafe_view(dst, :, j)
+				xj = view(x, :, j)
+				yj = view(dst, :, j)
 				map!(Multiply(), yj, xj, inv(sqrt(sumsq(xj))))
 			end
 		elseif isinf(p)
 			for j = 1:n
-				xj = unsafe_view(x, :, j)
-				yj = unsafe_view(dst, :, j)
+				xj = view(x, :, j)
+				yj = view(dst, :, j)
 				map!(Multiply(), yj, xj, inv(maxabs(xj)))
 			end
 		else
 			for j = 1:n
-				xj = unsafe_view(x, :, j)
-				yj = unsafe_view(dst, :, j)
+				xj = view(x, :, j)
+				yj = view(dst, :, j)
 				u = sum(FixAbsPow(p), xj) .^ inv(p)
 				map!(Multiply(), yj, xj, inv(u))
 			end

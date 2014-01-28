@@ -309,7 +309,7 @@ function _softmax_eachrow!(m::Int, n::Int, dst::ContiguousRealArray, u::Contiguo
 	end
 
 	# compute sum
-	s = unsafe_view(u, m+1:2*m)
+	s = view(u, m+1:2*m)
 
 	for i in 1 : m
 		@inbounds s[i] = dst[i] = exp(x[i] - u[i])

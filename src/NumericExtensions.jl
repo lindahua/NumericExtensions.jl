@@ -108,7 +108,7 @@ module NumericExtensions
 	# codes
 
 	include("shapes.jl")
-	include("unsafe_views.jl")
+	# include("unsafe_views.jl")
 	include("mathfuns.jl")
 	include("functors.jl")
 	include("codegen.jl")
@@ -132,5 +132,5 @@ module NumericExtensions
 
 	include("benchmark.jl")
 
-	# include("deprecates.jl")
+	include("deprecates.jl")
 end
