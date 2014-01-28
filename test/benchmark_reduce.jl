@@ -63,18 +63,6 @@ u = randn(1000)
 
 typealias DIMS Union(Int, (Int, Int))
 
-_sum(x::Array) = sum(x)
-_sum(x::Array, d::DIMS) = sum(x, d)
-
-_mean(x::Array) = mean(x)
-_mean(x::Array, d::DIMS) = mean(x, d)
-
-_maximum(x::Array) = maximum(x)
-_maximum(x::Array, d::DIMS) = maximum(x, d)
-
-_minimum(x::Array) = minimum(x)
-_minimum(x::Array, d::DIMS) = minimum(x, d)
-
 _sumabs(x::Array) = sum(abs(x))
 _sumabs(x::Array, d::DIMS) = sum(abs(x), d)
 
@@ -135,10 +123,6 @@ const oldperf = Array((ASCIIString, Vector{Float64}), 0)
 
 println("Benchmark results on Base methods:")
 
-@bench_reduc1 oldperf "sum" 10 _sum a2
-@bench_reduc1 oldperf "mean" 10 _mean a2
-@bench_reduc1 oldperf "maximum" 10 _maximum a2
-@bench_reduc1 oldperf "minimum" 10 _minimum a2
 @bench_reduc1 oldperf "sumabs" 10 _sumabs a2
 @bench_reduc1 oldperf "maxabs" 10 _maxabs a2
 @bench_reduc1 oldperf "minabs" 10 _minabs a2
@@ -168,18 +152,8 @@ push!(oldperf, ("varm", [NaN, NaN, NaN]))
 using NumericExtensions
 const newperf = Array((ASCIIString, Vector{Float64}), 0)
 
-new_maximum(x::Array) = maximum(x)   # cannot use _maximum or _minimum, as they will not be recompiled
-new_maximum(x::Array, d::DIMS) = maximum(x, d)
-
-new_minimum(x::Array) = minimum(x)
-new_minimum(x::Array, d::DIMS) = minimum(x, d)
-
 println("Benchmark results in New methods:")
 
-@bench_reduc1 newperf "sum" 10 sum a2
-@bench_reduc1 newperf "mean" 10 mean a2
-@bench_reduc1 newperf "maximum" 10 new_maximum a2
-@bench_reduc1 newperf "minimum" 10 new_minimum a2
 @bench_reduc1 newperf "sumabs" 10 sumabs a2
 @bench_reduc1 newperf "maxabs" 10 maxabs a2
 @bench_reduc1 newperf "minabs" 10 minabs a2
