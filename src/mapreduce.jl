@@ -231,30 +231,28 @@ end
 #
 #################################################
 
-sumabs(a::NumericArray) = sum(AbsFun(), a)
-maxabs(a::NumericArray) = maximum(AbsFun(), a)
-minabs(a::NumericArray) = minimum(AbsFun(), a)
-meanabs(a::NumericArray) = mean(AbsFun(), a)
+sumabs{T<:Number}(a::ContiguousArray{T}) = sum(AbsFun(), a)
+maxabs{T<:Number}(a::ContiguousArray{T}) = maximum(AbsFun(), a)
+minabs{T<:Number}(a::ContiguousArray{T}) = minimum(AbsFun(), a)
+meanabs{T<:Number}(a::ContiguousArray{T}) = mean(AbsFun(), a)
 
-sumsq(a::NumericArray) = sum(Abs2Fun(), a)
-meansq(a::NumericArray) = mean(Abs2Fun(), a)
+sumsq{T<:Real}(a::ContiguousArray{T}) = sum(Abs2Fun(), a)
+meansq{T<:Real}(a::ContiguousArray{T}) = mean(Abs2Fun(), a)
+dot{T<:Real}(a::ContiguousArray{T}, b::ContiguousArray{T}) = sum(Multiply(), a, b)
 
-dot{T<:Real}(a::NumericVector{T}, b::NumericVector{T}) = sum(Multiply(), a, b)
-dot{T<:Real}(a::NumericArray{T}, b::NumericArray{T}) = sum(Multiply(), a, b)
+sumabsdiff(a::ContiguousArrOrNum, b::ContiguousArrOrNum) = sumfdiff(AbsFun(), a, b)
+maxabsdiff(a::ContiguousArrOrNum, b::ContiguousArrOrNum) = maxfdiff(AbsFun(), a, b)
+minabsdiff(a::ContiguousArrOrNum, b::ContiguousArrOrNum) = minfdiff(AbsFun(), a, b)
+meanabsdiff(a::ContiguousArrOrNum, b::ContiguousArrOrNum) = meanfdiff(AbsFun(), a, b)
 
-sumabsdiff(a::ArrOrNum, b::ArrOrNum) = sumfdiff(AbsFun(), a, b)
-maxabsdiff(a::ArrOrNum, b::ArrOrNum) = maxfdiff(AbsFun(), a, b)
-minabsdiff(a::ArrOrNum, b::ArrOrNum) = minfdiff(AbsFun(), a, b)
-meanabsdiff(a::ArrOrNum, b::ArrOrNum) = meanfdiff(AbsFun(), a, b)
+sumsqdiff(a::ContiguousArrOrNum, b::ContiguousArrOrNum) = sumfdiff(Abs2Fun(), a, b)
+maxsqdiff(a::ContiguousArrOrNum, b::ContiguousArrOrNum) = maxfdiff(Abs2Fun(), a, b)
+minsqdiff(a::ContiguousArrOrNum, b::ContiguousArrOrNum) = minfdiff(Abs2Fun(), a, b)
+meansqdiff(a::ContiguousArrOrNum, b::ContiguousArrOrNum) = meanfdiff(Abs2Fun(), a, b)
 
-sumsqdiff(a::ArrOrNum, b::ArrOrNum) = sumfdiff(Abs2Fun(), a, b)
-maxsqdiff(a::ArrOrNum, b::ArrOrNum) = maxfdiff(Abs2Fun(), a, b)
-minsqdiff(a::ArrOrNum, b::ArrOrNum) = minfdiff(Abs2Fun(), a, b)
-meansqdiff(a::ArrOrNum, b::ArrOrNum) = meanfdiff(Abs2Fun(), a, b)
-
-sumxlogx{T<:Real}(a::NumericArray{T}) = sum(XlogxFun(), a)
-sumxlogy{T<:Real}(a::ArrOrNum{T}, b::ArrOrNum{T}) = sum(XlogyFun(), a, b)
-entropy{T<:Real}(a::NumericArray{T}) = -sumxlogx(a)
+sumxlogx{T<:Real}(a::ContiguousArray{T}) = sum(XlogxFun(), a)
+sumxlogy{T<:Real}(a::ContiguousArray{T}, b::ContiguousArray{T}) = sum(XlogyFun(), a, b)
+entropy{T<:Real}(a::ContiguousArray{T}) = -sumxlogx(a)
 
 
 #################################################
