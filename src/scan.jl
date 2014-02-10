@@ -73,9 +73,9 @@ end
 
 scan!(op::Functor{2}, r::ContiguousArray) = scan!(r, op, r)
 
-cumsum!(r::ContiguousArray) = scan!(Add(), r)
-cummax!(r::ContiguousArray) = scan!(MaxFun(), r)
-cummin!(r::ContiguousArray) = scan!(MinFun(), r)
+cumsum!(r::ContiguousNumericArray) = scan!(Add(), r)
+cummax!(r::ContiguousNumericArray) = scan!(MaxFun(), r)
+cummin!(r::ContiguousNumericArray) = scan!(MinFun(), r)
 
 
 #################################################

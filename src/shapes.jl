@@ -9,6 +9,7 @@ typealias NumericVector{T<:Number} AbstractVector{T}
 typealias NumericMatrix{T<:Number} AbstractMatrix{T}
 
 typealias ContiguousArrOrNum{T<:Number} Union(ContiguousArray{T}, T)
+typealias ContiguousNumericArray{T<:Number} ContiguousArray{T}
 typealias ContiguousRealArray{T<:Real} ContiguousArray{T}
 
 typealias DimSpec Int

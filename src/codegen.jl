@@ -16,7 +16,7 @@ immutable CodegenHelper
 end
 
 function codegen_helper(::ArgInfo{0})
-	aparams = [:(a::ContiguousArray)]
+	aparams = [:(a::ContiguousNumericArray)]
 	args = [:a]
 	offset_args = [:(offset_view(a, ao, m, n))]
 	term = idx->:(a[$idx])
