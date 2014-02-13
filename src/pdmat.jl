@@ -15,7 +15,7 @@ import Base.LAPACK.trtrs!
 
 #################################################
 #
-#	PDMat: full pos. def. matrix
+#   PDMat: full pos. def. matrix
 #
 #################################################
 
@@ -100,7 +100,7 @@ end
 
 #################################################
 #
-#	PDiagMat: positive diagonal matrix
+#   PDiagMat: positive diagonal matrix
 #
 #################################################
 
@@ -134,16 +134,16 @@ diag(a::PDiagMat) = copy(a.diag)
 # whiten and unwhiten 
 
 function _mul_sqrt(x::Vector, c::Vector) 
-	@check_argdims length(x) == length(c)
-	[x[i] * sqrt(c[i]) for i in 1 : length(x)]
+    @check_argdims length(x) == length(c)
+    [x[i] * sqrt(c[i]) for i in 1 : length(x)]
 end
 
 function _mul_sqrt!(x::Vector, c::Vector)
-	@check_argdims length(x) == length(c)
-	for i in 1 : length(x)
-		x[i] .*= sqrt(c[i])
-	end
-	x
+    @check_argdims length(x) == length(c)
+    for i in 1 : length(x)
+        x[i] .*= sqrt(c[i])
+    end
+    x
 end
 
 whiten(a::PDiagMat, x::Vector{Float64}) = _mul_sqrt(x, a.inv_diag)
@@ -192,7 +192,7 @@ end
 
 #################################################
 #
-#	ScalMat: s * eye(d) with s > 0
+#   ScalMat: s * eye(d) with s > 0
 #
 #################################################
 
@@ -288,7 +288,7 @@ end
 
 #################################################
 #
-#	generic functions for p.d. matrices
+#   generic functions for p.d. matrices
 #
 #################################################
 

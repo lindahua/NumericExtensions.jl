@@ -3,60 +3,60 @@
 using NumericExtensions
 
 macro bench_map1(name, rp, f1, f2)
-	quote
-		println("Benchmark on $($name) ...")
+    quote
+        println("Benchmark on $($name) ...")
 
-		($f1)(a)
-		($f2)(a)
+        ($f1)(a)
+        ($f2)(a)
 
-		t1 = @elapsed for i in 1 : ($rp)
-			($f1)(a) 
-		end
+        t1 = @elapsed for i in 1 : ($rp)
+            ($f1)(a) 
+        end
 
-		t2 = @elapsed for i in 1 : ($rp)
-			($f2)(a) 
-		end
+        t2 = @elapsed for i in 1 : ($rp)
+            ($f2)(a) 
+        end
 
-		add_row!(perftable, $name, [t1, t2, t1/t2])
-	end
+        add_row!(perftable, $name, [t1, t2, t1/t2])
+    end
 end
 
 macro bench_map2(name, rp, f1, f2)
-	quote
-		println("Benchmark on $($name) ...")
+    quote
+        println("Benchmark on $($name) ...")
 
-		($f1)(a, b)
-		($f2)(a, b)
+        ($f1)(a, b)
+        ($f2)(a, b)
 
-		t1 = @elapsed for i in 1 : ($rp)
-			($f1)(a, b) 
-		end
+        t1 = @elapsed for i in 1 : ($rp)
+            ($f1)(a, b) 
+        end
 
-		t2 = @elapsed for i in 1 : ($rp)
-			($f2)(a, b) 
-		end
+        t2 = @elapsed for i in 1 : ($rp)
+            ($f2)(a, b) 
+        end
 
-		add_row!(perftable, $name, [t1, t2, t1/t2])
-	end
+        add_row!(perftable, $name, [t1, t2, t1/t2])
+    end
 end
 
 macro bench_map3(name, rp, f1, f2)
-	quote
-		println("Benchmark on $($name) ...")
+    quote
+        println("Benchmark on $($name) ...")
 
-		($f1)($a, $b, $c)
-		($f2)($a, $b, $c)
+        ($f1)($a, $b, $c)
+        ($f2)($a, $b, $c)
 
-		t1 = @elapsed for i in 1 : ($rp)
-			($f1)($a, $b, $c) 
-		end
+        t1 = @elapsed for i in 1 : ($rp)
+            ($f1)($a, $b, $c) 
+        end
 
-		t2 = @elapsed for i in 1 : ($rp)
-			($f2)($a, $b, $c) 
-		end
+        t2 = @elapsed for i in 1 : ($rp)
+            ($f2)($a, $b, $c) 
+        end
 
-		add_row!(perftable, $name, [t1, t2, t1/t2])
-	end
+        add_row!(perftable, $name, [t1, t2, t1/t2])
+    end
 end
 
 # data

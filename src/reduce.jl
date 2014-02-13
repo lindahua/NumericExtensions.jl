@@ -8,13 +8,13 @@
 #################################################
 
 function _foldl(ifirst::Int, ilast::Int, op::Functor{2}, s::Number, a::NumericArray)
-	i = ifirst
-	while i <= ilast
-		@inbounds ai = a[i]
-		s = evaluate(op, s, ai)
-		i += 1
-	end
-	return s
+    i = ifirst
+    while i <= ilast
+        @inbounds ai = a[i]
+        s = evaluate(op, s, ai)
+        i += 1
+    end
+    return s
 end
 
 foldl(op::Functor{2}, s::Number, a::NumericArray) = _foldl(1, length(a), op, s, a)
@@ -22,13 +22,13 @@ foldl(op::Functor{2}, a::NumericArray) = _foldl(2, length(a), op, a[1], a)
 
 
 function _foldr(ifirst::Int, ilast::Int, op::Functor{2}, s::Number, a::NumericArray)
-	i = ilast
-	while i >= ifirst
-		@inbounds ai = a[i]
-		s = evaluate(op, ai, s)
-		i -= 1
-	end
-	return s
+    i = ilast
+    while i >= ifirst
+        @inbounds ai = a[i]
+        s = evaluate(op, ai, s)
+        i -= 1
+    end
+    return s
 end
 
 foldr(op::Functor{2}, s::Number, a::NumericArray) = _foldr(1, length(a), op, s, a)
@@ -46,45 +46,45 @@ foldr(op::Functor{2}, a::NumericArray) = _foldr(1, length(a)-1, op, a[end], a)
 # 
 function seqsum{T}(a::NumericArray{T}, ifirst::Int, ilast::Int)
 
-	@inbounds if ifirst + 3 >= ilast
-		s = zero(T)
-		i = ifirst
-		while i <= ilast
-			s += a[i]
-			i += 1
-		end
-		return s
+    @inbounds if ifirst + 3 >= ilast
+        s = zero(T)
+        i = ifirst
+        while i <= ilast
+            s += a[i]
+            i += 1
+        end
+        return s
 
-	else # a has more than four elements
+    else # a has more than four elements
 
-		# the purpose of using multiple accumulators here
-		# is to leverage instruction pairing to hide 
-		# read-after-write latency. Benchmark shows that
-		# this can lead to considerable performance
-		# improvement (nearly 2x).		
+        # the purpose of using multiple accumulators here
+        # is to leverage instruction pairing to hide 
+        # read-after-write latency. Benchmark shows that
+        # this can lead to considerable performance
+        # improvement (nearly 2x).      
 
-		s1 = a[ifirst]
-		s2 = a[ifirst + 1]
-		s3 = a[ifirst + 2]
-		s4 = a[ifirst + 3]
+        s1 = a[ifirst]
+        s2 = a[ifirst + 1]
+        s3 = a[ifirst + 2]
+        s4 = a[ifirst + 3]
 
-		i = ifirst + 4
-		il = ilast - 3
-		while i <= il
-			s1 += a[i]
-			s2 += a[i+1]
-			s3 += a[i+2]
-			s4 += a[i+3]
-			i += 4
-		end
+        i = ifirst + 4
+        il = ilast - 3
+        while i <= il
+            s1 += a[i]
+            s2 += a[i+1]
+            s3 += a[i+2]
+            s4 += a[i+3]
+            i += 4
+        end
 
-		while i <= ilast
-			s1 += a[i]
-			i += 1
-		end
+        while i <= ilast
+            s1 += a[i]
+            i += 1
+        end
 
-		return s1 + s2 + s3 + s4
-	end
+        return s1 + s2 + s3 + s4
+    end
 end
 
 seqsum(a::NumericArray) = seqsum(a, 1, length(a))
@@ -96,12 +96,12 @@ const CASSUM_BLOCKLEN = 1024
 #  cascade sum
 #
 function cassum(a::NumericArray, ifirst::Int, ilast::Int)
-	if ifirst + CASSUM_BLOCKLEN >= ilast
-		seqsum(a, ifirst, ilast)
-	else
-		imid = ifirst + ((ilast - ifirst) >> 1)
-		cassum(a, ifirst, imid) + cassum(a, imid+1, ilast)
-	end
+    if ifirst + CASSUM_BLOCKLEN >= ilast
+        seqsum(a, ifirst, ilast)
+    else
+        imid = ifirst + ((ilast - ifirst) >> 1)
+        cassum(a, ifirst, imid) + cassum(a, imid+1, ilast)
+    end
 end
 
 
@@ -126,86 +126,86 @@ lt_or_nan(s::FloatingPoint, x) = (s < x || s != s)
 
 
 function _maximum{T<:Integer}(ifirst::Int, ilast::Int, a::NumericArray{T})
-	if ifirst > ilast
-		error("Argument for maximum cannot be empty.")
-	end
-	@inbounds s = a[ifirst]
+    if ifirst > ilast
+        error("Argument for maximum cannot be empty.")
+    end
+    @inbounds s = a[ifirst]
 
-	i = ifirst + 1
-	while i <= ilast
-		@inbounds ai = a[i]
-		if ai > s
-			s = ai
-		end
-		i += 1
-	end
-	return s
+    i = ifirst + 1
+    while i <= ilast
+        @inbounds ai = a[i]
+        if ai > s
+            s = ai
+        end
+        i += 1
+    end
+    return s
 end
 
 function _maximum{T<:FloatingPoint}(ifirst::Int, ilast::Int, a::NumericArray{T})
-	if ifirst > ilast
-		error("Argument for maximum cannot be empty.")
-	end
-	@inbounds s = a[ifirst]
-	
-	# locate the first non-nan value
-	i = ifirst + 1
-	while i <= ilast && s != s
-		@inbounds s = a[i]
-		i += 1
-	end
+    if ifirst > ilast
+        error("Argument for maximum cannot be empty.")
+    end
+    @inbounds s = a[ifirst]
+    
+    # locate the first non-nan value
+    i = ifirst + 1
+    while i <= ilast && s != s
+        @inbounds s = a[i]
+        i += 1
+    end
 
-	# continue the remaining part
-	while i <= ilast
-		@inbounds ai = a[i]
-		if ai > s  # ai must not be NaN
-			s = ai
-		end
-		i += 1
-	end
+    # continue the remaining part
+    while i <= ilast
+        @inbounds ai = a[i]
+        if ai > s  # ai must not be NaN
+            s = ai
+        end
+        i += 1
+    end
 
-	return s
+    return s
 end
 
 function _minimum{T<:Integer}(ifirst::Int, ilast::Int, a::NumericArray{T})
-	if ifirst > ilast
-		error("Argument for minimum cannot be empty.")
-	end
-	@inbounds s = a[ifirst]
+    if ifirst > ilast
+        error("Argument for minimum cannot be empty.")
+    end
+    @inbounds s = a[ifirst]
 
-	i = ifirst + 1
-	while i <= ilast
-		@inbounds ai = a[i]
-		if ai < s
-			s = ai
-		end
-		i += 1
-	end
-	return s
+    i = ifirst + 1
+    while i <= ilast
+        @inbounds ai = a[i]
+        if ai < s
+            s = ai
+        end
+        i += 1
+    end
+    return s
 end
 
 function _minimum{T<:FloatingPoint}(ifirst::Int, ilast::Int, a::NumericArray{T})
-	if ifirst > ilast
-		error("Argument for minimum cannot be empty.")
-	end
-	@inbounds s = a[ifirst]
-	
-	# locate the first non-nan value
-	i = ifirst + 1
-	while i <= ilast && s != s
-		@inbounds s = a[i]
-		i += 1
-	end
+    if ifirst > ilast
+        error("Argument for minimum cannot be empty.")
+    end
+    @inbounds s = a[ifirst]
+    
+    # locate the first non-nan value
+    i = ifirst + 1
+    while i <= ilast && s != s
+        @inbounds s = a[i]
+        i += 1
+    end
 
-	# continue the remaining part
-	while i <= ilast
-		@inbounds ai = a[i]
-		if ai < s  # ai must not be NaN
-			s = ai
-		end
-		i += 1
-	end
+    # continue the remaining part
+    while i <= ilast
+        @inbounds ai = a[i]
+        if ai < s  # ai must not be NaN
+            s = ai
+        end
+        i += 1
+    end
 
-	return s
+    return s
 end
 

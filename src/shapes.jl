@@ -21,14 +21,14 @@ getvalue(a::AbstractArray, i::Integer) = a[i]
 #### preceding or succeeding length
 
 function prec_length{N}(s::SizeTuple{N}, d::Int)
-	d == 1 ? 1 :
-	d == 2 ? s[1] :
-	d == 3 ? s[1] * s[2] : prod(s[1:d-1])
+    d == 1 ? 1 :
+    d == 2 ? s[1] :
+    d == 3 ? s[1] * s[2] : prod(s[1:d-1])
 end
 
 function succ_length{N}(s::SizeTuple{N}, d::Int)
-	d == N ? 1 :
-	d == N-1 ? s[N] : prod(s[d+1:N])
+    d == N ? 1 :
+    d == N-1 ? s[N] : prod(s[d+1:N])
 end
 
 ### Shape of mapping
@@ -40,23 +40,23 @@ mapshape(s::SizeTuple) = s
 mapshape{N}(s1::SizeTuple{N}, s2::SizeTuple{N}) = (s1 == s2 || error("Argument dimensions are not map-compatible."); s1)
 
 function mapshape{N1,N2}(s1::SizeTuple{N1}, s2::SizeTuple{N2})
-	if N1 < N2
-		for i = 1 : N1
-			s1[i] == s2[i] || error("Argument dimensions are not map-compatible.")
-		end
-		for i = N1+1 : N2
-			s2[i] == 1 || error("Argument dimensions are not map-compatible.")
-		end		
-		return s2
-	else
-		for i = 1 : N2
-			s1[i] == s2[i] || error("Argument dimensions are not map-compatible.")
-		end
-		for i = N2+1 : N1
-			s1[i] == 1 || error("Argument dimensions are not map-compatible.")
-		end
-		return s1
-	end
+    if N1 < N2
+        for i = 1 : N1
+            s1[i] == s2[i] || error("Argument dimensions are not map-compatible.")
+        end
+        for i = N1+1 : N2
+            s2[i] == 1 || error("Argument dimensions are not map-compatible.")
+        end     
+        return s2
+    else
+        for i = 1 : N2
+            s1[i] == s2[i] || error("Argument dimensions are not map-compatible.")
+        end
+        for i = N2+1 : N1
+            s1[i] == 1 || error("Argument dimensions are not map-compatible.")
+        end
+        return s1
+    end
 end
 
 mapshape(s1::(), s2::()) = ()

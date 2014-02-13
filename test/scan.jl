@@ -6,47 +6,47 @@ using Base.Test
 # verification function
 
 function safe_scan(x, f)
-	y = similar(x)
-	y[1] = x[1]
-	for i = 2:length(x)
-		y[i] = f(y[i-1], x[i])
-	end
-	y
+    y = similar(x)
+    y[1] = x[1]
+    for i = 2:length(x)
+        y[i] = f(y[i-1], x[i])
+    end
+    y
 end
 
 function safe_scan(x, f, dim)
-	@assert ndims(x) <= 3
-	y = similar(x)
-	siz = size(x)
-	if dim == 1
-		n = prod(siz[2:end])
-		for j=1:n
-			y[:,j] = safe_scan(x[:,j], f)
-		end
-	elseif dim == 2
-		@assert ndims(x) >= 2
-		if ndims(x) == 2
-			m = siz[1]
-			for i=1:m
-				y[i,:] = safe_scan(x[i,:], f)
-			end
-		else
-			for k=1:siz[3]
-				y[:,:,k] = safe_scan(x[:,:,k], f, 2)
-			end
-		end
+    @assert ndims(x) <= 3
+    y = similar(x)
+    siz = size(x)
+    if dim == 1
+        n = prod(siz[2:end])
+        for j=1:n
+            y[:,j] = safe_scan(x[:,j], f)
+        end
+    elseif dim == 2
+        @assert ndims(x) >= 2
+        if ndims(x) == 2
+            m = siz[1]
+            for i=1:m
+                y[i,:] = safe_scan(x[i,:], f)
+            end
+        else
+            for k=1:siz[3]
+                y[:,:,k] = safe_scan(x[:,:,k], f, 2)
+            end
+        end
 
-	elseif dim == 3
-		@assert ndims(x) == 3
-		y[:,:,1] = x[:,:,1]
-		for k=2:siz[3]
-			y[:,:,k] = f(y[:,:,k-1], x[:,:,k])
-		end
+    elseif dim == 3
+        @assert ndims(x) == 3
+        y[:,:,1] = x[:,:,1]
+        for k=2:siz[3]
+            y[:,:,k] = f(y[:,:,k-1], x[:,:,k])
+        end
 
-	else
-		error("dim > 3 is not supported in safe_scan.")
-	end
-	y
+    else
+        error("dim > 3 is not supported in safe_scan.")
+    end
+    y
 end
 
 # data 

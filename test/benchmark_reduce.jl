@@ -3,49 +3,49 @@
 # macros
 
 macro bench_reduc1(ptname, name, rp, f, a)
-	quote
-		println("    on $($name) ...")
+    quote
+        println("    on $($name) ...")
 
-		($f)($a)
-		t0 = @elapsed for i in 1 : ($rp)
-			($f)($a) 
-		end
+        ($f)($a)
+        t0 = @elapsed for i in 1 : ($rp)
+            ($f)($a) 
+        end
 
-		($f)($a, 1)
-		t1 = @elapsed for i in 1 : ($rp)
-			($f)($a, 1) 
-		end
+        ($f)($a, 1)
+        t1 = @elapsed for i in 1 : ($rp)
+            ($f)($a, 1) 
+        end
 
-		($f)($a, 2)
-		t2 = @elapsed for i in 1 : ($rp)
-			($f)($a, 2)
-		end
+        ($f)($a, 2)
+        t2 = @elapsed for i in 1 : ($rp)
+            ($f)($a, 2)
+        end
 
-		push!($ptname, ($name, [t0, t1, t2] * 1000.))
-	end
+        push!($ptname, ($name, [t0, t1, t2] * 1000.))
+    end
 end
 
 macro bench_reduc2(ptname, name, rp, f, a, b)
-	quote
-		println("    on $($name) ...")
+    quote
+        println("    on $($name) ...")
 
-		($f)($a, $b)
-		t0 = @elapsed for i in 1 : ($rp)
-			($f)($a, $b) 
-		end
+        ($f)($a, $b)
+        t0 = @elapsed for i in 1 : ($rp)
+            ($f)($a, $b) 
+        end
 
-		($f)($a, $b, 1)
-		t1 = @elapsed for i in 1 : ($rp)
-			($f)($a, $b, 1) 
-		end
+        ($f)($a, $b, 1)
+        t1 = @elapsed for i in 1 : ($rp)
+            ($f)($a, $b, 1) 
+        end
 
-		($f)($a, $b, 2)
-		t2 = @elapsed for i in 1 : ($rp)
-			($f)($a, $b, 2)
-		end
+        ($f)($a, $b, 2)
+        t2 = @elapsed for i in 1 : ($rp)
+            ($f)($a, $b, 2)
+        end
 
-		push!($ptname, ($name, [t0, t1, t2] * 1000.))
-	end
+        push!($ptname, ($name, [t0, t1, t2] * 1000.))
+    end
 end
 
 
@@ -106,15 +106,15 @@ _logsumexp(x::Array) = (u = maximum(x); log(sum(exp(x - u))) + u)
 _logsumexp(x::Array, d::DIMS) = (u = maximum(x, d); log(sum(exp(x .- u))) .+ u)
 
 function _softmax(x::Array)
-	u = maximum(x)
-	r = exp(x - u)
-	r / sum(r)
+    u = maximum(x)
+    r = exp(x - u)
+    r / sum(r)
 end
 
 function _softmax(x::Array, d::Int)
-	u = maximum(x, d)
-	r = exp(x .- u)
-	r ./ sum(r, d)
+    u = maximum(x, d)
+    r = exp(x .- u)
+    r ./ sum(r, d)
 end
 
 # benchmark
@@ -189,26 +189,26 @@ push!(newperf, ("varm", [t0, t1, t2] * 1000.))
 #################################################
 
 function organize_results(name, raw)
-	tab = BenchmarkTable(name, ["full-reduction", "colwise-reduction", "rowwise-reduction"])
-	for e in raw
-		rname = e[1]
-		row = e[2]
-		add_row!(tab, rname, row)
-	end
-	tab
+    tab = BenchmarkTable(name, ["full-reduction", "colwise-reduction", "rowwise-reduction"])
+    for e in raw
+        rname = e[1]
+        row = e[2]
+        add_row!(tab, rname, row)
+    end
+    tab
 end
 
 function compute_gains(name, tab0::BenchmarkTable, tab1::BenchmarkTable)
-	# compare colnames and rownames
-	@assert tab0.colnames == tab1.colnames
-	@assert tab0.rownames == tab1.rownames
+    # compare colnames and rownames
+    @assert tab0.colnames == tab1.colnames
+    @assert tab0.rownames == tab1.rownames
 
-	gtab = BenchmarkTable(name, tab0.colnames)
-	m = nrows(tab0)
-	for i in 1 : m
-		add_row!(gtab, tab0.rownames[i], tab0.rows[i] ./ tab1.rows[i])
-	end
-	gtab
+    gtab = BenchmarkTable(name, tab0.colnames)
+    m = nrows(tab0)
+    for i in 1 : m
+        add_row!(gtab, tab0.rownames[i], tab0.rows[i] ./ tab1.rows[i])
+    end
+    gtab
 end
 
 

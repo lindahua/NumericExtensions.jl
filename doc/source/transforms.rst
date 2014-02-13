@@ -42,8 +42,8 @@ The type ``AffineTransform`` is defined as
 .. code-block:: julia
 
 	immutable AffineTransform{T,A<:LinearTransform}
-    	a::A
-    	b::Vector{T}
+		a::A
+		b::Vector{T}
 	end
 
 Applying an affine transform ``aff`` as above to ``x`` is equivalent to ``transform(aff.a, x) .+ aff.b``. The field ``b`` is allowed to be empty, in which case, ``aff.b`` is not added to the transformed result.

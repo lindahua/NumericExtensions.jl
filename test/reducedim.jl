@@ -72,12 +72,12 @@ q4 = rand(5, 4, 3, 2)
 # auxiliary
 
 function safe_sumdim(a::Array, dim::Int)
-	n = size(a, dim)
-	s = slicedim(a, dim, 1)
-	for i = 2 : n
-		s += slicedim(a, dim, i)
-	end
-	return s
+    n = size(a, dim)
+    s = slicedim(a, dim, 1)
+    for i = 2 : n
+        s += slicedim(a, dim, i)
+    end
+    return s
 end
 
 do_sum!(a::Array, dim::Int) = sum!(zeros(reduced_shape(size(a), dim)), a, dim)
@@ -87,21 +87,21 @@ safe_meandim(a::Array, dim::Int) = safe_sumdim(a, dim) / size(a, dim)
 do_mean!(a::Array, dim::Int) = mean!(zeros(reduced_shape(size(a), dim)), a, dim)
 
 function safe_maximumdim(a::Array, dim::Int)
-	n = size(a, dim)
-	s = slicedim(a, dim, 1)
-	for i = 2 : n
-		s = max(s, slicedim(a, dim, i))
-	end
-	return s
+    n = size(a, dim)
+    s = slicedim(a, dim, 1)
+    for i = 2 : n
+        s = max(s, slicedim(a, dim, i))
+    end
+    return s
 end
 
 function safe_minimumdim(a::Array, dim::Int)
-	n = size(a, dim)
-	s = slicedim(a, dim, 1)
-	for i = 2 : n
-		s = min(s, slicedim(a, dim, i))
-	end
-	return s
+    n = size(a, dim)
+    s = slicedim(a, dim, 1)
+    for i = 2 : n
+        s = min(s, slicedim(a, dim, i))
+    end
+    return s
 end
 
 do_maximum!(a::Array, dim::Int) = maximum!(zeros(reduced_shape(size(a), dim)), a, dim)

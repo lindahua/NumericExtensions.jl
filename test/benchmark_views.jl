@@ -11,9 +11,9 @@ to_gps(t) = float64(tn) / 1.0e9 / t * sizeof(Float64)
 # 1D
 
 function cp_1d(a::ContiguousVector, b::ContiguousVector)
-	for i in 1 : length(a)
-		b[i] = a[i]
-	end
+    for i in 1 : length(a)
+        b[i] = a[i]
+    end
 end
 
 # use relatively small matrix, otherwise the cost of cache-swap may dominate
@@ -42,13 +42,13 @@ av = unsafe_view(a)
 bv = unsafe_view(b)
 
 function cp_2d(a::ContiguousMatrix, b::ContiguousMatrix)
-	m = size(a, 1)
-	n = size(a, 2)
-	for j = 1 : n
-		for i = 1 : m
-			b[i,j] = a[i,j]
-		end
-	end
+    m = size(a, 1)
+    n = size(a, 2)
+    for j = 1 : n
+        for i = 1 : m
+            b[i,j] = a[i,j]
+        end
+    end
 end
 
 cp_2d(a, b)
@@ -70,17 +70,17 @@ av = unsafe_view(a)
 bv = unsafe_view(b)
 
 function cp_3d(a::ContiguousCube, b::ContiguousCube)
-	m = size(a, 1)
-	n = size(a, 2)
-	k = size(a, 3)
+    m = size(a, 1)
+    n = size(a, 2)
+    k = size(a, 3)
 
-	for l in 1 : k
-		for j in 1 : n
-			for i in 1 : m
-				b[i,j,l] = a[i,j,l]
-			end
-		end
-	end
+    for l in 1 : k
+        for j in 1 : n
+            for i in 1 : m
+                b[i,j,l] = a[i,j,l]
+            end
+        end
+    end
 end
 
 cp_3d(a, b)

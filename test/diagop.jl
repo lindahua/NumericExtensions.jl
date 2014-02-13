@@ -4,11 +4,11 @@ using NumericExtensions
 using Base.Test
 
 function zero_diag(x::Matrix)
-	xc = copy(x)
-	for i in 1 : min(size(x,1), size(x,2))
-		xc[i,i] = 0
-	end
-	xc
+    xc = copy(x)
+    for i in 1 : min(size(x,1), size(x,2))
+        xc[i,i] = 0
+    end
+    xc
 end
 
 

@@ -6,38 +6,38 @@ using Base.Test
 ### safe (but slow) reduction functions for result verification
 
 function safe_sum(x)
-	r = zero(eltype(x))
-	for i in 1 : length(x)
-		r = r + x[i]
-	end
-	r
+    r = zero(eltype(x))
+    for i in 1 : length(x)
+        r = r + x[i]
+    end
+    r
 end
 
 function safe_max(x)
-	r = typemin(eltype(x))
-	for i in 1 : length(x)
-		r = max(r, x[i])
-	end
-	r
+    r = typemin(eltype(x))
+    for i in 1 : length(x)
+        r = max(r, x[i])
+    end
+    r
 end
 
 function safe_min(x)
-	r = typemax(eltype(x))
-	for i in 1 : length(x)
-		r = min(r, x[i])
-	end
-	r
+    r = typemax(eltype(x))
+    for i in 1 : length(x)
+        r = min(r, x[i])
+    end
+    r
 end
 
 function rsize(x::Array, dim::Int)
-	if 1 <= dim <= ndims(x)
-		siz = size(x)
-		rsiz_v = [siz...]
-		rsiz_v[dim] = 1
-		tuple(rsiz_v...)
-	else
-		size(x)
-	end
+    if 1 <= dim <= ndims(x)
+        siz = size(x)
+        rsiz_v = [siz...]
+        rsiz_v[dim] = 1
+        tuple(rsiz_v...)
+    else
+        size(x)
+    end
 end
 
 

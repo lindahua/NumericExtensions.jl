@@ -3,26 +3,26 @@
 using NumericExtensions
 
 macro bench_bsx(name, rp, a, b1, b2, f1, f2, dims)
-	quote
-		println("Benchmark on $($name) ...")
+    quote
+        println("Benchmark on $($name) ...")
 
-		ac = copy($a)
-		b1c = copy($b1)
-		b2c = copy($b2)
+        ac = copy($a)
+        b1c = copy($b1)
+        b2c = copy($b2)
 
-		broadcast!($f1, ac, ac, b1c)
-		($f2)(ac, b2c, $dims)
+        broadcast!($f1, ac, ac, b1c)
+        ($f2)(ac, b2c, $dims)
 
-		t1 = @elapsed for i in 1 : ($rp)
-			broadcast!($f1, ac, ac, b1c) 
-		end
+        t1 = @elapsed for i in 1 : ($rp)
+            broadcast!($f1, ac, ac, b1c) 
+        end
 
-		t2 = @elapsed for i in 1 : ($rp)
-			($f2)(ac, b2c, $dims) 
-		end
+        t2 = @elapsed for i in 1 : ($rp)
+            ($f2)(ac, b2c, $dims) 
+        end
 
-		add_row!(perftable, $name, [t1, t2, t1 / t2])
-	end
+        add_row!(perftable, $name, [t1, t2, t1 / t2])
+    end
 end
 
 # benchmarks

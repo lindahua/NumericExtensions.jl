@@ -20,9 +20,9 @@ v = unsafe_view(a)
 @test copy(v) == a
 
 for i in 1 : 5
-	@test v[i] == a[i]
-	v[i] = b[i]
-	@test v[i] == b[i]
+    @test v[i] == a[i]
+    v[i] = b[i]
+    @test v[i] == b[i]
 end
 
 # 2D
@@ -44,20 +44,20 @@ v = unsafe_view(ac)
 @test copy(v) == a
 
 for i in 1 : 20
-	@test v[i] == a[i]
-	v[i] = b[i]
-	@test v[i] == b[i]
+    @test v[i] == a[i]
+    v[i] = b[i]
+    @test v[i] == b[i]
 end
 
 ac = copy(a)
 v = UnsafeMatrixView{Float64}(pointer(ac), 4, 5)
 
 for j in 1 : 5
-	for i in 1 : 4
-		@test v[i,j] == a[i,j]
-		v[i,j] = b[i,j]
-		@test v[i,j] == b[i,j]
-	end
+    for i in 1 : 4
+        @test v[i,j] == a[i,j]
+        v[i,j] = b[i,j]
+        @test v[i,j] == b[i,j]
+    end
 end
 
 # 3D
@@ -80,33 +80,33 @@ v = unsafe_view(ac)
 @test copy(v) == a
 
 for i in 1 : 60
-	@test v[i] == a[i]
-	v[i] = b[i]
-	@test v[i] == b[i]
+    @test v[i] == a[i]
+    v[i] = b[i]
+    @test v[i] == b[i]
 end
 
 ac = copy(a)
 v = unsafe_view(ac)
 
 for j in 1 : 15
-	for i in 1 : 4
-		@test v[i,j] == a[i,j]
-		v[i,j] = b[i,j]
-		@test v[i,j] == b[i,j]
-	end
+    for i in 1 : 4
+        @test v[i,j] == a[i,j]
+        v[i,j] = b[i,j]
+        @test v[i,j] == b[i,j]
+    end
 end
 
 ac = copy(a)
 v = unsafe_view(ac)
 
 for k in 1 : 3
-	for j in 1 : 5
-		for i in 1 : 4
-			@test v[i,j,k] == a[i,j,k]
-			v[i,j,k] = b[i,j,k]
-			@test v[i,j,k] == b[i,j,k]
-		end
-	end
+    for j in 1 : 5
+        for i in 1 : 4
+            @test v[i,j,k] == a[i,j,k]
+            v[i,j,k] = b[i,j,k]
+            @test v[i,j,k] == b[i,j,k]
+        end
+    end
 end
 
 # Test Subview construction 
