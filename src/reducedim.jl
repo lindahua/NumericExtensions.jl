@@ -2,21 +2,21 @@
 
 ## auxiliary functions
 
-reduced_shape(s::SizeTuple{1}, dim::Int) = dim == 1 ? (1,) : error("Invalid value of dim.")
+reduced_shape(s::(Int,), dim::Int) = dim == 1 ? (1,) : error("Invalid value of dim.")
 
-reduced_shape(s::SizeTuple{2}, dim::Int) = dim == 1 ? (1,s[2]) : dim == 2 ? (s[1],1) : error("Invalid value of dim.")
+reduced_shape(s::(Int,Int), dim::Int) = dim == 1 ? (1,s[2]) : dim == 2 ? (s[1],1) : error("Invalid value of dim.")
 
-function reduced_shape{D}(s::SizeTuple{D}, dim::Int)
+function reduced_shape{D}(s::NTuple{D,Int}, dim::Int)
     dim == 1 ? tuple(1, s[2:end]...) :
     1 < dim < D ? tuple(s[1:dim-1]..., 1, s[dim+1:end]...) :
     dim == D ? tuple(s[1:dim-1]..., 1) :
     error("Invalid value of dim.")
 end
 
-reduced_length(s::SizeTuple{1}, dim::Int) = dim == 1 ? 1 : error("Invalid value of dim.")
-reduced_length(s::SizeTuple{2}, dim::Int) = dim == 1 ? s[2] : dim == 2 ? s[1] : error("Invalid value of dim.")
+reduced_length(s::(Int,), dim::Int) = dim == 1 ? 1 : error("Invalid value of dim.")
+reduced_length(s::(Int,Int), dim::Int) = dim == 1 ? s[2] : dim == 2 ? s[1] : error("Invalid value of dim.")
 
-function reduced_length{D}(s::SizeTuple{D}, dim::Int)
+function reduced_length{D}(s::NTuple{D,Int}, dim::Int)
     dim == 1 ? prod(s[2:end]) :
     1 < dim < D ? prod(s[1:dim-1]) * prod(s[dim+1:end]) :
     dim == D ? prod(s[1:dim-1]) :

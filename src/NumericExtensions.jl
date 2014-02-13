@@ -111,8 +111,8 @@ module NumericExtensions
 
     # codes
 
+    include("common.jl")
     include("shapes.jl")
-    # include("unsafe_views.jl")
     include("mathfuns.jl")
     include("functors.jl")
     include("codegen.jl")

@@ -1,32 +1,14 @@
 # Shape inference 
 
-typealias SizeTuple{N} NTuple{N,Int}
-
-typealias NumericArray{T<:Number,N} AbstractArray{T,N}
-typealias ArrOrNum{T<:Number} Union(AbstractArray{T}, T) 
-
-typealias NumericVector{T<:Number} AbstractVector{T}
-typealias NumericMatrix{T<:Number} AbstractMatrix{T}
-
-typealias ContiguousArrOrNum{T<:Number} Union(ContiguousArray{T}, T)
-typealias ContiguousNumericArray{T<:Number} ContiguousArray{T}
-typealias ContiguousRealArray{T<:Real} ContiguousArray{T}
-
-typealias DimSpec Int
-
-getvalue(a::Number, i::Integer) = a
-getvalue(a::AbstractArray, i::Integer) = a[i]
-
-
 #### preceding or succeeding length
 
-function prec_length{N}(s::SizeTuple{N}, d::Int)
+function prec_length(s::Dims, d::Int)
     d == 1 ? 1 :
     d == 2 ? s[1] :
     d == 3 ? s[1] * s[2] : prod(s[1:d-1])
 end
 
-function succ_length{N}(s::SizeTuple{N}, d::Int)
+function succ_length{N}(s::NTuple{N,Int}, d::Int)
     d == N ? 1 :
     d == N-1 ? s[N] : prod(s[d+1:N])
 end
@@ -35,11 +17,11 @@ end
 
 # on size tuples
 
-mapshape(s::SizeTuple) = s
+mapshape(s::Dims) = s
 
-mapshape{N}(s1::SizeTuple{N}, s2::SizeTuple{N}) = (s1 == s2 || error("Argument dimensions are not map-compatible."); s1)
+mapshape{N}(s1::NTuple{N,Int}, s2::NTuple{N,Int}) = (s1 == s2 || error("Argument dimensions are not map-compatible."); s1)
 
-function mapshape{N1,N2}(s1::SizeTuple{N1}, s2::SizeTuple{N2})
+function mapshape{N1,N2}(s1::NTuple{N1,Int}, s2::NTuple{N2,Int})
     if N1 < N2
         for i = 1 : N1
             s1[i] == s2[i] || error("Argument dimensions are not map-compatible.")
@@ -60,13 +42,13 @@ function mapshape{N1,N2}(s1::SizeTuple{N1}, s2::SizeTuple{N2})
 end
 
 mapshape(s1::(), s2::()) = ()
-mapshape(s1::SizeTuple, s2::()) = s1
-mapshape(s1::(), s2::SizeTuple) = s2
+mapshape(s1::Dims, s2::()) = s1
+mapshape(s1::(), s2::Dims) = s2
 
 mapshape(s1::(Int,Int), s2::(Int,)) = ((s1[1] == s2[1] && s1[2] == 1) || error("Argument dimensions are not map-compatible."); s1)
 mapshape(s1::(Int,), s2::(Int,Int)) = ((s1[1] == s2[1] && s2[2] == 1) || error("Argument dimensions are not map-compatible."); s2)
 
-mapshape(s1::SizeTuple, s2::SizeTuple, s3::SizeTuple, rs::SizeTuple...) = mapshape(mapshape(s1, s2), mapshape(s3, rs...))
+mapshape(s1::Dims, s2::Dims, s3::Dims, rs::Dims...) = mapshape(mapshape(s1, s2), mapshape(s3, rs...))
 
 # on arrays / numbers
 
