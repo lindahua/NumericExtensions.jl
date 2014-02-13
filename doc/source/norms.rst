@@ -28,13 +28,13 @@ Notes:
 
 .. code-block:: julia
 
-	vnorm(x, 2)          # compute L-2 norm of x
-	vnorm(x, 2, 1)       # compute L-2 norm of each column of x
-	vnorm(x, Inf, 2)     # compute L-inf norm of each row of x
-	vnorm!(r, x, 2, 1)   # compute L-2 norm of each column, and write results to r
+    vnorm(x, 2)          # compute L-2 norm of x
+    vnorm(x, 2, 1)       # compute L-2 norm of each column of x
+    vnorm(x, Inf, 2)     # compute L-inf norm of each row of x
+    vnorm!(r, x, 2, 1)   # compute L-2 norm of each column, and write results to r
 
-	vnormdiff(x, 2.5, 2)    # compute L-2 norm of x - 2.5
-	vnormdiff(x, y, 1, 2)   # compute L-1 norm of x - y for each column
+    vnormdiff(x, 2.5, 2)    # compute L-2 norm of x - 2.5
+    vnormdiff(x, y, 1, 2)   # compute L-1 norm of x - y for each column
 
 
 Normalization
@@ -46,10 +46,10 @@ Normalizing a vector w.r.t L-p norm means to scale a vector such that the L-p no
 
 .. code-block:: julia
 
-	normalize(x, p)         # returns a normalized vector w.r.t. L-p norm
-	normalize!(x, p)        # normalize x w.r.t. L-p norm inplace
-	normalize!(r, x, p)     # write the normalized vector to a pre-allocated array r
+    normalize(x, p)         # returns a normalized vector w.r.t. L-p norm
+    normalize!(x, p)        # normalize x w.r.t. L-p norm inplace
+    normalize!(r, x, p)     # write the normalized vector to a pre-allocated array r
 
-	normalize(x, p, dim)       # returns an array comprised of normalized vectors along dim
-	normalize!(x, p, dim) 	   # normalize vectors of x along dim inplace w.r.t. L-p norm
-	normalize!(r, x, p, dim)   # write the normalized vectors along dim to r
+    normalize(x, p, dim)       # returns an array comprised of normalized vectors along dim
+    normalize!(x, p, dim)      # normalize vectors of x along dim inplace w.r.t. L-p norm
+    normalize!(r, x, p, dim)   # write the normalized vectors along dim to r

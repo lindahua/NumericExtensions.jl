@@ -24,7 +24,7 @@ However, if you really run this you may probably find that this is even slower. 
 
     s = 0.
     for i = 1 : length(x)
-    	s += abs2(x[i] - y[i])
+        s += abs2(x[i] - y[i])
     end
 
 This is not too bad though, until you have more complex needs, e.g. computing this along each row/column of the matrix. Then writing the loops can become more involved, and it is more tricky to implement it in a cache-friendly way.
@@ -42,7 +42,7 @@ With this package, we can compute this efficiently without writing loops, as
     r = sumabsdiff(x, y)
     r = sumabsdiff(x, y, dim)
 
-	
+    
 Here, ``Abs2Fun`` and ``Add`` are *typed functors* provided by this package, which, unlike normal functions, can still be properly inlined with passed into a higher order function (thus causing zero overhead). This package extends ``map``, ``foldl``, ``foldr``, ``sum``, and so on to accept typed functors and as well introduces additional high order functions like ``sumfdiff`` and ``scan`` etc to simplify the usage in common cases. 
 
 Benchmark shows that writing in this way is over *9x faster* than ``sum(abs2(x - y))``.

@@ -28,8 +28,6 @@ Documentation of NumericExtensions.jl
     reduction.rst
     norms.rst
     scan.rst
-    views.rst
-    utils.rst
     pdmat.rst
 
 

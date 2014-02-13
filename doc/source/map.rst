@@ -12,23 +12,23 @@ Let ``f1``, ``f2``, and ``f3`` be respectively unary, binary, and ternary functo
 
 .. code-block:: julia
 
-	map(f1, x)
-	map(f2, x1, x2)
-	map(f3, x1, x2, x3)
+    map(f1, x)
+    map(f2, x1, x2)
+    map(f3, x1, x2, x3)
 
-	map!(f1, dst, x)
-	map!(f2, dst, x1, x2)
-	map!(f3, dst, x1, x2, x3)
+    map!(f1, dst, x)
+    map!(f2, dst, x1, x2)
+    map!(f3, dst, x1, x2, x3)
 
 Here, ``map`` creates and returns the resultant array, while ``map!`` writes results to a pre-allocated ``dst`` and returns it. Each argument can be either an array or a scalar number. At least one argument should be an array, and all array arguments should have compatible sizes. 
 
 **Examples:**
 
 .. code-block:: julia
-	
-	map(AbsFun(), x)            # returns abs(x)
-	map(FMA(), x, y, z)      # returns x + y .* z
-	map!(Add(), dst, x, 2)   # writes x + 2 to dst
+    
+    map(AbsFun(), x)            # returns abs(x)
+    map(FMA(), x, y, z)      # returns x + y .* z
+    map!(Add(), dst, x, 2)   # writes x + 2 to dst
 
 Additional functions
 ----------------------
@@ -41,12 +41,12 @@ Additional functions
 
 .. code-block:: julia
 
-	map1!(f1, x1)             # x1 <-- f1(x1)
-	map1!(f2, x1, x2)         # x1 <-- f2(x1, x2)
-	map1!(f3, x1, x2, x3)     # x1 <-- f3(x1, x2, x3)
+    map1!(f1, x1)             # x1 <-- f1(x1)
+    map1!(f2, x1, x2)         # x1 <-- f2(x1, x2)
+    map1!(f3, x1, x2, x3)     # x1 <-- f3(x1, x2, x3)
 
-	mapdiff(f1, x, y)         # returns f1(x - y)
-	mapdiff!(f1, dst, x, y)   # dst <-- f1(x - y)
+    mapdiff(f1, x, y)         # returns f1(x - y)
+    mapdiff!(f1, dst, x, y)   # dst <-- f1(x - y)
 
 Here, ``x1`` (*i.e.* the first argument to ``map1!`` must be an array, while ``x2`` and ``x3`` can be either an array or a number).
 
@@ -56,9 +56,9 @@ Note that ``mapdiff`` and ``mapdiff!`` uses an efficient implementation, which c
 
 .. code-block:: julia
 
-	map1!(Mul(), x, 2)       # multiply x by 2 (inplace)
-	mapdiff(Abs2Fun(), x, y)    # compute squared differences between x and y
-	mapdiff(AbsFun(), x, 1)     # compute |x - 1|
+    map1!(Mul(), x, 2)       # multiply x by 2 (inplace)
+    mapdiff(Abs2Fun(), x, y)    # compute squared differences between x and y
+    mapdiff(AbsFun(), x, 1)     # compute |x - 1|
 
 
 Pre-defined mapping functions
@@ -68,24 +68,24 @@ Julia already provides vectorized function for most math computations. In this p
 
 .. code-block:: julia
 
-	add!(x, y)        # x <- x + y
-	subtract!(x, y)   # x <- x - y
-	multiply!(x, y)   # x <- x .* y
-	divide!(x, y)     # x <- x ./ y
-	negate!(x)        # x <- -x
-	pow!(x, y)        # x <- x .^ y
+    add!(x, y)        # x <- x + y
+    subtract!(x, y)   # x <- x - y
+    multiply!(x, y)   # x <- x .* y
+    divide!(x, y)     # x <- x ./ y
+    negate!(x)        # x <- -x
+    pow!(x, y)        # x <- x .^ y
 
-	abs!(x)           # x <- abs(x)
-	abs2!(x)          # x <- abs2(x)
-	rcp!(x)           # x <- 1 ./ x
-	sqrt!(x)          # x <- sqrt(x)
-	exp!(x)           # x <- exp(x)
-	log!(x)           # x <- log(x)
+    abs!(x)           # x <- abs(x)
+    abs2!(x)          # x <- abs2(x)
+    rcp!(x)           # x <- 1 ./ x
+    sqrt!(x)          # x <- sqrt(x)
+    exp!(x)           # x <- exp(x)
+    log!(x)           # x <- log(x)
 
-	floor!(x)         # x <- floor(x)
-	ceil!(x)          # x <- ceil(x)
-	round!(x)         # x <- round(x)
-	trunc!(x)         # x <- trunc(x)
+    floor!(x)         # x <- floor(x)
+    ceil!(x)          # x <- ceil(x)
+    round!(x)         # x <- round(x)
+    trunc!(x)         # x <- trunc(x)
 
 In the codes above, ``x`` must be an array (*i.e.* an instance of ``AbstractArray``), while ``y`` can be either an array or a scalar.
 
@@ -93,10 +93,10 @@ In addition, this package also define some useful functions using compound funct
 
 .. code-block:: julia
 
-	absdiff(x, y)     # abs(x - y)
-	sqrdiff(x, y)     # abs2(x - y)
-	fma(x, y, c)      # x + y .* c, where c can be array or scalar
-	fma!(x, y, c)     # x <- x + y .* c
+    absdiff(x, y)     # abs(x - y)
+    sqrdiff(x, y)     # abs2(x - y)
+    fma(x, y, c)      # x + y .* c, where c can be array or scalar
+    fma!(x, y, c)     # x <- x + y .* c
 
 
 Performance
