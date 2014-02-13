@@ -60,6 +60,10 @@ module NumericExtensions
 		# diagop
 		add_diag!, add_diag, set_diag!, set_diag,
 
+		# transforms
+		Transpose, LinearTransform, AffineTransform, 
+		transform, transform!,
+
 		# mapreduce
 		sumfdiff, maxfdiff, minfdiff, meanfdiff, 
 		sumabs, maxabs, minabs, meanabs, sumsq, meansq,
@@ -116,6 +120,7 @@ module NumericExtensions
 	
 	include("vbroadcast.jl")
 	include("diagop.jl")
+	include("transforms.jl")
 
 	include("reduce.jl")
 	include("mapreduce.jl")
