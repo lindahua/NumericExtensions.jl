@@ -548,6 +548,7 @@ end
 ### reduction operations
 
 type Sum <: Reduc end
+combine(::Type{Sum}, x, y) = x + y
 
 init{T<:Number}(::Type{Sum}, ::Type{T}) = zero(T)
 init{T<:Unsigned}(::Type{Sum}, ::Type{T}) = uint(0)
@@ -558,12 +559,15 @@ init(::Type{Sum}, ::Type{Int128}) = int128(0)
 init(::Type{Sum}, ::Type{Uint128}) = uint128(0)
 init(::Type{Sum}, ::Type{Bool}) = 0
 
-combine(::Type{Sum}, x, y) = x + y
+type Maximum <: Reduc end
+combine(::Type{Maximum}, x, y) = ifelse(y > x, y, x)
+init{T<:Real}(::Type{Maximum}, ::Type{T}) = typemin(T)
 
+type Minimum <: Reduc end
+combine(::Type{Minimum}, x, y) = ifelse(y < x, y, x)
+init{T<:Real}(::Type{Minimum}, ::Type{T}) = typemax(T)
 
-
-
-
-
-
+type NonnegMaximum <: Reduc end
+combine(::Type{NonnegMaximum}, x, y) = ifelse(y > x, y, x)
+init{T<:Real}(::Type{NonnegMaximum}, ::Type{T}) = zero(T)
 
