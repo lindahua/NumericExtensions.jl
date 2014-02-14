@@ -27,27 +27,26 @@ function codegen_helper(::ArgInfo{0})
 end
 
 function codegen_helper(::ArgInfo{-2})
-    aparams = [:(f::Functor{1}), :(a1::ContiguousArrOrNum), :(a2::ContiguousArrOrNum)]
-    args = [:f, :a1, :a2]
-    offset_args = [:f, :(offset_view(a1, ao, m, n)), :(offset_view(a2, ao, m, n))]
-    term = idx->:(evaluate(f, getvalue(a1, $idx) - getvalue(a2, $idx)))
-    inputsize = :(mapshape(a1, a2))
-    inputlen = :(maplength(a1, a2))
-    termtype = :(result_type(f, promote_type(eltype(a1), eltype(a2))))
+    aparams = [:(fun::Functor{1}), :(a::ContiguousArrOrNum), :(b::ContiguousArrOrNum)]
+    args = [:fun, :a, :b]
+    offset_args = [:fun, :(offset_view(a, ao, m, n)), :(offset_view(b, ao, m, n))]
+    term = idx->:(evaluate(fun, getvalue(a, $idx) - getvalue(b, $idx)))
+    inputsize = :(mapshape(a, b))
+    inputlen = :(maplength(a, b))
+    termtype = :(result_type(fun, promote_type(eltype(a), eltype(b))))
     return CodegenHelper(aparams, args, offset_args, term, inputsize, inputlen, termtype)
 end
 
 function codegen_helper{N}(::ArgInfo{N})
     @assert N >= 1
-
-    aargs = [symbol("a$i") for i = 1 : N]
-    aparams = [:(f::Functor{$N}), [:($a::ContiguousArrOrNum) for a in aargs]...]
-    args = [:f, aargs...]
-    offset_args = [:f, [:(offset_view($a, ao, m, n)) for a in aargs]...]
-    term = idx->Expr(:call, :evaluate, :f, [:(getvalue($a, $idx)) for a in aargs]...)
+    aargs = [symbol('a' + (i-1)) for i = 1 : N]
+    aparams = [:(fun::Functor{$N}), [:($a::ContiguousArrOrNum) for a in aargs]...]
+    args = [:fun, aargs...]
+    offset_args = [:fun, [:(offset_view($a, ao, m, n)) for a in aargs]...]
+    term = idx->Expr(:call, :evaluate, :fun, [:(getvalue($a, $idx)) for a in aargs]...)
     inputsize = Expr(:call, :mapshape, aargs...)
     inputlen = Expr(:call, :maplength, aargs...)
-    termtype = Expr(:call, :result_type, :f, [:(eltype($a)) for a in aargs]...)
+    termtype = Expr(:call, :result_type, :fun, [:(eltype($a)) for a in aargs]...)
     return CodegenHelper(aparams, args, offset_args, term, inputsize, inputlen, termtype)
 end
 

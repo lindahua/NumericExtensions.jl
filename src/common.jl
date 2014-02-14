@@ -5,7 +5,8 @@ typealias DenseMatrix{T} DenseArray{T,2}
 typealias DenseVecOrMat{T} Union(DenseVector{T},DenseMatrix{T})
 
 typealias NumericArray{T<:Number,N} DenseArray{T,N}
-typealias ArrOrNum{T<:Number} Union(DenseArray{T}, T) 
+typealias DenseArrOrNum{T<:Number} Union(DenseArray{T}, T) 
+typealias ArrayOrNum{T<:Number} Union(Array{T}, T)
 
 typealias NumericVector{T<:Number} DenseVector{T}
 typealias NumericMatrix{T<:Number} DenseMatrix{T}

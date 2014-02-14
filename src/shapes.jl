@@ -61,7 +61,10 @@ mapshape(a1::Number, a2::AbstractArray) = size(a2)
 mapshape(a1::AbstractArray, a2::AbstractArray) = mapshape(size(a1), size(a2))
 
 mapshape(a1::Number, a2::Number, a3::Number, ra::Number...) = ()
-mapshape(a1::ArrOrNum, a2::ArrOrNum, a3::ArrOrNum, ra::ArrOrNum...) = mapshape(mapshape(a1, a2), mapshape(a3, ra...))
+mapshape(a1::Union(AbstractArray,Number), 
+         a2::Union(AbstractArray,Number), 
+         a3::Union(AbstractArray,Number), 
+         ra::Union(AbstractArray,Number)...) = mapshape(mapshape(a1, a2), mapshape(a3, ra...))
 
 
 ### Length of mapping
@@ -75,5 +78,8 @@ maplength(a1::Number, a2::AbstractArray) = length(a2)
 maplength(a1::AbstractArray, a2::AbstractArray) = prod(mapshape(a1, a2))
 
 maplength(a1::Number, a2::Number, a3::Number, ra::Number...) = 1
-maplength(a1::ArrOrNum, a2::ArrOrNum, a3::ArrOrNum, ra::ArrOrNum...) = prod(mapshape(a1, a2, a3, ra...))
+maplength(a1::Union(AbstractArray,Number), 
+          a2::Union(AbstractArray,Number), 
+          a3::Union(AbstractArray,Number), 
+          ra::Union(AbstractArray,Number)...) = prod(mapshape(a1, a2, a3, ra...))
 
