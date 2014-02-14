@@ -126,6 +126,37 @@ function saccum{Op<:Reduc}(::Type{Op}, n::Int, fun::Functor{2}, a::Array, ia::In
     return v
 end
 
+function saccum_fdiff{Op<:Reduc}(::Type{Op}, n::Int, fun::Functor{1}, a::Array, ia::Int, b::Array, ib::Int)
+    ia_end = ia + n
+    @inbounds if n <= 4
+        v = evaluate(fun, a[ia] - b[ib])
+        ia += 1
+        ib += 1
+        while ia < ia_end
+            v = combine(Op, v, evaluate(fun, a[ia] - b[ib]))
+            ia += 1
+            ib += 1
+        end
+    else
+        v1 = evaluate(fun, a[ia] - b[ib])
+        v2 = evaluate(fun, a[ia+1] - b[ib+1])
+        ia += 2
+        ib += 2
+        ia_ = ia_end - 1
+        while ia < ia_
+            v1 = combine(Op, v1, evaluate(fun, a[ia] - b[ib]))
+            v2 = combine(Op, v2, evaluate(fun, a[ia+1] - b[ib+1]))
+            ia += 2
+            ib += 2
+        end
+        v = combine(Op, v1, v2)
+        if ia < ia_end
+            v = combine(Op, v, evaluate(fun, a[ia] - b[ib]))
+        end 
+    end
+    return v
+end
+
 function saccum{Op<:Reduc}(::Type{Op}, n::Int, fun::Functor{3}, a::Array, ia::Int, b::Array, ib::Int, c::Array, ic::Int)
     ia_end = ia + n
     @inbounds if n <= 4
@@ -252,6 +283,39 @@ function saccum{Op<:Reduc}(::Type{Op}, n::Int, fun::Functor{2}, a::Array, ia::In
     return v
 end
 
+function saccum_fdiff{Op<:Reduc}(::Type{Op}, n::Int, fun::Functor{1}, a::Array, ia::Int, sa::Int, b::Array, ib::Int, sb::Int)
+    ia_end = ia + sa * n
+    @inbounds if n <= 4
+        v = evaluate(fun, a[ia] - b[ib])
+        ia += sa
+        ib += sb
+        while ia < ia_end
+            v = combine(Op, v, evaluate(fun, a[ia] - b[ib]))
+            ia += sa
+            ib += sb
+        end
+    else
+        sa2 = 2sa
+        sb2 = 2sb
+        v1 = evaluate(fun, a[ia] - b[ib])
+        v2 = evaluate(fun, a[ia + sa] - b[ib + sb])
+        ia += sa2
+        ib += sb2
+        ia_ = ia_end - sa
+        while ia < ia_
+            v1 = combine(Op, v1, evaluate(fun, a[ia] - b[ib]))
+            v2 = combine(Op, v2, evaluate(fun, a[ia + sa] - b[ib + sb]))
+            ia += sa2
+            ib += sb2
+        end
+        v = combine(Op, v1, v2)
+        if ia < ia_end
+            v = combine(Op, v, evaluate(fun, a[ia] - b[ib]))
+        end 
+    end
+    return v
+end
+
 function saccum{Op<:Reduc}(::Type{Op}, n::Int, fun::Functor{3}, a::Array, ia::Int, sa::Int, 
                                                                 b::Array, ib::Int, sb::Int, 
                                                                 c::Array, ic::Int, sc::Int)
@@ -313,6 +377,75 @@ function paccum!{Op<:Reduc}(::Type{Op}, n::Int, d::Array, id::Int, a::Array, ia:
     end
 end
 
+function paccum!{Op<:Reduc}(::Type{Op}, n::Int, d::Array, id::Int, fun::Functor{1}, a::Array, ia::Int)
+    ia_end = ia + n
+    ia_ = ia_end - 3
+    @inbounds while ia < ia_
+        d[id] = combine(Op, d[id], evaluate(fun, a[ia]))
+        d[id+1] = combine(Op, d[id+1], evaluate(fun, a[ia+1]))
+        d[id+2] = combine(Op, d[id+2], evaluate(fun, a[ia+2]))
+        d[id+3] = combine(Op, d[id+3], evaluate(fun, a[ia+3]))
+        ia += 4
+        id += 4
+    end
+ 
+    @inbounds while ia < ia_end
+        d[id] = combine(Op, d[id], evaluate(fun, a[ia]))
+        id += 1
+        ia += 1
+    end
+end
+
+function paccum!{Op<:Reduc}(::Type{Op}, n::Int, d::Array, id::Int, fun::Functor{2}, a::Array, ia::Int, b::Array, ib::Int)
+    ia_end = ia + n
+    ia_ = ia_end - 1
+    @inbounds while ia < ia_
+        d[id] = combine(Op, d[id], evaluate(fun, a[ia], b[ib]))
+        d[id+1] = combine(Op, d[id+1], evaluate(fun, a[ia+1], b[ib+1]))
+        ia += 2
+        ib += 2
+        id += 2
+    end
+ 
+    @inbounds if ia < ia_end
+        d[id] = combine(Op, d[id], evaluate(fun, a[ia], b[ib]))
+    end
+end
+
+function paccum_fdiff!{Op<:Reduc}(::Type{Op}, n::Int, d::Array, id::Int, fun::Functor{1}, a::Array, ia::Int, b::Array, ib::Int)
+    ia_end = ia + n
+    ia_ = ia_end - 1
+    @inbounds while ia < ia_
+        d[id] = combine(Op, d[id], evaluate(fun, a[ia] - b[ib]))
+        d[id+1] = combine(Op, d[id+1], evaluate(fun, a[ia+1] - b[ib+1]))
+        ia += 2
+        ib += 2
+        id += 2
+    end
+ 
+    @inbounds if ia < ia_end
+        d[id] = combine(Op, d[id], evaluate(fun, a[ia] - b[ib]))
+    end
+end
+
+function paccum!{Op<:Reduc}(::Type{Op}, n::Int, d::Array, id::Int, fun::Functor{3}, a::Array, ia::Int, b::Array, ib::Int, c::Array, ic::Int)
+    ia_end = ia + n
+    ia_ = ia_end - 1
+    @inbounds while ia < ia_
+        d[id] = combine(Op, d[id], evaluate(fun, a[ia], b[ib], c[ic]))
+        d[id+1] = combine(Op, d[id+1], evaluate(fun, a[ia+1], b[ib+1], c[ic+1]))
+        ia += 2
+        ib += 2
+        ic += 2
+        id += 2
+    end
+ 
+    @inbounds if ia < ia_end
+        d[id] = combine(Op, d[id], evaluate(fun, a[ia], b[ib], c[ic]))
+    end
+end
+
+
 function paccum!{Op<:Reduc}(::Type{Op}, n::Int, d::Array, id::Int, sd::Int, a::Array, ia::Int, sa::Int)
     ia_end = ia + sa * n
     sa2 = 2sa
@@ -329,6 +462,87 @@ function paccum!{Op<:Reduc}(::Type{Op}, n::Int, d::Array, id::Int, sd::Int, a::A
         d[id] = combine(Op, d[id], a[ia])
     end
 end
+
+function paccum!{Op<:Reduc}(::Type{Op}, n::Int, d::Array, id::Int, sd::Int, fun::Functor{1}, a::Array, ia::Int, sa::Int)
+    ia_end = ia + sa * n
+    sa2 = 2sa
+    sd2 = 2sd
+    ia_ = ia_end - sa
+    @inbounds while ia < ia_
+        d[id] = combine(Op, d[id], evaluate(fun, a[ia]))
+        d[id + sd] = combine(Op, d[id+sd], evaluate(fun, a[ia + sa]))
+        ia += sa2
+        id += sd2
+    end
+ 
+    @inbounds if ia < ia_end
+        d[id] = combine(Op, d[id], evaluate(fun, a[ia]))
+    end
+end
+
+function paccum!{Op<:Reduc}(::Type{Op}, n::Int, d::Array, id::Int, sd::Int, fun::Functor{2}, a::Array, ia::Int, sa::Int,
+                                                                                             b::Array, ib::Int, sb::Int)
+    ia_end = ia + sa * n
+    sa2 = 2sa
+    sb2 = 2sb
+    sd2 = 2sd
+    ia_ = ia_end - sa
+    @inbounds while ia < ia_
+        d[id] = combine(Op, d[id], evaluate(fun, a[ia], b[ib]))
+        d[id + sd] = combine(Op, d[id+sd], evaluate(fun, a[ia + sa], b[ib + sb]))
+        ia += sa2
+        ib += sb2
+        id += sd2
+    end
+ 
+    @inbounds if ia < ia_end
+        d[id] = combine(Op, d[id], evaluate(fun, a[ia], b[ib]))
+    end
+end
+
+function paccum_fdiff!{Op<:Reduc}(::Type{Op}, n::Int, d::Array, id::Int, sd::Int, fun::Functor{1}, a::Array, ia::Int, sa::Int,
+                                                                                                   b::Array, ib::Int, sb::Int)
+    ia_end = ia + sa * n
+    sa2 = 2sa
+    sb2 = 2sb
+    sd2 = 2sd
+    ia_ = ia_end - sa
+    @inbounds while ia < ia_
+        d[id] = combine(Op, d[id], evaluate(fun, a[ia] - b[ib]))
+        d[id + sd] = combine(Op, d[id+sd], evaluate(fun, a[ia + sa] - b[ib + sb]))
+        ia += sa2
+        ib += sb2
+        id += sd2
+    end
+ 
+    @inbounds if ia < ia_end
+        d[id] = combine(Op, d[id], evaluate(fun, a[ia] - b[ib]))
+    end
+end
+
+function paccum!{Op<:Reduc}(::Type{Op}, n::Int, d::Array, id::Int, sd::Int, fun::Functor{3}, a::Array, ia::Int, sa::Int,
+                                                                                             b::Array, ib::Int, sb::Int,
+                                                                                             c::Array, ic::Int, sc::Int)
+    ia_end = ia + sa * n
+    sa2 = 2sa
+    sb2 = 2sb
+    sc2 = 2sc
+    sd2 = 2sd
+    ia_ = ia_end - sa
+    @inbounds while ia < ia_
+        d[id] = combine(Op, d[id], evaluate(fun, a[ia], b[ib], c[ic]))
+        d[id + sd] = combine(Op, d[id+sd], evaluate(fun, a[ia + sa], b[ib + sb], c[ic+sc]))
+        ia += sa2
+        ib += sb2
+        ic += sc2
+        id += sd2
+    end
+ 
+    @inbounds if ia < ia_end
+        d[id] = combine(Op, d[id], evaluate(fun, a[ia], b[ib], c[ic]))
+    end
+end
+
 
 
 ### reduction operations
