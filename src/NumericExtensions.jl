@@ -122,9 +122,11 @@ module NumericExtensions
     include("diagop.jl")
     include("transforms.jl")
 
+    include("rkernels.jl")
     include("reduce.jl")
     include("mapreduce.jl")
     include("reducedim.jl")
+    include("newreducedim.jl")
 
     include("norms.jl")
     include("scan.jl")

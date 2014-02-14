@@ -5,29 +5,7 @@ using Base.Test
 
 ### safe (but slow) reduction functions for result verification
 
-function safe_sum(x)
-    r = zero(eltype(x))
-    for i in 1 : length(x)
-        r = r + x[i]
-    end
-    r
-end
-
-function safe_max(x)
-    r = typemin(eltype(x))
-    for i in 1 : length(x)
-        r = max(r, x[i])
-    end
-    r
-end
-
-function safe_min(x)
-    r = typemax(eltype(x))
-    for i in 1 : length(x)
-        r = min(r, x[i])
-    end
-    r
-end
+import NumericExtensions: safe_sum, safe_max, safe_min
 
 function rsize(x::Array, dim::Int)
     if 1 <= dim <= ndims(x)
