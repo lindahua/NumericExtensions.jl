@@ -1,3 +1,4 @@
+using ArrayViews
 using NumericExtensions
 using Base.Test
 
@@ -14,6 +15,26 @@ b2 = 2 * rand(8, 7) - 1.0
 b3 = 2 * rand(8, 7, 6) - 1.0
 b4 = 2 * rand(8, 7, 6, 5) - 1.0
 
+ua1 = view(a1, 1:6)
+ub1 = view(b1, 2:7)
+va1 = view(a1, 1:2:7)
+vb1 = view(b1, 3:1:6)
+
+ua2 = view(a2, 1:6, 1:5)
+ub2 = view(b2, 2:7, 2:6)
+va2 = view(a2, 1:2:7, 1:5)
+vb2 = view(b2, 3:1:6, 2:6)
+
+ua3 = view(a3, 1:6, 1:5, 1:3)
+ub3 = view(b3, 2:7, 2:6, 3:5)
+va3 = view(a3, 1:2:7, 1:5, 1:3)
+vb3 = view(b3, 3:1:6, 2:6, 3:5)
+
+ua4 = view(a4, 1:6, 1:5, 1:3, 1:4)
+ub4 = view(b4, 2:7, 2:6, 3:5, 2:5)
+va4 = view(a4, 1:2:7, 1:5, 1:3, 1:4)
+vb4 = view(b4, 3:1:6, 2:6, 3:5, 2:5)
+
 p1 = rand(8)
 p2 = rand(8, 7)
 p3 = rand(8, 7, 6)
@@ -24,8 +45,8 @@ q2 = rand(8, 7)
 q3 = rand(8, 7, 6)
 q4 = rand(8, 7, 6, 5)
 
-arrs_a = {a1, a2, a3, a4}
-arrs_b = {a1, a2, a3, a4}
+arrs_a = {a1, a2, a3, a4, ua1, va1, ua2, va2, ua3, va3, ua4, va4}
+arrs_b = {b1, b2, b3, b4, ub1, vb1, ub2, vb2, ub3, vb3, ub4, vb4}
 arrs_p = {p1, p2, p3, p4}
 arrs_q = {q1, q2, q3, q4}
 
@@ -41,22 +62,22 @@ tdims = {
 
 # auxiliary
 
-safe_sumdim(a::Array, reg) = invoke(sum, (AbstractArray{Float64}, Any), a, reg)
-safe_maxdim(a::Array, reg) = invoke(maximum, (AbstractArray{Float64}, Any), a, reg)
-safe_mindim(a::Array, reg) = invoke(minimum, (AbstractArray{Float64}, Any), a, reg)
-safe_meandim(a::Array, reg) = invoke(mean, (AbstractArray{Float64}, Any), a, reg)
+safe_sumdim(a::DenseArray, reg) = invoke(sum, (AbstractArray{Float64}, Any), copy(a), reg)
+safe_maxdim(a::DenseArray, reg) = invoke(maximum, (AbstractArray{Float64}, Any), copy(a), reg)
+safe_mindim(a::DenseArray, reg) = invoke(minimum, (AbstractArray{Float64}, Any), copy(a), reg)
+safe_meandim(a::DenseArray, reg) = invoke(mean, (AbstractArray{Float64}, Any), copy(a), reg)
 
-do_sum(a::Array, reg) = sum!(zeros(Base.reduced_dims(size(a), reg)), a, reg)
-do_maximum(a::Array, reg) = maximum!(fill(-Inf, Base.reduced_dims(size(a), reg)), a, reg)
-do_minimum(a::Array, reg) = minimum!(fill(Inf, Base.reduced_dims(size(a), reg)), a, reg)
-do_mean(a::Array, reg) = mean!(rand(Base.reduced_dims(size(a), reg)), a, reg)
+do_sum(a::DenseArray, reg) = sum!(zeros(Base.reduced_dims(size(a), reg)), a, reg)
+do_maximum(a::DenseArray, reg) = maximum!(fill(-Inf, Base.reduced_dims(size(a), reg)), a, reg)
+do_minimum(a::DenseArray, reg) = minimum!(fill(Inf, Base.reduced_dims(size(a), reg)), a, reg)
+do_mean(a::DenseArray, reg) = mean!(rand(Base.reduced_dims(size(a), reg)), a, reg)
 
 # testing of basic functions
 
 for a in arrs_a
     nd = ndims(a)
     for reg in tdims[nd]
-        println("ND = $(nd): region = $(reg)")
+        println("ND = $nd, siz = $(size(a)): region = $(reg)")
         # println("which: $(which(sum, a, reg))")
         saferes = safe_sumdim(a, reg)
         @test_approx_eq sum(a, reg) saferes

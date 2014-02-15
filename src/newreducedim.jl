@@ -40,6 +40,7 @@ macro compose_reducedim(fun, OT, AN)
     fun! = symbol(string(fun, '!'))
     _fun! = symbol(string('_', fun!))
     _funimpl! = symbol(string('_', fun, "impl!"))
+    _funimpl1d! = symbol(string('_', fun, "impl1d!"))
     _funimpl2d! = symbol(string('_', fun, "impl2d!"))
 
     # code-gen preparation
@@ -52,7 +53,9 @@ macro compose_reducedim(fun, OT, AN)
     paccumf! = AN >= 0 ? :paccum! : :paccum_fdiff!
 
     if AN == 0
+        imparams1d = [:(a::ContiguousArray), :(ia::Int), :(sa1::Int)]
         imparams2d = [:(a::ContiguousArray), :(ia::Int), :(sa1::Int), :(sa2::Int)]
+        imargs1d = [:(parent(a)), :ia, :sa1]
         imargs2d = [:(parent(a)), :ia, :sa1, :sa2]
         eviewargs = [:(ellipview(a, i))]
         getoffsets = :(ia = offset(a) + 1)
@@ -63,7 +66,9 @@ macro compose_reducedim(fun, OT, AN)
         kargs = [:a, :ia]
         kargs1 = [:a, :ia, :sa1]
     elseif AN == 1
+        imparams1d = [:(fun::Functor{1}), :(a::ContiguousArray), :(ia::Int), :(sa1::Int)]
         imparams2d = [:(fun::Functor{1}), :(a::ContiguousArray), :(ia::Int), :(sa1::Int), :(sa2::Int)]
+        imargs1d = [:fun, :(parent(a)), :ia, :sa1]
         imargs2d = [:fun, :(parent(a)), :ia, :sa1, :sa2]
         eviewargs = [:fun, :(ellipview(a, i))]
         getoffsets = :(ia = offset(a) + 1)
@@ -75,8 +80,12 @@ macro compose_reducedim(fun, OT, AN)
         kargs1 = [:fun, :a, :ia, :sa1]
     elseif AN == 2 || AN == -2
         FN = AN == 2 ? 2 : 1
+        imparams1d = [:(fun::Functor{$FN}), :(a::ContiguousArrOrNum), :(ia::Int), :(sa1::Int), 
+                                            :(b::ContiguousArrOrNum), :(ib::Int), :(sb1::Int)]
         imparams2d = [:(fun::Functor{$FN}), :(a::ContiguousArrOrNum), :(ia::Int), :(sa1::Int), :(sa2::Int), 
                                             :(b::ContiguousArrOrNum), :(ib::Int), :(sb1::Int), :(sb2::Int)]
+        imargs1d = [:fun, :(parent(a)), :ia, :sa1, 
+                          :(parent(b)), :ib, :sb1]
         imargs2d = [:fun, :(parent(a)), :ia, :sa1, :sa2, 
                           :(parent(b)), :ib, :sb1, :sb2]
         eviewargs = [:fun, :(ellipview(a, i)), :(ellipview(b, i))]
@@ -91,9 +100,15 @@ macro compose_reducedim(fun, OT, AN)
         kargs = [:fun, :a, :ia, :b, :ib]
         kargs1 = [:fun, :a, :ia, :sa1, :b, :ib, :sb1]
     elseif AN == 3
+        imparams1d = [:(fun::Functor{3}), :(a::ContiguousArrOrNum), :(ia::Int), :(sa1::Int), 
+                                          :(b::ContiguousArrOrNum), :(ib::Int), :(sb1::Int), 
+                                          :(c::ContiguousArrOrNum), :(ic::Int), :(sc1::Int)]
         imparams2d = [:(fun::Functor{3}), :(a::ContiguousArrOrNum), :(ia::Int), :(sa1::Int), :(sa2::Int), 
                                           :(b::ContiguousArrOrNum), :(ib::Int), :(sb1::Int), :(sb2::Int), 
                                           :(c::ContiguousArrOrNum), :(ic::Int), :(sc1::Int), :(sc2::Int)]
+        imargs1d = [:fun, :(parent(a)), :ia, :sa1, 
+                          :(parent(b)), :ib, :sb1, 
+                          :(parent(c)), :ic, :sc1]
         imargs2d = [:fun, :(parent(a)), :ia, :sa1, :sa2, 
                           :(parent(b)), :ib, :sb1, :sb2, 
                           :(parent(c)), :ic, :sc1, :sc2]
@@ -117,6 +132,24 @@ macro compose_reducedim(fun, OT, AN)
 
 
     quote
+        global $(_funimpl1d!)
+        function $(_funimpl1d!)(r1::Bool, n::Int, 
+                                dst::ContiguousArray, idst::Int, sdst1::Int, $(imparams1d...))
+            if r1
+                if $(contcol)
+                    dst[1] = combine($OT, dst[1], $(saccumf)($OT, n, $(kargs...)))
+                else
+                    dst[1] = combine($OT, dst[1], $(saccumf)($OT, n, $(kargs1...)))
+                end
+            else
+                if $(contcol) && (sdst1 == 1)
+                    $(paccumf!)($OT, n, dst, idst, $(kargs...))
+                else
+                    $(paccumf!)($OT, n, dst, idst, sdst1, $(kargs1...))
+                end
+            end            
+        end
+
         global $(_funimpl2d!)
         function $(_funimpl2d!)(r2::Bool, r1::Bool, m::Int, n::Int, 
                                 dst::ContiguousArray, idst::Int, sdst1::Int, sdst2::Int, 
@@ -135,7 +168,7 @@ macro compose_reducedim(fun, OT, AN)
                         s = $(saccumf)($OT, m, $(kargs1...))
                         $(nextcol)
                         for j = 2:n
-                            s = combine($OT, $(saccumf)($OT, m, $(kargs1...)))
+                            s = combine($OT, s, $(saccumf)($OT, m, $(kargs1...)))
                             $(nextcol)
                         end
                         dst[idst] = combine($OT, dst[idst], s)
@@ -193,19 +226,7 @@ macro compose_reducedim(fun, OT, AN)
             sdst1 = stride(dst, 1)::Int
             $(getoffsets)
             idst = offset(dst) + 1
-            if r1
-                if $(contcol)
-                    dst[1] = combine($OT, dst[1], $(saccumf)($OT, n, $(kargs...)))
-                else
-                    dst[1] = combine($OT, dst[1], $(saccumf)($OT, n, $(kargs1...)))
-                end
-            else
-                if $(contcol) && (sdst1 == 1)
-                    $(paccumf!)($OT, n, dst, idst, $(kargs...))
-                else
-                    $(paccumf!)($OT, n, dst, idst, sdst1, $(kargs1...))
-                end
-            end
+            $(_funimpl1d!)(r1, n, parent(dst), idst, sdst1, $(imargs1d...))
         end
 
         function $(_funimpl!)(dst::DenseArray, $(aparams...), dim::Int, insiz::Dims, r2::Bool, r1::Bool)
