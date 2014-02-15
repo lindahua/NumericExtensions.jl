@@ -6,61 +6,53 @@
 #
 #################################################
 
-function vnorm(x::ContiguousRealArray, p::Real)
-    if !(p > 0)
-        throw(ArgumentError("p must be positive."))
-    end
+function vnorm(x::NumericArray, p::Real)
+    p > 0 || throw(ArgumentError("p must be positive."))
     p == 1 ? sumabs(x) :
     p == 2 ? sqrt(sumsq(x)) :   
     isinf(p) ? maxabs(x) :
     sum(FixAbsPow(p), x) .^ inv(p)
 end
 
-vnorm(x::ContiguousRealArray) = vnorm(x, 2)
+vnorm(x::NumericArray) = vnorm(x, 2)
 
-function vnorm!(dst::ContiguousRealArray, x::ContiguousRealArray, p::Real, dims::DimSpec)
-    if !(p > 0)
-        throw(ArgumentError("p must be positive."))
-    end
+function vnorm!(dst::NumericArray, x::NumericArray, p::Real, dims::DimSpec)
+    p > 0 || throw(ArgumentError("p must be positive."))
     p == 1 ? sumabs!(dst, x, dims) :
     p == 2 ? map1!(SqrtFun(), sumsq!(dst, x, dims)) :   
     isinf(p) ? maxabs!(dst, x, dims) :
     map1!(FixAbsPow(inv(p)), sum!(dst, FixAbsPow(p), x, dims))
 end
 
-function vnorm(x::ContiguousRealArray, p::Real, dims::DimSpec) 
+function vnorm(x::NumericArray, p::Real, dims::DimSpec) 
     tt = promote_type(fptype(eltype(x)), fptype(typeof(p)))
-    r = Array(tt, reduced_shape(size(x), dims))
+    r = Array(tt, Base.reduced_dims(size(x), dims))
     vnorm!(r, x, p, dims)
 end
 
 # vnormdiff
 
-function vnormdiff(x::ContiguousRealArray, y::ContiguousArrOrNum, p::Real)
-    if !(p > 0)
-        throw(ArgumentError("p must be positive."))
-    end
+function vnormdiff(x::DenseArrOrNum, y::DenseArrOrNum, p::Real)
+    p > 0 || throw(ArgumentError("p must be positive."))
     p == 1 ? sumabsdiff(x, y) :
     p == 2 ? sqrt(sumsqdiff(x, y)) :    
     isinf(p) ? maxabsdiff(x, y) :
     sumfdiff(FixAbsPow(p), x, y) .^ inv(p)
 end
 
-vnormdiff(x::ContiguousRealArray, y::ContiguousArrOrNum) = vnormdiff(x, y, 2)
+vnormdiff(x::DenseArrOrNum, y::DenseArrOrNum) = vnormdiff(x, y, 2)
 
-function vnormdiff!(dst::ContiguousRealArray, x::ContiguousRealArray, y::ContiguousArrOrNum, p::Real, dims::DimSpec)
-    if !(p > 0)
-        throw(ArgumentError("p must be positive."))
-    end
+function vnormdiff!(dst::NumericArray, x::DenseArrOrNum, y::DenseArrOrNum, p::Real, dims::DimSpec)
+    p > 0 || throw(ArgumentError("p must be positive."))
     p == 1 ? sumabsdiff!(dst, x, y, dims) :
     p == 2 ? map1!(SqrtFun(), sumsqdiff!(dst, x, y, dims)) :    
     isinf(p) ? maxabsdiff!(dst, x, y, dims) :
     map1!(FixAbsPow(inv(p)), sumfdiff!(dst, FixAbsPow(p), x, y, dims))
 end
 
-function vnormdiff(x::ContiguousRealArray, y::ContiguousRealArray, p::Real, dims::DimSpec) 
+function vnormdiff(x::DenseArrOrNum, y::DenseArrOrNum, p::Real, dims::DimSpec) 
     tt = promote_type(fptype(promote_type(eltype(x), eltype(y))), fptype(typeof(p)))
-    r = Array(tt, reduced_shape(size(x), dims))
+    r = Array(tt, Base.reduced_dims(size(x), dims))
     vnormdiff!(r, x, y, p, dims)
 end
 
@@ -81,13 +73,9 @@ normalize(x::ContiguousRealArray, p::Real) = x * inv(vnorm(x, p))
 
 # normalize along specific dimension
 
-function normalize!(dst::ContiguousRealArray, x::ContiguousRealArray, p::Real, d::Int)
-    if !(p > 0)
-        throw(ArgumentError("p must be positive."))
-    end
-    if length(dst) != length(x)
-        throw(ArgumentError("Inconsistent argument dimensions!"))
-    end
+function normalize!(dst::ContiguousRealArray, x::ContiguousRealArray, p::Real, d::Integer)
+    p > 0 || throw(ArgumentError("p must be positive."))
+    length(dst) == length(x) || throw(ArgumentError("Inconsistent argument dimensions!"))
 
     if d == 1
         siz = size(x)
