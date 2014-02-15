@@ -140,7 +140,7 @@ module NumericExtensions
 
     # include("pdmat.jl")
 
-    # include("benchmark.jl")
+    include("benchmark.jl")
 
     include("deprecates.jl")
 end
