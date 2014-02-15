@@ -3,209 +3,150 @@
 
 #################################################
 #
-#    generic folding
+#    Folding
 #
 #################################################
 
-function _foldl(ifirst::Int, ilast::Int, op::Functor{2}, s::Number, a::NumericArray)
-    i = ifirst
-    while i <= ilast
-        @inbounds ai = a[i]
-        s = evaluate(op, s, ai)
-        i += 1
-    end
-    return s
-end
+macro compose_foldfuns(AN, foldlf, foldrf)
+    # argument preparation
 
-foldl(op::Functor{2}, s::Number, a::NumericArray) = _foldl(1, length(a), op, s, a)
-foldl(op::Functor{2}, a::NumericArray) = _foldl(2, length(a), op, a[1], a)
+    _foldlf = symbol("_$(foldlf)")
+    _foldrf = symbol("_$(foldrf)")
 
+    h = codegen_helper(AN)
+    ti = h.term(:i)
+    t1 = h.term(1)
+    tn = h.term(:n)
 
-function _foldr(ifirst::Int, ilast::Int, op::Functor{2}, s::Number, a::NumericArray)
-    i = ilast
-    while i >= ifirst
-        @inbounds ai = a[i]
-        s = evaluate(op, ai, s)
-        i -= 1
-    end
-    return s
-end
+    # code skeletons
 
-foldr(op::Functor{2}, s::Number, a::NumericArray) = _foldr(1, length(a), op, s, a)
-foldr(op::Functor{2}, a::NumericArray) = _foldr(1, length(a)-1, op, a[end], a)
+    quote
+        # foldl & foldr
 
-
-#################################################
-#
-#    sum & mean
-#
-#################################################
-
-## 
-#  sequential sum
-# 
-function seqsum{T}(a::NumericArray{T}, ifirst::Int, ilast::Int)
-
-    @inbounds if ifirst + 3 >= ilast
-        s = zero(T)
-        i = ifirst
-        while i <= ilast
-            s += a[i]
-            i += 1
-        end
-        return s
-
-    else # a has more than four elements
-
-        # the purpose of using multiple accumulators here
-        # is to leverage instruction pairing to hide 
-        # read-after-write latency. Benchmark shows that
-        # this can lead to considerable performance
-        # improvement (nearly 2x).      
-
-        s1 = a[ifirst]
-        s2 = a[ifirst + 1]
-        s3 = a[ifirst + 2]
-        s4 = a[ifirst + 3]
-
-        i = ifirst + 4
-        il = ilast - 3
-        while i <= il
-            s1 += a[i]
-            s2 += a[i+1]
-            s3 += a[i+2]
-            s4 += a[i+3]
-            i += 4
+        global $_foldlf 
+        function $(_foldlf)(ifirst::Int, ilast::Int, op::Functor{2}, s::Number, $(h.aparams...))
+            i = ifirst
+            while i <= ilast
+                @inbounds vi = $(ti)
+                s = evaluate(op, s, vi)
+                i += 1
+            end
+            return s
         end
 
-        while i <= ilast
-            s1 += a[i]
-            i += 1
+        global $foldlf
+        $(foldlf)(op::Functor{2}, s::Number, $(h.aparams...)) = $(_foldlf)(1, $(h.inputlen), op, s, $(h.args...))
+        function $(foldlf)(op::Functor{2}, $(h.aparams...)) 
+            n = $(h.inputlen)
+            n > 0 || error("Empty argument not allowed.")
+            s = $(t1)
+            $(_foldlf)(2, n, op, s, $(h.args...))
         end
 
-        return s1 + s2 + s3 + s4
+        global $_foldrf
+        function $(_foldrf)(ifirst::Int, ilast::Int, op::Functor{2}, s::Number, $(h.aparams...))
+            i = ilast
+            while i >= ifirst
+                @inbounds vi = $(ti)
+                s = evaluate(op, vi, s)
+                i -= 1
+            end
+            return s
+        end
+
+        global $foldrf
+        $(foldrf)(op::Functor{2}, s::Number, $(h.aparams...)) = $(_foldrf)(1, $(h.inputlen), op, s, $(h.args...))
+        function $(foldrf)(op::Functor{2}, $(h.aparams...))
+            n = $(h.inputlen)
+            n > 0 || error("Empty argument not allowed.")
+            s = $(tn)
+            $(_foldrf)(1, n-1, op, s, $(h.args...))
+        end
+
     end
 end
 
-seqsum(a::NumericArray) = seqsum(a, 1, length(a))
-
-const CASSUM_BLOCKLEN = 1024
-
-##
-#
-#  cascade sum
-#
-function cassum(a::NumericArray, ifirst::Int, ilast::Int)
-    if ifirst + CASSUM_BLOCKLEN >= ilast
-        seqsum(a, ifirst, ilast)
-    else
-        imid = ifirst + ((ilast - ifirst) >> 1)
-        cassum(a, ifirst, imid) + cassum(a, imid+1, ilast)
-    end
-end
-
-
-cassum(a::NumericArray, ifirst::Integer, ilast::Integer) = cassum(a, int(ifirst), int(ilast))
-cassum(a::NumericArray) = cassum(a, 1, length(a))
-
-_sum(ifirst::Int, ilast::Int, a::NumericArray) = cassum(a, ifirst, ilast)
-
+@compose_foldfuns 0 foldl foldr
+@compose_foldfuns 1 foldl foldr
+@compose_foldfuns 2 foldl foldr
+@compose_foldfuns 3 foldl foldr
+@compose_foldfuns (-2) foldl_fdiff foldr_fdiff
 
 
 #################################################
 #
-#    maximum & minimum
+#    Sum, Maximum, Minimum, and Mean
 #
 #################################################
 
-gt_or_nan(s::Number, x) = (s > x)
-lt_or_nan(s::Number, x) = (s < x)
+macro compose_mapreduce_funs(rf, rfdiff, OT)
+    quote
+        global $(rf)
+        $(rf)(fun::Functor{1}, a::ContiguousNumericArray) = 
+            (n = length(a); n > 0 ? saccum($OT, n, fun, a, 1) : 
+                                    init($OT, result_type(fun, eltype(a))))
 
-gt_or_nan(s::FloatingPoint, x) = (s > x || s != s)
-lt_or_nan(s::FloatingPoint, x) = (s < x || s != s)
-
-
-function _maximum{T<:Integer}(ifirst::Int, ilast::Int, a::NumericArray{T})
-    if ifirst > ilast
-        error("Argument for maximum cannot be empty.")
-    end
-    @inbounds s = a[ifirst]
-
-    i = ifirst + 1
-    while i <= ilast
-        @inbounds ai = a[i]
-        if ai > s
-            s = ai
+        function $(rf)(fun::Functor{2}, a::ContiguousArrOrNum, b::ContiguousArrOrNum)
+            n = maplength(a, b); 
+            n > 0 ? saccum($OT, n, fun, a, 1, b, 1) : 
+                    init($OT, result_type(fun, eltype(a), eltype(b)))
         end
-        i += 1
+
+        function $(rf)(fun::Functor{3}, a::ContiguousArrOrNum, b::ContiguousArrOrNum, c::ContiguousArrOrNum)
+            n = maplength(a, b, c); 
+            n > 0 ? saccum($OT, n, fun, a, 1, b, 1, c, 1) : 
+                    init($OT, result_type(fun, eltype(a), eltype(b), eltype(c)))
+        end
+
+        global $(rfdiff)
+        function $(rfdiff)(fun::Functor{1}, a::ContiguousArrOrNum, b::ContiguousArrOrNum)
+            n = maplength(a, b); 
+            n > 0 ? saccum_fdiff($OT, n, fun, a, 1, b, 1) : 
+                    init($OT, result_type(fun, promote_type(eltype(a), eltype(b))))
+        end
     end
-    return s
 end
 
-function _maximum{T<:FloatingPoint}(ifirst::Int, ilast::Int, a::NumericArray{T})
-    if ifirst > ilast
-        error("Argument for maximum cannot be empty.")
-    end
-    @inbounds s = a[ifirst]
-    
-    # locate the first non-nan value
-    i = ifirst + 1
-    while i <= ilast && s != s
-        @inbounds s = a[i]
-        i += 1
-    end
+@compose_mapreduce_funs sum sumfdiff Sum
+@compose_mapreduce_funs maximum maxfdiff Maximum
+@compose_mapreduce_funs minimum minfdiff Minimum
+@compose_mapreduce_funs nonneg_maximum nonneg_maxfdiff NonnegMaximum
 
-    # continue the remaining part
-    while i <= ilast
-        @inbounds ai = a[i]
-        if ai > s  # ai must not be NaN
-            s = ai
-        end
-        i += 1
-    end
+mean(fun::Functor{1}, a::ContiguousNumericArray) = sum(fun, a) / length(a)
+mean(fun::Functor{2}, a::ContiguousArrOrNum, b::ContiguousArrOrNum) = 
+    sum(fun, a, b) / maplength(a, b)
+mean(fun::Functor{3}, a::ContiguousArrOrNum, b::ContiguousArrOrNum, c::ContiguousArrOrNum) = 
+    sum(fun, a, b, c) / maplength(a, b, c)
+meanfdiff(fun::Functor{1}, a::ContiguousArrOrNum, b::ContiguousArrOrNum) = 
+    sumfdiff(fun, a, b) / maplength(a, b)
 
-    return s
-end
 
-function _minimum{T<:Integer}(ifirst::Int, ilast::Int, a::NumericArray{T})
-    if ifirst > ilast
-        error("Argument for minimum cannot be empty.")
-    end
-    @inbounds s = a[ifirst]
+#################################################
+#
+#    Derived functions
+#
+#################################################
 
-    i = ifirst + 1
-    while i <= ilast
-        @inbounds ai = a[i]
-        if ai < s
-            s = ai
-        end
-        i += 1
-    end
-    return s
-end
+sumabs{T<:Number}(a::ContiguousArray{T}) = sum(AbsFun(), a)
+maxabs{T<:Number}(a::ContiguousArray{T}) = nonneg_maximum(AbsFun(), a)
+minabs{T<:Number}(a::ContiguousArray{T}) = minimum(AbsFun(), a)
+meanabs{T<:Number}(a::ContiguousArray{T}) = mean(AbsFun(), a)
 
-function _minimum{T<:FloatingPoint}(ifirst::Int, ilast::Int, a::NumericArray{T})
-    if ifirst > ilast
-        error("Argument for minimum cannot be empty.")
-    end
-    @inbounds s = a[ifirst]
-    
-    # locate the first non-nan value
-    i = ifirst + 1
-    while i <= ilast && s != s
-        @inbounds s = a[i]
-        i += 1
-    end
+sumsq{T<:Real}(a::ContiguousArray{T}) = sum(Abs2Fun(), a)
+meansq{T<:Real}(a::ContiguousArray{T}) = mean(Abs2Fun(), a)
+dot{T<:Real}(a::ContiguousArray{T}, b::ContiguousArray{T}) = sum(Multiply(), a, b)
 
-    # continue the remaining part
-    while i <= ilast
-        @inbounds ai = a[i]
-        if ai < s  # ai must not be NaN
-            s = ai
-        end
-        i += 1
-    end
+sumabsdiff(a::ContiguousArrOrNum, b::ContiguousArrOrNum) = sumfdiff(AbsFun(), a, b)
+maxabsdiff(a::ContiguousArrOrNum, b::ContiguousArrOrNum) = nonneg_maxfdiff(AbsFun(), a, b)
+minabsdiff(a::ContiguousArrOrNum, b::ContiguousArrOrNum) = minfdiff(AbsFun(), a, b)
+meanabsdiff(a::ContiguousArrOrNum, b::ContiguousArrOrNum) = meanfdiff(AbsFun(), a, b)
 
-    return s
-end
+sumsqdiff(a::ContiguousArrOrNum, b::ContiguousArrOrNum) = sumfdiff(Abs2Fun(), a, b)
+maxsqdiff(a::ContiguousArrOrNum, b::ContiguousArrOrNum) = nonneg_maxfdiff(Abs2Fun(), a, b)
+minsqdiff(a::ContiguousArrOrNum, b::ContiguousArrOrNum) = minfdiff(Abs2Fun(), a, b)
+meansqdiff(a::ContiguousArrOrNum, b::ContiguousArrOrNum) = meanfdiff(Abs2Fun(), a, b)
+
+sumxlogx{T<:Real}(a::ContiguousArray{T}) = sum(XlogxFun(), a)
+sumxlogy{T<:Real}(a::ContiguousArray{T}, b::ContiguousArray{T}) = sum(XlogyFun(), a, b)
+entropy{T<:Real}(a::ContiguousArray{T}) = -sumxlogx(a)
 

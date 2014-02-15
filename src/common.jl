@@ -17,6 +17,14 @@ typealias ContiguousRealArray{T<:Real} ContiguousArray{T}
 
 typealias DimSpec Int
 
+parent(a::Number) = a
+
 getvalue(a::Number, i::Integer) = a
 getvalue(a::DenseArray, i::Integer) = a[i]
+
+gt_or_nan(s::Number, x) = (s > x)
+lt_or_nan(s::Number, x) = (s < x)
+
+gt_or_nan(s::FloatingPoint, x) = (s > x || s != s)
+lt_or_nan(s::FloatingPoint, x) = (s < x || s != s)
 

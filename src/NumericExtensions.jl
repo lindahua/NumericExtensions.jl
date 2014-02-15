@@ -10,7 +10,7 @@ module NumericExtensions
         Base.start, Base.next, Base.done, Base.getindex, Base.setindex!,
 
         # common operations
-        Base.show, Base.add!, Base.copy, Base.similar, Base.pointer,
+        Base.show, Base.add!, Base.copy, Base.similar, Base.pointer, Base.parent,
 
         # higher-level map & reduction functions to be extended
         Base.map, Base.map!, Base.reduce, Base.mapreduce, Base.foldl, Base.foldr,
@@ -124,7 +124,6 @@ module NumericExtensions
 
     include("rkernels.jl")
     include("reduce.jl")
-    include("mapreduce.jl")
     include("reducedim.jl")
     include("newreducedim.jl")
 
