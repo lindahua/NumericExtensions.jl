@@ -18,10 +18,20 @@ for (Op, safef) in [(Sum, safe_sum), (Maximum, safe_max), (Minimum, safe_min)]
         @test_approx_eq saccum(Op, n, a, 1, 2) safef(a[1:2:2n-1])
         @test_approx_eq saccum(Op, n, a, 3, 2) safef(a[3:2:2n+1])
 
+        @test_approx_eq saccum(Op, n, AbsFun(), a, 1) safef(abs(a[1:n]))
+        @test_approx_eq saccum(Op, n, AbsFun(), a, 3) safef(abs(a[3:n+2]))
+        @test_approx_eq saccum(Op, n, AbsFun(), a, 1, 2) safef(abs(a[1:2:2n-1]))
+        @test_approx_eq saccum(Op, n, AbsFun(), a, 3, 2) safef(abs(a[3:2:2n+1]))
+
         @test_approx_eq saccum(Op, n, Abs2Fun(), a, 1) safef(abs2(a[1:n]))
         @test_approx_eq saccum(Op, n, Abs2Fun(), a, 3) safef(abs2(a[3:n+2]))
         @test_approx_eq saccum(Op, n, Abs2Fun(), a, 1, 2) safef(abs2(a[1:2:2n-1]))
         @test_approx_eq saccum(Op, n, Abs2Fun(), a, 3, 2) safef(abs2(a[3:2:2n+1]))
+
+        @test_approx_eq saccum(Op, n, SinFun(), a, 1) safef(sin(a[1:n]))
+        @test_approx_eq saccum(Op, n, SinFun(), a, 3) safef(sin(a[3:n+2]))
+        @test_approx_eq saccum(Op, n, SinFun(), a, 1, 2) safef(sin(a[1:2:2n-1]))
+        @test_approx_eq saccum(Op, n, SinFun(), a, 3, 2) safef(sin(a[3:2:2n+1]))
 
         @test_approx_eq saccum(Op, n, Multiply(), a, 1, b, 1) safef(.*(a[1:n], b[1:n]))
         @test_approx_eq saccum(Op, n, Multiply(), a, 3, b, 4) safef(.*(a[3:n+2], b[4:n+3]))
