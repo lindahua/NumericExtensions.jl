@@ -32,7 +32,7 @@ module NumericExtensions
         Base.logdet, Base.full, Base.inv, Base.diag, Base.diagm,
 
         # view
-        ArrayViews.view, ArrayViews.ellipview
+        ArrayViews.view, ArrayViews.ellipview, ArrayViews.offset
 
     export 
         # reexport views
@@ -130,7 +130,7 @@ module NumericExtensions
 
     include("rkernels.jl")
     include("reduce.jl")
-    # include("reducedim.jl")
+    include("folddim.jl")
     include("newreducedim.jl")
 
     # include("norms.jl")

@@ -10,6 +10,7 @@ tests = [ "shapes",
           "utils",
           "rkernels",
           "reduce",
+          "folddim",
           "reducedim"
           #"norms",
           #"scan",

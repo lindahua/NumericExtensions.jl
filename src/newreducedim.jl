@@ -407,4 +407,3 @@ end
 entropy{T<:Real}(a::DenseArray{T}, dims::DimSpec) = negate!(sumxlogx(a, dims))
 entropy!{T<:Real}(r::DenseArray{T}, a::ContiguousRealArray, dims::DimSpec) = negate!(sumxlogx!(r, a, dims))
 
-
