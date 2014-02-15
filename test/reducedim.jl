@@ -1,7 +1,5 @@
-using ArrayViews
 using NumericExtensions
 using Base.Test
-
 
 ## Data preparation
 
@@ -71,13 +69,14 @@ do_sum(a::DenseArray, reg) = sum!(zeros(Base.reduced_dims(size(a), reg)), a, reg
 do_maximum(a::DenseArray, reg) = maximum!(fill(-Inf, Base.reduced_dims(size(a), reg)), a, reg)
 do_minimum(a::DenseArray, reg) = minimum!(fill(Inf, Base.reduced_dims(size(a), reg)), a, reg)
 do_mean(a::DenseArray, reg) = mean!(rand(Base.reduced_dims(size(a), reg)), a, reg)
+do_sumabs(a::DenseArray, reg) = sumabs!(zeros(Base.reduced_dims(size(a), reg)), a, reg)
 
 # testing of basic functions
 
 for a in arrs_a
     nd = ndims(a)
     for reg in tdims[nd]
-        println("ND = $nd, siz = $(size(a)): region = $(reg)")
+        # println("ND = $nd, siz = $(size(a)): region = $(reg)")
         # println("which: $(which(sum, a, reg))")
         saferes = safe_sumdim(a, reg)
         @test_approx_eq sum(a, reg) saferes
@@ -95,6 +94,50 @@ for a in arrs_a
         saferes = safe_meandim(a, reg)
         @test_approx_eq mean(a, reg) saferes
         @test_approx_eq do_mean(a, reg) saferes
+
+        @test_approx_eq sumabs(a, reg) sum(abs(a), reg)
+        @test_approx_eq do_sumabs(a, reg) sum(abs(a), reg)
+
+        @test_approx_eq maxabs(a, reg) maximum(abs(a), reg)
+        @test_approx_eq minabs(a, reg) minimum(abs(a), reg)
+        @test_approx_eq meanabs(a, reg) mean(abs(a), reg)
+        @test_approx_eq sumsq(a, reg) sum(abs2(a), reg)
+        @test_approx_eq meansq(a, reg) mean(abs2(a), reg)
+    end
+end
+
+for (a, b) in zip(arrs_a, arrs_b)
+    @assert size(a) == size(b)
+    nd = ndims(a)
+    for reg in tdims[nd]
+        # println("ND = $nd, siz = $(size(a)): region = $(reg)")
+        @test_approx_eq dot(a, b, reg) sum(a .* b, reg)
+        @test_approx_eq sumabsdiff(a, b, reg) sum(abs(a - b), reg)
+        @test_approx_eq maxabsdiff(a, b, reg) maximum(abs(a - b), reg)
+        @test_approx_eq minabsdiff(a, b, reg) minimum(abs(a - b), reg)
+        @test_approx_eq meanabsdiff(a, b, reg) mean(abs(a - b), reg)
+        @test_approx_eq sumsqdiff(a, b, reg) sum(abs2(a - b), reg)
+        @test_approx_eq meansqdiff(a, b, reg) mean(abs2(a - b), reg)
+
+        @test_approx_eq dot(a, 2.0, reg) sum(a .* 2.0, reg)
+        @test_approx_eq dot(2.0, b, reg) sum(b .* 2.0, reg)
+
+        @test_approx_eq sumsqdiff(a, 2.0, reg) sum(abs2(a - 2.0), reg)
+        @test_approx_eq sumsqdiff(2.0, b, reg) sum(abs2(2.0 - b), reg)
+
+        @test_approx_eq sum(FMA(), 2.0, a, b, reg) sum(2.0 + a .* b, reg)
+        @test_approx_eq sum(FMA(), a, 2.0, b, reg) sum(a + b * 2.0, reg)
+        @test_approx_eq sum(FMA(), a, b, 2.0, reg) sum(a + b * 2.0, reg)
+    end
+end
+
+for (a, b) in zip(arrs_p, arrs_q)
+    @assert size(a) == size(b)
+    nd = ndims(a)
+    for reg in tdims[nd]
+        @test_approx_eq sumxlogx(a, reg) sum(ifelse(a .> 0, a .* log(a), 0.0), reg)
+        @test_approx_eq sumxlogy(a, b, reg) sum(ifelse(a .> 0, a .* log(b), 0.0), reg)
+        @test_approx_eq entropy(a, reg) -sumxlogx(a, reg)
     end
 end
 

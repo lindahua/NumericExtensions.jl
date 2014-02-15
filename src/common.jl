@@ -18,6 +18,8 @@ typealias ContiguousRealArray{T<:Real} ContiguousArray{T}
 typealias DimSpec Union(Int,Dims,Vector{Int})
 
 parent(a::Number) = a
+stride(a::Number, d::Int) = 1
+ellipview(a::Number, i::Int) = a
 
 getvalue(a::Number, i::Integer) = a
 getvalue(a::DenseArray, i::Integer) = a[i]

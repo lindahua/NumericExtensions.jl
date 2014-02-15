@@ -60,7 +60,7 @@ macro compose_reducedim(fun, OT, AN)
         eviewargs = [:(ellipview(a, i))]
         getoffsets = :(ia = offset(a) + 1)
         getstrides1 = :(sa1 = stride(a, 1)::Int)
-        getstrides2 = :((sa1, sa2) = strides(a)::(Int, Int))
+        getstrides2 = :(sa1 = stride(a, 1)::Int; sa2 = stride(a, 2)::Int)
         contcol = :(sa1 == 1)
         nextcol = :(ia += sa2)
         kargs = [:a, :ia]
@@ -73,7 +73,7 @@ macro compose_reducedim(fun, OT, AN)
         eviewargs = [:fun, :(ellipview(a, i))]
         getoffsets = :(ia = offset(a) + 1)
         getstrides1 = :(sa1 = stride(a, 1)::Int)
-        getstrides2 = :((sa1, sa2) = strides(a)::(Int, Int))
+        getstrides2 = :(sa1 = stride(a, 1)::Int; sa2 = stride(a, 2)::Int)
         contcol = :(sa1 == 1)
         nextcol = :(ia += sa2)
         kargs = [:fun, :a, :ia]
@@ -93,8 +93,8 @@ macro compose_reducedim(fun, OT, AN)
                        ib = offset(b) + 1)
         getstrides1 = :(sa1 = stride(a, 1)::Int; 
                         sb1 = stride(b, 1)::Int)
-        getstrides2 = :((sa1, sa2) = strides(a)::(Int, Int); 
-                       (sb1, sb2) = strides(b)::(Int, Int))
+        getstrides2 = :(sa1 = stride(a, 1)::Int; sa2 = stride(a, 2)::Int; 
+                        sb1 = stride(b, 1)::Int; sb2 = stride(b, 2)::Int)
         contcol = :(sa1 == 1 && sb1 == 1)
         nextcol = :(ia += sa2; ib += sb2)
         kargs = [:fun, :a, :ia, :b, :ib]
@@ -119,9 +119,9 @@ macro compose_reducedim(fun, OT, AN)
         getstrides1 = :(sa1 = stride(a, 1)::Int; 
                         sb1 = stride(b, 1)::Int;
                         sc1 = stride(c, 1)::Int)
-        getstrides2 = :((sa1, sa2) = strides(a)::(Int, Int); 
-                       (sb1, sb2) = strides(b)::(Int, Int); 
-                       (sc1, sc2) = strides(c)::(Int, Int))
+        getstrides2 = :(sa1 = stride(a, 1)::Int; sa2 = stride(a, 2)::Int; 
+                        sb1 = stride(b, 1)::Int; sb2 = stride(b, 2)::Int; 
+                        sc1 = stride(c, 1)::Int; sc2 = stride(c, 2)::Int)
         contcol = :(sa1 == 1 && sb1 == 1 && sc1 == 1)
         nextcol = :(ia += sa2; ib += sb2; ic += sc2)
         kargs = [:fun, :a, :ia, :b, :ib, :c, :ic]
@@ -129,7 +129,6 @@ macro compose_reducedim(fun, OT, AN)
     else
         error("AN = $(AN) is unsupported.")
     end
-
 
     quote
         global $(_funimpl1d!)
@@ -256,7 +255,7 @@ macro compose_reducedim(fun, OT, AN)
          
         global $(_fun!)
         function $(_fun!){S<:Number,N}(dst::DenseArray{S,N}, $(aparams...), insiz::NTuple{N,Int}, dims::DimSpec)
-            $(_funimpl!)(dst, a, length(insiz), insiz, _rtup(insiz, dims)...)
+            $(_funimpl!)(dst, $(args...), length(insiz), insiz, _rtup(insiz, dims)...)
             return dst
         end
 
@@ -285,10 +284,28 @@ end
 #################################################
 
 @compose_reducedim sum Sum 0
+@compose_reducedim sum Sum 1
+@compose_reducedim sum Sum 2
+@compose_reducedim sum Sum 3
+@compose_reducedim sumfdiff Sum (-2)
 
 @compose_reducedim maximum Maximum 0
+@compose_reducedim maximum Maximum 1
+@compose_reducedim maximum Maximum 2
+@compose_reducedim maximum Maximum 3
+@compose_reducedim maxfdiff Maximum (-2)
 
 @compose_reducedim minimum Minimum 0
+@compose_reducedim minimum Minimum 1
+@compose_reducedim minimum Minimum 2
+@compose_reducedim minimum Minimum 3
+@compose_reducedim minfdiff Minimum (-2)
+
+@compose_reducedim nonneg_maximum NonnegMaximum 0
+@compose_reducedim nonneg_maximum NonnegMaximum 1
+@compose_reducedim nonneg_maximum NonnegMaximum 2
+@compose_reducedim nonneg_maximum NonnegMaximum 3
+@compose_reducedim nonneg_maxfdiff NonnegMaximum (-2)
 
 _rlen(siz::Dims, d::Int) = siz[d]
 _rlen(siz::Dims, reg::(Int,Int)) = siz[reg[1]] * siz[reg[2]]
@@ -299,7 +316,6 @@ function _rlen(siz::Dims, reg::Dims)
     end
     return p::Int
 end
-
 
 macro compose_meandim(meanf, sumf, AN)
     sumf! = symbol(string(sumf, '!'))
@@ -324,8 +340,71 @@ macro compose_meandim(meanf, sumf, AN)
 end
 
 @compose_meandim mean sum 0
+@compose_meandim mean sum 1
+@compose_meandim mean sum 2
+@compose_meandim mean sum 3
+@compose_meandim meanfdiff sumfdiff (-2)
+
+#################################################
+#
+#   derived functions
+#
+#################################################
+
+macro mapreducedim_fun1(fname, accum, F, BT)
+    fname! = symbol("$(fname)!")
+    accum! = symbol("$(accum)!")
+
+    quote
+        global $(fname)
+        $(fname){T<:$(BT)}(a::DenseArray{T}, dims::DimSpec) = $(accum)(($F)(), a, dims)
+
+        global $(fname!)
+        $(fname!){T<:$(BT)}(dst::DenseArray, a::DenseArray{T}, dims::DimSpec) = 
+            $(accum!)(dst, ($F)(), a, dims) 
+    end
+end
+
+macro mapreducedim_fun2(fname, accum, F, BT)
+    fname! = symbol("$(fname)!")
+    accum! = symbol("$(accum)!")
+
+    quote
+        global $(fname)
+        $(fname){TA<:$(BT),TB<:$(BT)}(a::DenseArrOrNum{TA}, b::DenseArrOrNum{TB}, dims::DimSpec) = 
+            $(accum)(($F)(), a, b, dims)
+
+        global $(fname!)
+        $(fname!){TA<:$(BT),TB<:$(BT)}(dst::DenseArray, a::DenseArrOrNum{TA}, b::DenseArrOrNum{TB}, dims::DimSpec) = 
+            $(accum!)(dst, ($F)(), a, b, dims) 
+    end
+end
 
 
+# derived functions
 
+@mapreducedim_fun1 sumabs sum AbsFun Number
+@mapreducedim_fun1 meanabs mean AbsFun Number
+@mapreducedim_fun1 maxabs nonneg_maximum AbsFun Number
+@mapreducedim_fun1 minabs minimum AbsFun Number
+
+@mapreducedim_fun1 sumsq sum Abs2Fun Number
+@mapreducedim_fun1 meansq mean Abs2Fun Number
+
+@mapreducedim_fun2 sumabsdiff sumfdiff AbsFun Number
+@mapreducedim_fun2 meanabsdiff meanfdiff AbsFun Number
+@mapreducedim_fun2 maxabsdiff nonneg_maxfdiff AbsFun Number
+@mapreducedim_fun2 minabsdiff minfdiff AbsFun Number
+
+@mapreducedim_fun2 sumsqdiff sumfdiff Abs2Fun Number
+@mapreducedim_fun2 meansqdiff meanfdiff Abs2Fun Number
+
+@mapreducedim_fun2 dot sum Multiply Real
+
+@mapreducedim_fun1 sumxlogx sum XlogxFun Real
+@mapreducedim_fun2 sumxlogy sum XlogyFun Real
+
+entropy{T<:Real}(a::DenseArray{T}, dims::DimSpec) = negate!(sumxlogx(a, dims))
+entropy!{T<:Real}(r::DenseArray{T}, a::ContiguousRealArray, dims::DimSpec) = negate!(sumxlogx!(r, a, dims))
 
 

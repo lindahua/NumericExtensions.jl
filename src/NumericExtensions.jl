@@ -4,7 +4,7 @@ module NumericExtensions
 
     import 
         # size information
-        Base.size, Base.length, Base.ndims, Base.isempty,
+        Base.size, Base.length, Base.ndims, Base.isempty, Base.stride,
 
         # iteration and indexing
         Base.start, Base.next, Base.done, Base.getindex, Base.setindex!,
@@ -29,10 +29,15 @@ module NumericExtensions
         Base.mean, Base.var, Base.varm, Base.std, Base.stdm,
 
         # matrix related
-        Base.logdet, Base.full, Base.inv, Base.diag, Base.diagm
+        Base.logdet, Base.full, Base.inv, Base.diag, Base.diagm,
 
+        # view
+        ArrayViews.view, ArrayViews.ellipview
 
     export 
+        # reexport views
+        view, ellipview,
+
         # shapes
         mapshape, maplength,
 
