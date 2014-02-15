@@ -9,10 +9,10 @@ tests = [ "shapes",
           "transforms",
           "utils",
           "rkernels",
-          "reduce",
+          "reduce"
           #"reducedim",
           #"norms",
-          "scan",
+          #"scan",
           #"statistics",
           #"wsum",
           #"pdmat" 

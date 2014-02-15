@@ -25,83 +25,126 @@ end
 
 ## main macro
 
-macro compose_reducedim(fun, BT, sker, pker, initvalf)
+macro compose_reducedim(fun, BT, OT, AN)
     # fun: the function name, e.g. sum
     # BT: the base type, e.g. Number, Real
 
     fun! = symbol(string(fun, '!'))
     _fun! = symbol(string('_', fun!))
 
+    if AN == 0
+        getparents = :(a0 = parent(a))
+        getsize = :(size(a))
+        getstrides = :((sa1, sa2) = strides(a)::(Int, Int))
+        getoffsets = :(ia = offset(a) + 1)
+        contcol = :(sa1 == 1)
+        imovs = :(ia += sa2)
+        kargs = [:a0, :ia]
+        kargs1 = [:a0, :ia, :sa1]
+    elseif AN == 1
+        getparents = :(a0 = parent(a))
+        getsize = :(size(a))
+        getstrides = :((sa1, sa2) = strides(a)::(Int, Int))
+        getoffsets = :(ia = offset(a) + 1)
+        contcol = :(sa1 == 1)
+        imovs = :(ia += sa2)
+        kargs = [:fun, :a0, :ia]
+        kargs1 = [:fun, :a0, :ia, :sa1]
+    elseif AN == 2 || AN == -2
+        getparents = :(a0 = parent(a); b0 = parent(b))
+        getsize = :(mapshape(a, b))
+        getstrides = :((sa1, sa2) = strides(a)::(Int, Int); 
+                       (sb1, sb2) = strides(b)::(Int, Int))
+        getoffsets = :(ia = offset(a) + 1; ib = offset(b) + 1)
+        contcol = :(sa1 == 1 && sb1 == 1)
+        imovs = :(ia += sa2; ib += sb2)
+        kargs = [:fun, :a0, :ia, :b0, :ib]
+        kargs1 = [:fun, :a0, :ia, :sa1, :b0, :ib, :sb1]
+    elseif AN == 3
+        getparents = :(a0 = parent(a); b0 = parent(b); c0 = parent(c))
+        getsize = :(mapshape(a, b, c))
+        getstrides = :((sa1, sa2) = strides(a)::(Int, Int); 
+                       (sb1, sb2) = strides(b)::(Int, Int);
+                       (sc1, sc2) = strides(c)::(Int, Int))
+        getoffsets = :(ia = offset(a) + 1; ib = offset(b) + 1; ic = offset(c) + 1)
+        contcol = :(sa1 == 1 && sb1 == 1 && sc1 == 1)
+        imovs = :(ia += sa2; ib += sb2; ic += sc2)
+        kargs = [:fun, :a0, :ia, :b0, :ib, :c0, :ic]
+        kargs1 = [:fun, :a0, :ia, :sa1, :b0, :ib, :sb1, :c0, :ic, :sc1]
+    else
+        error("Unsupported AN value")
+    end      
+
     quote
         global $(_fun!)
         function $(_fun!){S<:$(BT),T<:$(BT)}(dst::DenseArray{S,2}, a::DenseArray{T,2}, r2::Bool, r1::Bool)
-            a0 = parent(a)
+            $(getparents)
             d0 = parent(dst)
-            m, n = size(a)::(Int, Int)
-            sa1, sa2 = strides(a)::(Int, Int)
+            m, n = $(getsize)::(Int, Int)
+            $(getstrides)
             sd1, sd2 = strides(dst)::(Int, Int)
          
-            ia = offset(a) + 1
+            $(getoffsets)
             id = offset(dst) + 1
             
             if r1
                 if r2
-                    if sa1 == 1
-                        s = $(sker)(m, a0, ia)
-                        ia += sa2
+                    if $(contcol)
+                        s = $(saccumf)($OT, m, $(kargs...))
+                        $(imovs)
                         for j = 2:n
-                            s += $(sker)(m, a0, ia)
-                            ia += sa2
+                            s += $(saccumf)($OT, m, $(kargs...))
+                            $(imovs)
                         end
                         d0[id] += s
                     else
-                        s = $(sker)(m, a0, ia, sa1)
-                        ia += sa2
+                        s = $(saccumf)($OT, m, $(kargs1...))
+                        $(imovs)
                         for j = 2:n
-                            s += $(sker)(m, a0, ia, sa1)
-                            ia += sa2
+                            s += $(saccumf)($OT, m, $(kargs1...))
+                            $(imovs)
                         end
                         d0[id] += s
                     end
                 else
-                    if sa1 == 1
+                    if $(contcol)
                         for j = 1:n
-                            d0[id] += $(sker)(m, a0, ia)
-                            ia += sa2
+                            d0[id] += $(saccumf)($OT, m, $(kargs...))
+                            $(imovs)
                             id += sd2
                         end
                     else
                         for j = 1:n
-                            d0[id] += $(sker)(m, a0, ia, sa1)
-                            ia += sa2
+                            d0[id] += $(saccumf)($OT, m, $(kargs1...))
+                            $(imovs)
                             id += sd2
                         end
                     end
                 end
             else
                 if r2
-                    if sa1 == 1 && sd1 == 1
+                    if $(contcol)
                         for j = 1:n
-                            $(pker)(m, d0, id, a0, ia)
-                            ia += sa2
+                            $(paccumf)($OT, m, d0, id, $(kargs...))
+                            $(imovs)
                         end
                     else
                         for j = 1:n
-                            $(pker)(m, d0, id, sd1, a0, ia, sa1)
-                            ia += sa2
+                            $(pker)(m, d0, id, sd1, $(kargs1...))
+                            $(imovs)
                         end
                     end
                 else
-                    if sa1 == 1 && sd1 == 1
+                    if $(contcol) && sd1 == 1
                         for j = 1:n
-                            $(pker)(m, d0, id, a0, ia)
-                            ia += sa2
+                            $(pker)(m, d0, id, $(kargs...))
+                            $(imovs)
                             id += sd2
                         end
                     else
                         for j = 1:n
-                            $(pker)(m, d0, id, sd1, a0, ia, sa1)
-                            ia += sa2
+                            $(pker)(m, d0, id, sd1, $(kargs1...))
+                            $(imovs)
                             id += sd2
                         end
                     end

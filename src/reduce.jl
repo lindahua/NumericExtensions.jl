@@ -14,6 +14,8 @@ macro compose_foldfuns(AN, foldlf, foldrf)
     _foldrf = symbol("_$(foldrf)")
 
     h = codegen_helper(AN)
+    aparams = h.contiguous_aparams
+    args = h.args
     ti = h.term(:i)
     t1 = h.term(1)
     tn = h.term(:n)
@@ -24,7 +26,7 @@ macro compose_foldfuns(AN, foldlf, foldrf)
         # foldl & foldr
 
         global $_foldlf 
-        function $(_foldlf)(ifirst::Int, ilast::Int, op::Functor{2}, s::Number, $(h.aparams...))
+        function $(_foldlf)(ifirst::Int, ilast::Int, op::Functor{2}, s::Number, $(aparams...))
             i = ifirst
             while i <= ilast
                 @inbounds vi = $(ti)
@@ -35,16 +37,16 @@ macro compose_foldfuns(AN, foldlf, foldrf)
         end
 
         global $foldlf
-        $(foldlf)(op::Functor{2}, s::Number, $(h.aparams...)) = $(_foldlf)(1, $(h.inputlen), op, s, $(h.args...))
-        function $(foldlf)(op::Functor{2}, $(h.aparams...)) 
+        $(foldlf)(op::Functor{2}, s::Number, $(aparams...)) = $(_foldlf)(1, $(h.inputlen), op, s, $(args...))
+        function $(foldlf)(op::Functor{2}, $(aparams...)) 
             n = $(h.inputlen)
             n > 0 || error("Empty argument not allowed.")
             s = $(t1)
-            $(_foldlf)(2, n, op, s, $(h.args...))
+            $(_foldlf)(2, n, op, s, $(args...))
         end
 
         global $_foldrf
-        function $(_foldrf)(ifirst::Int, ilast::Int, op::Functor{2}, s::Number, $(h.aparams...))
+        function $(_foldrf)(ifirst::Int, ilast::Int, op::Functor{2}, s::Number, $(aparams...))
             i = ilast
             while i >= ifirst
                 @inbounds vi = $(ti)
@@ -55,12 +57,12 @@ macro compose_foldfuns(AN, foldlf, foldrf)
         end
 
         global $foldrf
-        $(foldrf)(op::Functor{2}, s::Number, $(h.aparams...)) = $(_foldrf)(1, $(h.inputlen), op, s, $(h.args...))
-        function $(foldrf)(op::Functor{2}, $(h.aparams...))
+        $(foldrf)(op::Functor{2}, s::Number, $(aparams...)) = $(_foldrf)(1, $(h.inputlen), op, s, $(args...))
+        function $(foldrf)(op::Functor{2}, $(aparams...))
             n = $(h.inputlen)
             n > 0 || error("Empty argument not allowed.")
             s = $(tn)
-            $(_foldrf)(1, n-1, op, s, $(h.args...))
+            $(_foldrf)(1, n-1, op, s, $(args...))
         end
 
     end

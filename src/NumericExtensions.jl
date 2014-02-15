@@ -120,23 +120,22 @@ module NumericExtensions
     
     include("vbroadcast.jl")
     include("diagop.jl")
+    include("utils.jl")
     include("transforms.jl")
 
     include("rkernels.jl")
     include("reduce.jl")
-    include("reducedim.jl")
-    include("newreducedim.jl")
+    # include("reducedim.jl")
+    # include("newreducedim.jl")
 
-    include("norms.jl")
-    include("scan.jl")
-    include("statistics.jl")
-    include("wsum.jl")
+    # include("norms.jl")
+    # include("scan.jl")
+    # include("statistics.jl")
+    # include("wsum.jl")
 
-    include("utils.jl")
+    # include("pdmat.jl")
 
-    include("pdmat.jl")
-
-    include("benchmark.jl")
+    # include("benchmark.jl")
 
     include("deprecates.jl")
 end
