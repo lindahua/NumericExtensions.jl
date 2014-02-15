@@ -15,7 +15,7 @@ typealias ContiguousArrOrNum{T<:Number} Union(ContiguousArray{T}, T)
 typealias ContiguousNumericArray{T<:Number} ContiguousArray{T}
 typealias ContiguousRealArray{T<:Real} ContiguousArray{T}
 
-typealias DimSpec Int
+typealias DimSpec Union(Int,Dims,Vector{Int})
 
 parent(a::Number) = a
 

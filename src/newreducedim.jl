@@ -5,20 +5,20 @@ offset(x::Number) = 0
 
 ## auxiliary functions
 
-_rtup(siz::NTuple{1,Int}, d::Int) = (d == 1 ? (true,) : (false,))
+_rtup(siz::NTuple{1,Int}, d::Integer) = (d == 1 ? (true,) : (false,))
  
-_rtup(siz::NTuple{2,Int}, d::Int) = (d == 1 ? (false, true) :
-                                     d == 2 ? (true, false) : 
-                                              (false, false) )
+_rtup(siz::NTuple{2,Int}, d::Integer) = (d == 1 ? (false, true) :
+                                         d == 2 ? (true, false) : 
+                                                  (false, false) )
  
-_rtup(siz::NTuple{3,Int}, d::Int) = (d == 1 ? (false, false, true) :
-                                     d == 2 ? (false, true, false) : 
-                                     d == 3 ? (true, false, false) : 
-                                              (false, false, false))
+_rtup(siz::NTuple{3,Int}, d::Integer) = (d == 1 ? (false, false, true) :
+                                         d == 2 ? (false, true, false) : 
+                                         d == 3 ? (true, false, false) : 
+                                                  (false, false, false))
  
-_rtup{N}(siz::NTuple{N,Int}, d::Int) = (ds = fill(false,N); ds[N+1-d]=true; tuple(ds...))::NTuple{N,Bool}
+_rtup{N}(siz::NTuple{N,Int}, d::Integer) = (ds = fill(false,N); ds[N+1-d]=true; tuple(ds...))::NTuple{N,Bool}
  
-function _rtup{N}(siz::NTuple{N,Int}, dims::Dims)
+function _rtup{N}(siz::NTuple{N,Int}, dims::Union(Dims,Vector))
     ds = fill(false,N)
     for d in dims
         ds[N+1-d] = true
@@ -234,13 +234,13 @@ macro compose_reducedim(fun, OT, AN)
         end    
          
         global $(_fun!)
-        function $(_fun!){S<:Number,N}(dst::DenseArray{S,N}, $(aparams...), insiz::NTuple{N,Int}, dims::Union(Int,Dims))
+        function $(_fun!){S<:Number,N}(dst::DenseArray{S,N}, $(aparams...), insiz::NTuple{N,Int}, dims::DimSpec)
             $(_funimpl!)(dst, a, length(insiz), insiz, _rtup(insiz, dims)...)
             return dst
         end
 
         global $(fun!)
-        function $(fun!)(dst::ContiguousArray, $(aparams...), dims::Union(Int,Dims))
+        function $(fun!)(dst::ContiguousArray, $(aparams...), dims::DimSpec)
             insiz = $(h.inputsize)
             rsiz = Base.reduced_dims(insiz, dims)
             prod(rsiz) == length(dst) || throw(DimensionMismatch("Incorrect size of dst."))
@@ -248,7 +248,7 @@ macro compose_reducedim(fun, OT, AN)
         end
 
         global $(fun)
-        function $(fun)($(aparams...), dims::Union(Int,Dims))
+        function $(fun)($(aparams...), dims::DimSpec)
             insiz = $(h.inputsize)
             dst = fill(init($OT, $(h.termtype)), Base.reduced_dims(insiz,dims))
             $(_fun!)(dst, $(args...), insiz, dims)
@@ -268,4 +268,43 @@ end
 @compose_reducedim maximum Maximum 0
 
 @compose_reducedim minimum Minimum 0
+
+_rlen(siz::Dims, d::Int) = siz[d]
+_rlen(siz::Dims, reg::(Int,Int)) = siz[reg[1]] * siz[reg[2]]
+function _rlen(siz::Dims, reg::Dims) 
+    p = 1
+    for d in reg
+        p *= siz[d]
+    end
+    return p::Int
+end
+
+
+macro compose_meandim(meanf, sumf, AN)
+    sumf! = symbol(string(sumf, '!'))
+    meanf! = symbol(string(meanf, '!'))
+    h = codegen_helper(AN)
+    aparams = h.dense_aparams
+    args = h.args
+
+    quote
+        global $(meanf!)
+        function $(meanf!)(r::NumericArray, $(aparams...), dims::DimSpec)
+            siz = $(h.inputsize)
+            scale!($(sumf!)(fill!(r, 0.0), $(args...), dims), inv(_rlen(siz, dims)))
+        end
+
+        global $(meanf)
+        function $(meanf)($(aparams...), dims::DimSpec) 
+            siz = $(h.inputsize)
+            scale!($(sumf)($(args...), dims), inv(_rlen(siz, dims)))
+        end
+    end
+end
+
+@compose_meandim mean sum 0
+
+
+
+
 

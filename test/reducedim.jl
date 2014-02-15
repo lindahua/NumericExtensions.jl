@@ -44,10 +44,12 @@ tdims = {
 safe_sumdim(a::Array, reg) = invoke(sum, (AbstractArray{Float64}, Any), a, reg)
 safe_maxdim(a::Array, reg) = invoke(maximum, (AbstractArray{Float64}, Any), a, reg)
 safe_mindim(a::Array, reg) = invoke(minimum, (AbstractArray{Float64}, Any), a, reg)
+safe_meandim(a::Array, reg) = invoke(mean, (AbstractArray{Float64}, Any), a, reg)
 
 do_sum(a::Array, reg) = sum!(zeros(Base.reduced_dims(size(a), reg)), a, reg)
 do_maximum(a::Array, reg) = maximum!(fill(-Inf, Base.reduced_dims(size(a), reg)), a, reg)
 do_minimum(a::Array, reg) = minimum!(fill(Inf, Base.reduced_dims(size(a), reg)), a, reg)
+do_mean(a::Array, reg) = mean!(rand(Base.reduced_dims(size(a), reg)), a, reg)
 
 # testing of basic functions
 
@@ -68,6 +70,10 @@ for a in arrs_a
         saferes = safe_mindim(a, reg)
         @test_approx_eq minimum(a, reg) saferes
         @test_approx_eq do_minimum(a, reg) saferes
+
+        saferes = safe_meandim(a, reg)
+        @test_approx_eq mean(a, reg) saferes
+        @test_approx_eq do_mean(a, reg) saferes
     end
 end
 
