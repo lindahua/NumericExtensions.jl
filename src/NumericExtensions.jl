@@ -126,7 +126,7 @@ module NumericExtensions
     include("rkernels.jl")
     include("reduce.jl")
     # include("reducedim.jl")
-    # include("newreducedim.jl")
+    include("newreducedim.jl")
 
     # include("norms.jl")
     # include("scan.jl")

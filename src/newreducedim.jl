@@ -25,166 +25,224 @@ end
 
 ## main macro
 
-macro compose_reducedim(fun, BT, OT, AN)
+macro compose_reducedim(fun, OT, AN)
     # fun: the function name, e.g. sum
     # BT: the base type, e.g. Number, Real
 
     fun! = symbol(string(fun, '!'))
     _fun! = symbol(string('_', fun!))
+    _funimpl! = symbol(string('_', fun, "impl!"))
+    _funimpl2d! = symbol(string('_', fun, "impl2d!"))
+
+    # code-gen preparation
+
+    h = codegen_helper(AN)
+    args = h.args
+    aparams = h.dense_aparams
+
+    saccumf = AN >= 0 ? :saccum : :saccum_fdiff
+    paccumf! = AN >= 0 ? :paccum! : :paccum_fdiff!
 
     if AN == 0
-        getparents = :(a0 = parent(a))
-        getsize = :(size(a))
-        getstrides = :((sa1, sa2) = strides(a)::(Int, Int))
+        imparams2d = [:(a::ContiguousArray), :(ia::Int), :(sa1::Int), :(sa2::Int)]
+        imargs2d = [:(parent(a)), :ia, :sa1, :sa2]
+        eviewargs = [:(ellipview(a, i))]
         getoffsets = :(ia = offset(a) + 1)
+        getstrides1 = :(sa1 = stride(a, 1)::Int)
+        getstrides2 = :((sa1, sa2) = strides(a)::(Int, Int))
         contcol = :(sa1 == 1)
-        imovs = :(ia += sa2)
-        kargs = [:a0, :ia]
-        kargs1 = [:a0, :ia, :sa1]
+        nextcol = :(ia += sa2)
+        kargs = [:a, :ia]
+        kargs1 = [:a, :ia, :sa1]
     elseif AN == 1
-        getparents = :(a0 = parent(a))
-        getsize = :(size(a))
-        getstrides = :((sa1, sa2) = strides(a)::(Int, Int))
+        imparams2d = [:(fun::Functor{1}), :(a::ContiguousArray), :(ia::Int), :(sa1::Int), :(sa2::Int)]
+        imargs2d = [:fun, :(parent(a)), :ia, :sa1, :sa2]
+        eviewargs = [:fun, :(ellipview(a, i))]
         getoffsets = :(ia = offset(a) + 1)
+        getstrides1 = :(sa1 = stride(a, 1)::Int)
+        getstrides2 = :((sa1, sa2) = strides(a)::(Int, Int))
         contcol = :(sa1 == 1)
-        imovs = :(ia += sa2)
-        kargs = [:fun, :a0, :ia]
-        kargs1 = [:fun, :a0, :ia, :sa1]
+        nextcol = :(ia += sa2)
+        kargs = [:fun, :a, :ia]
+        kargs1 = [:fun, :a, :ia, :sa1]
     elseif AN == 2 || AN == -2
-        getparents = :(a0 = parent(a); b0 = parent(b))
-        getsize = :(mapshape(a, b))
-        getstrides = :((sa1, sa2) = strides(a)::(Int, Int); 
+        FN = AN == 2 ? 2 : 1
+        imparams2d = [:(fun::Functor{$FN}), :(a::ContiguousArrOrNum), :(ia::Int), :(sa1::Int), :(sa2::Int), 
+                                            :(b::ContiguousArrOrNum), :(ib::Int), :(sb1::Int), :(sb2::Int)]
+        imargs2d = [:fun, :(parent(a)), :ia, :sa1, :sa2, 
+                          :(parent(b)), :ib, :sb1, :sb2]
+        eviewargs = [:fun, :(ellipview(a, i)), :(ellipview(b, i))]
+        getoffsets = :(ia = offset(a) + 1; 
+                       ib = offset(b) + 1)
+        getstrides1 = :(sa1 = stride(a, 1)::Int; 
+                        sb1 = stride(b, 1)::Int)
+        getstrides2 = :((sa1, sa2) = strides(a)::(Int, Int); 
                        (sb1, sb2) = strides(b)::(Int, Int))
-        getoffsets = :(ia = offset(a) + 1; ib = offset(b) + 1)
         contcol = :(sa1 == 1 && sb1 == 1)
-        imovs = :(ia += sa2; ib += sb2)
-        kargs = [:fun, :a0, :ia, :b0, :ib]
-        kargs1 = [:fun, :a0, :ia, :sa1, :b0, :ib, :sb1]
+        nextcol = :(ia += sa2; ib += sb2)
+        kargs = [:fun, :a, :ia, :b, :ib]
+        kargs1 = [:fun, :a, :ia, :sa1, :b, :ib, :sb1]
     elseif AN == 3
-        getparents = :(a0 = parent(a); b0 = parent(b); c0 = parent(c))
-        getsize = :(mapshape(a, b, c))
-        getstrides = :((sa1, sa2) = strides(a)::(Int, Int); 
-                       (sb1, sb2) = strides(b)::(Int, Int);
+        imparams2d = [:(fun::Functor{3}), :(a::ContiguousArrOrNum), :(ia::Int), :(sa1::Int), :(sa2::Int), 
+                                          :(b::ContiguousArrOrNum), :(ib::Int), :(sb1::Int), :(sb2::Int), 
+                                          :(c::ContiguousArrOrNum), :(ic::Int), :(sc1::Int), :(sc2::Int)]
+        imargs2d = [:fun, :(parent(a)), :ia, :sa1, :sa2, 
+                          :(parent(b)), :ib, :sb1, :sb2, 
+                          :(parent(c)), :ic, :sc1, :sc2]
+        eviewargs = [:fun, :(ellipview(a, i)), :(ellipview(b, i)), :(ellipview(c, i))]
+        getoffsets = :(ia = offset(a) + 1; 
+                       ib = offset(b) + 1; 
+                       ic = offset(c) + 1)
+        getstrides1 = :(sa1 = stride(a, 1)::Int; 
+                        sb1 = stride(b, 1)::Int;
+                        sc1 = stride(c, 1)::Int)
+        getstrides2 = :((sa1, sa2) = strides(a)::(Int, Int); 
+                       (sb1, sb2) = strides(b)::(Int, Int); 
                        (sc1, sc2) = strides(c)::(Int, Int))
-        getoffsets = :(ia = offset(a) + 1; ib = offset(b) + 1; ic = offset(c) + 1)
         contcol = :(sa1 == 1 && sb1 == 1 && sc1 == 1)
-        imovs = :(ia += sa2; ib += sb2; ic += sc2)
-        kargs = [:fun, :a0, :ia, :b0, :ib, :c0, :ic]
-        kargs1 = [:fun, :a0, :ia, :sa1, :b0, :ib, :sb1, :c0, :ic, :sc1]
+        nextcol = :(ia += sa2; ib += sb2; ic += sc2)
+        kargs = [:fun, :a, :ia, :b, :ib, :c, :ic]
+        kargs1 = [:fun, :a, :ia, :sa1, :b, :ib, :sb1, :c, :ic, :sc1]
     else
-        error("Unsupported AN value")
-    end      
+        error("AN = $(AN) is unsupported.")
+    end
+
 
     quote
-        global $(_fun!)
-        function $(_fun!){S<:$(BT),T<:$(BT)}(dst::DenseArray{S,2}, a::DenseArray{T,2}, r2::Bool, r1::Bool)
-            $(getparents)
-            d0 = parent(dst)
-            m, n = $(getsize)::(Int, Int)
-            $(getstrides)
-            sd1, sd2 = strides(dst)::(Int, Int)
-         
-            $(getoffsets)
-            id = offset(dst) + 1
-            
+        global $(_funimpl2d!)
+        function $(_funimpl2d!)(r2::Bool, r1::Bool, m::Int, n::Int, 
+                                dst::ContiguousArray, idst::Int, sdst1::Int, sdst2::Int, 
+                                $(imparams2d...))
             if r1
                 if r2
                     if $(contcol)
                         s = $(saccumf)($OT, m, $(kargs...))
-                        $(imovs)
+                        $(nextcol)
                         for j = 2:n
                             s += $(saccumf)($OT, m, $(kargs...))
-                            $(imovs)
+                            $(nextcol)
                         end
-                        d0[id] += s
+                        dst[idst] += s
                     else
                         s = $(saccumf)($OT, m, $(kargs1...))
-                        $(imovs)
+                        $(nextcol)
                         for j = 2:n
                             s += $(saccumf)($OT, m, $(kargs1...))
-                            $(imovs)
+                            $(nextcol)
                         end
-                        d0[id] += s
+                        dst[idst] += s
                     end
                 else
                     if $(contcol)
                         for j = 1:n
-                            d0[id] += $(saccumf)($OT, m, $(kargs...))
-                            $(imovs)
-                            id += sd2
+                            dst[idst] += $(saccumf)($OT, m, $(kargs...))
+                            $(nextcol)
+                            idst += sdst2
                         end
                     else
                         for j = 1:n
-                            d0[id] += $(saccumf)($OT, m, $(kargs1...))
-                            $(imovs)
-                            id += sd2
+                            dst[idst] += $(saccumf)($OT, m, $(kargs1...))
+                            $(nextcol)
+                            idst += sdst2
                         end
                     end
                 end
             else
                 if r2
-                    if $(contcol)
+                    if $(contcol) && sdst1 == 1
                         for j = 1:n
-                            $(paccumf)($OT, m, d0, id, $(kargs...))
-                            $(imovs)
+                            $(paccumf!)($OT, m, dst, idst, $(kargs...))
+                            $(nextcol)
                         end
                     else
                         for j = 1:n
-                            $(pker)(m, d0, id, sd1, $(kargs1...))
-                            $(imovs)
+                            $(paccumf!)($OT, m, dst, idst, sdst1, $(kargs1...))
+                            $(nextcol)
                         end
                     end
                 else
-                    if $(contcol) && sd1 == 1
+                    if $(contcol) && sdst1 == 1
                         for j = 1:n
-                            $(pker)(m, d0, id, $(kargs...))
-                            $(imovs)
-                            id += sd2
+                            $(paccumf!)($OT, m, dst, idst, $(kargs...))
+                            $(nextcol)
+                            idst += sdst2
                         end
                     else
                         for j = 1:n
-                            $(pker)(m, d0, id, sd1, $(kargs1...))
-                            $(imovs)
-                            id += sd2
+                            $(paccumf!)($OT, m, dst, idst, sdst1, $(kargs1...))
+                            $(nextcol)
+                            idst += sdst2
                         end
                     end
+                end
+            end            
+        end
+
+        global $(_funimpl!)
+        function $(_funimpl!)(dst::DenseArray, $(aparams...), r1::Bool)
+            n = $(h.inputlen)::Int
+            $(getstrides1)
+            sdst1 = stride(dst, 1)::Int
+            if r1
+                if $(contcol)
+                    dst[1] = $(saccumf)($OT, n, dst, idst, $(kargs...))
+                else
+                    dst[1] = $(saccumf)($OT, n, dst, idst, sdst1, $(kargs1...))
+                end
+            else
+                if $(contcol) && (sdst1 == 1)
+                    $(paccumf!)($OT, n, dst, idst, $(kargs...))
+                else
+                    $(paccumf!)($OT, n, dst, idst, sdst1, $(kargs1...))
                 end
             end
         end
 
-        function $(_fun!){S<:$(BT),T<:$(BT),N}(dst::DenseArray{S,N}, a::DenseArray{T,N}, reduc::Bool, rr::Bool...)
+        function $(_funimpl!)(dst::DenseArray, $(aparams...), r2::Bool, r1::Bool)
+            m, n = $(h.inputsize)::(Int, Int)
+            $(getstrides2)
+            sdst1, sdst2 = strides(dst)::(Int, Int)         
+            $(getoffsets)
+            idst = offset(dst) + 1
+            $(_funimpl2d!)(r2, r1, m, n, parent(dst), idst, sdst1, sdst2, $(imargs2d...))
+        end
+
+        function $(_funimpl!)(dst::DenseArray, $(aparams...), rN::Bool, rNm1::Bool, rNm2::Bool, rr::Bool...)
             n = size(a, N)::Int
             if reduc
                 _dst = ellipview(dst, 1)
                 for i = 1:n
-                    $(_fun!)(_dst, ellipview(a, i), rr...)
+                    $(_fun!)(_dst, $(eviewargs...), rNm1, rNm2, rr...)
                 end
             else
                 for i = 1:n
-                    $(_fun!)(ellipview(dst, i), ellipview(a, i), rr...)
+                    $(_fun!)(ellipview(dst, i), $(eviewargs...), rNm1, rNm2, rr...)
                 end
             end
         end    
          
-        function $(_fun!){S<:$(BT),T<:$(BT),N}(dst::DenseArray{S,N}, a::DenseArray{T,N}, dims::Union(Int,Dims))
-            $(_fun!)(dst, a, _rtup(size(a), dims)...)
+        global $(_fun!)
+        function $(_fun!){S<:Number,N}(dst::DenseArray{S,N}, $(aparams...), insiz::NTuple{N,Int}, dims::Union(Int,Dims))
+            $(_funimpl!)(dst, a, _rtup(insiz, dims)...)
             return dst
         end
 
         global $(fun!)
-        function $(fun!){S<:$(BT),T<:$(BT),N}(dst::ContiguousArray{S,N}, a::DenseArray{T,N}, dims::Union(Int,Dims))
-            rsiz = Base.reduced_dims(size(a), dims)::NTuple{N,Int}
+        function $(fun!)(dst::ContiguousArray, $(aparams...), dims::Union(Int,Dims))
+            insiz = $(h.inputsize)
+            rsiz = Base.reduced_dims(insiz, dims)
             prod(rsiz) == length(dst) || throw(DimensionMismatch("Incorrect size of dst."))
-            $(_fun!)(contiguous_view(dst, rsiz), a, dims)
+            $(_fun!)(contiguous_view(dst, rsiz), $(args...), insiz, dims)
         end
 
         global $(fun)
-        $(fun){T<:$(BT),N}(a::DenseArray{T,N}, dims::Union(Int,Dims)) = 
-            $(_fun!)(fill($(initvalf)(T), Base.reduced_dims(size(a),dims)), a, dims)
+        function $(fun)($(aparams...), dims::Union(Int,Dims))
+            insiz = $(h.inputsize)
+            dst = fill(init($OT, $(h.termtype)), Base.reduced_dims(insiz,dims))
+            $(_fun!)(dst, $(args...), insiz, dims)
+        end
     end
 end 
  
-# @compose_reducedim sum Number vecsum vecadd! suminit
-
-
+@compose_reducedim sum Sum 0
 
