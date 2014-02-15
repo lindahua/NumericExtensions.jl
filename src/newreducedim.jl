@@ -1,5 +1,8 @@
 # reduce along dimensions
 
+import ArrayViews: offset
+offset(x::Number) = 0
+
 ## auxiliary functions
 
 _rtup(siz::NTuple{1,Int}, d::Int) = (d == 1 ? (true,) : (false,))
@@ -23,7 +26,12 @@ function _rtup{N}(siz::NTuple{N,Int}, dims::Dims)
     return tuple(ds...)::NTuple{N,Bool}
 end
 
-## main macro
+
+#################################################
+#
+#   main macro
+#
+#################################################
 
 macro compose_reducedim(fun, OT, AN)
     # fun: the function name, e.g. sum
@@ -119,29 +127,29 @@ macro compose_reducedim(fun, OT, AN)
                         s = $(saccumf)($OT, m, $(kargs...))
                         $(nextcol)
                         for j = 2:n
-                            s += $(saccumf)($OT, m, $(kargs...))
+                            s = combine($OT, s, $(saccumf)($OT, m, $(kargs...)))
                             $(nextcol)
                         end
-                        dst[idst] += s
+                        dst[idst] = combine($OT, dst[idst], s)
                     else
                         s = $(saccumf)($OT, m, $(kargs1...))
                         $(nextcol)
                         for j = 2:n
-                            s += $(saccumf)($OT, m, $(kargs1...))
+                            s = combine($OT, $(saccumf)($OT, m, $(kargs1...)))
                             $(nextcol)
                         end
-                        dst[idst] += s
+                        dst[idst] = combine($OT, dst[idst], s)
                     end
                 else
                     if $(contcol)
                         for j = 1:n
-                            dst[idst] += $(saccumf)($OT, m, $(kargs...))
+                            dst[idst] = combine($OT, dst[idst], $(saccumf)($OT, m, $(kargs...)))
                             $(nextcol)
                             idst += sdst2
                         end
                     else
                         for j = 1:n
-                            dst[idst] += $(saccumf)($OT, m, $(kargs1...))
+                            dst[idst] = combine($OT, dst[idst], $(saccumf)($OT, m, $(kargs1...)))
                             $(nextcol)
                             idst += sdst2
                         end
@@ -179,15 +187,17 @@ macro compose_reducedim(fun, OT, AN)
         end
 
         global $(_funimpl!)
-        function $(_funimpl!)(dst::DenseArray, $(aparams...), r1::Bool)
-            n = $(h.inputlen)::Int
+        function $(_funimpl!)(dst::DenseArray, $(aparams...), dim::Int, insiz::Dims, r1::Bool)
+            n = insiz[1]::Int
             $(getstrides1)
             sdst1 = stride(dst, 1)::Int
+            $(getoffsets)
+            idst = offset(dst) + 1
             if r1
                 if $(contcol)
-                    dst[1] = $(saccumf)($OT, n, dst, idst, $(kargs...))
+                    dst[1] = combine($OT, dst[1], $(saccumf)($OT, n, $(kargs...)))
                 else
-                    dst[1] = $(saccumf)($OT, n, dst, idst, sdst1, $(kargs1...))
+                    dst[1] = combine($OT, dst[1], $(saccumf)($OT, n, $(kargs1...)))
                 end
             else
                 if $(contcol) && (sdst1 == 1)
@@ -198,8 +208,9 @@ macro compose_reducedim(fun, OT, AN)
             end
         end
 
-        function $(_funimpl!)(dst::DenseArray, $(aparams...), r2::Bool, r1::Bool)
-            m, n = $(h.inputsize)::(Int, Int)
+        function $(_funimpl!)(dst::DenseArray, $(aparams...), dim::Int, insiz::Dims, r2::Bool, r1::Bool)
+            m = insiz[1]::Int
+            n = insiz[2]::Int
             $(getstrides2)
             sdst1, sdst2 = strides(dst)::(Int, Int)         
             $(getoffsets)
@@ -207,23 +218,24 @@ macro compose_reducedim(fun, OT, AN)
             $(_funimpl2d!)(r2, r1, m, n, parent(dst), idst, sdst1, sdst2, $(imargs2d...))
         end
 
-        function $(_funimpl!)(dst::DenseArray, $(aparams...), rN::Bool, rNm1::Bool, rNm2::Bool, rr::Bool...)
-            n = size(a, N)::Int
-            if reduc
+        function $(_funimpl!)(dst::DenseArray, $(aparams...), dim::Int, insiz::Dims, 
+                              rN::Bool, rNm1::Bool, rNm2::Bool, rr::Bool...)
+            n = insiz[dim]::Int
+            if rN
                 _dst = ellipview(dst, 1)
                 for i = 1:n
-                    $(_fun!)(_dst, $(eviewargs...), rNm1, rNm2, rr...)
+                    $(_funimpl!)(_dst, $(eviewargs...), dim-1, insiz, rNm1, rNm2, rr...)
                 end
             else
                 for i = 1:n
-                    $(_fun!)(ellipview(dst, i), $(eviewargs...), rNm1, rNm2, rr...)
+                    $(_funimpl!)(ellipview(dst, i), $(eviewargs...), dim-1, insiz, rNm1, rNm2, rr...)
                 end
             end
         end    
          
         global $(_fun!)
         function $(_fun!){S<:Number,N}(dst::DenseArray{S,N}, $(aparams...), insiz::NTuple{N,Int}, dims::Union(Int,Dims))
-            $(_funimpl!)(dst, a, _rtup(insiz, dims)...)
+            $(_funimpl!)(dst, a, length(insiz), insiz, _rtup(insiz, dims)...)
             return dst
         end
 
@@ -244,5 +256,16 @@ macro compose_reducedim(fun, OT, AN)
     end
 end 
  
+
+#################################################
+#
+#   basic functions
+#
+#################################################
+
 @compose_reducedim sum Sum 0
+
+@compose_reducedim maximum Maximum 0
+
+@compose_reducedim minimum Minimum 0
 

@@ -1,117 +1,75 @@
 using NumericExtensions
 using Base.Test
 
-# ## Testing of reduced shape & length
 
-# reduced_shape = NumericExtensions.reduced_shape
-# reduced_length = NumericExtensions.reduced_length
+## Data preparation
 
-# # reduced_shape
+a1 = 2 * rand(8) - 1.0
+a2 = 2 * rand(8, 7) - 1.0
+a3 = 2 * rand(8, 7, 6) - 1.0
+a4 = 2 * rand(8, 7, 6, 5) - 1.0
 
-# @test reduced_shape((5,), 1) == (1,)
-# @test_throws reduced_shape((5,), 2)
+b1 = 2 * rand(8) - 1.0
+b2 = 2 * rand(8, 7) - 1.0
+b3 = 2 * rand(8, 7, 6) - 1.0
+b4 = 2 * rand(8, 7, 6, 5) - 1.0
 
-# @test reduced_shape((3, 4), 1) == (1, 4)
-# @test reduced_shape((3, 4), 2) == (3, 1)
-# @test_throws reduced_shape((3, 4), 3)
+p1 = rand(8)
+p2 = rand(8, 7)
+p3 = rand(8, 7, 6)
+p4 = rand(8, 7, 6, 5)
 
-# @test reduced_shape((3, 4, 5), 1) == (1, 4, 5)
-# @test reduced_shape((3, 4, 5), 2) == (3, 1, 5)
-# @test reduced_shape((3, 4, 5), 3) == (3, 4, 1)
-# @test_throws reduced_shape((3, 4, 5), 4)
+q1 = rand(8)
+q2 = rand(8, 7)
+q3 = rand(8, 7, 6)
+q4 = rand(8, 7, 6, 5)
 
-# @test reduced_shape((3, 4, 5, 6), 1) == (1, 4, 5, 6)
-# @test reduced_shape((3, 4, 5, 6), 2) == (3, 1, 5, 6)
-# @test reduced_shape((3, 4, 5, 6), 3) == (3, 4, 1, 6)
-# @test reduced_shape((3, 4, 5, 6), 4) == (3, 4, 5, 1)
-# @test_throws reduced_shape((3, 4, 5, 6), 5)
+arrs_a = {a1, a2, a3, a4}
+arrs_b = {a1, a2, a3, a4}
+arrs_p = {p1, p2, p3, p4}
+arrs_q = {q1, q2, q3, q4}
 
-# # reduced_length
-
-# @test reduced_length((5,), 1) == 1
-# @test_throws reduced_length((5,), 2)
-
-# @test reduced_length((3, 4), 1) == 4
-# @test reduced_length((3, 4), 2) == 3
-# @test_throws reduced_length((3, 4), 3)
-
-# @test reduced_length((3, 4, 5), 1) == 20
-# @test reduced_length((3, 4, 5), 2) == 15
-# @test reduced_length((3, 4, 5), 3) == 12
-# @test_throws reduced_length((3, 4, 5), 4)
-
-# @test reduced_length((3, 4, 5, 6), 1) == 120
-# @test reduced_length((3, 4, 5, 6), 2) == 90
-# @test reduced_length((3, 4, 5, 6), 3) == 72
-# @test reduced_length((3, 4, 5, 6), 4) == 60
-# @test_throws reduced_length((3, 4, 5, 6), 5)
+tdims = {
+    {1},   # N = 1
+    {1, 2, (1, 2)}, # N = 2
+    {1, 2, 3, (1, 2), (1, 3), (2, 3), (1, 2, 3)}, # N = 3
+    {1, 2, 3, 4, (1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4), 
+     (1, 2, 3), (1, 2, 4), (1, 3, 4), (2, 3, 4), (1, 2, 3, 4)} # N = 4
+}
 
 
-## Testing of reducedim functions 
-
-a1 = 2 * rand(6) - 1.0
-a2 = 2 * rand(5, 6) - 1.0
-a3 = 2 * rand(5, 4, 3) - 1.0
-a4 = 2 * rand(5, 4, 3, 2) - 1.0
-
-b1 = 2 * rand(6) - 1.0
-b2 = 2 * rand(5, 6) - 1.0
-b3 = 2 * rand(5, 4, 3) - 1.0
-b4 = 2 * rand(5, 4, 3, 2) - 1.0
-
-p1 = rand(6)
-p2 = rand(5, 6)
-p3 = rand(5, 4, 3)
-p4 = rand(5, 4, 3, 2)
-
-q1 = rand(6)
-q2 = rand(5, 6)
-q3 = rand(5, 4, 3)
-q4 = rand(5, 4, 3, 2)
 
 # auxiliary
 
-function safe_sumdim(a::Array, dim::Int)
-    n = size(a, dim)
-    s = slicedim(a, dim, 1)
-    for i = 2 : n
-        s += slicedim(a, dim, i)
+safe_sumdim(a::Array, reg) = invoke(sum, (AbstractArray{Float64}, Any), a, reg)
+safe_maxdim(a::Array, reg) = invoke(maximum, (AbstractArray{Float64}, Any), a, reg)
+safe_mindim(a::Array, reg) = invoke(minimum, (AbstractArray{Float64}, Any), a, reg)
+
+do_sum(a::Array, reg) = sum!(zeros(Base.reduced_dims(size(a), reg)), a, reg)
+do_maximum(a::Array, reg) = maximum!(fill(-Inf, Base.reduced_dims(size(a), reg)), a, reg)
+do_minimum(a::Array, reg) = minimum!(fill(Inf, Base.reduced_dims(size(a), reg)), a, reg)
+
+# testing of basic functions
+
+for a in arrs_a
+    nd = ndims(a)
+    for reg in tdims[nd]
+        println("ND = $(nd): region = $(reg)")
+        # println("which: $(which(sum, a, reg))")
+        saferes = safe_sumdim(a, reg)
+        @test_approx_eq sum(a, reg) saferes
+        @test_approx_eq do_sum(a, reg) saferes
+        @test_approx_eq sum!(ones(Base.reduced_dims(size(a), reg)), a, reg) saferes + 1.0
+
+        saferes = safe_maxdim(a, reg)
+        @test_approx_eq maximum(a, reg) saferes
+        @test_approx_eq do_maximum(a, reg) saferes
+
+        saferes = safe_mindim(a, reg)
+        @test_approx_eq minimum(a, reg) saferes
+        @test_approx_eq do_minimum(a, reg) saferes
     end
-    return s
 end
-
-do_sum!(a::Array, dim::Int) = sum!(zeros(reduced_shape(size(a), dim)), a, dim)
-
-safe_meandim(a::Array, dim::Int) = safe_sumdim(a, dim) / size(a, dim)
-
-do_mean!(a::Array, dim::Int) = mean!(zeros(reduced_shape(size(a), dim)), a, dim)
-
-function safe_maximumdim(a::Array, dim::Int)
-    n = size(a, dim)
-    s = slicedim(a, dim, 1)
-    for i = 2 : n
-        s = max(s, slicedim(a, dim, i))
-    end
-    return s
-end
-
-function safe_minimumdim(a::Array, dim::Int)
-    n = size(a, dim)
-    s = slicedim(a, dim, 1)
-    for i = 2 : n
-        s = min(s, slicedim(a, dim, i))
-    end
-    return s
-end
-
-do_maximum!(a::Array, dim::Int) = maximum!(zeros(reduced_shape(size(a), dim)), a, dim)
-do_minimum!(a::Array, dim::Int) = minimum!(zeros(reduced_shape(size(a), dim)), a, dim)
-
-
-# testing sum
-
-# @test sum(a1, 1) safe_sumdim(a1, 1)
-
 
 
 # # testing sumabs
