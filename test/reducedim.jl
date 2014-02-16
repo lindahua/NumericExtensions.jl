@@ -73,6 +73,8 @@ do_sumabs(a::DenseArray, reg) = sumabs!(zeros(Base.reduced_dims(size(a), reg)), 
 
 # testing of basic functions
 
+println("  -- basic functions")
+
 for a in arrs_a
     nd = ndims(a)
     for reg in tdims[nd]
@@ -105,6 +107,8 @@ for a in arrs_a
         @test_approx_eq meansq(a, reg) mean(abs2(a), reg)
     end
 end
+
+println("  -- derived functions")
 
 for (a, b) in zip(arrs_a, arrs_b)
     @assert size(a) == size(b)

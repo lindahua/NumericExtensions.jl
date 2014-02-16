@@ -13,7 +13,7 @@ module NumericExtensions
         Base.show, Base.add!, Base.copy, Base.similar, Base.pointer, Base.parent,
 
         # higher-level map & reduction functions to be extended
-        Base.map, Base.map!, Base.reduce, Base.mapreduce, Base.foldl, Base.foldr,
+        Base.map, Base.map!, Base.reduce, Base.reducedim, Base.mapreduce, Base.foldl, Base.foldr,
 
         # arithmetic functions
         Base.+, Base.*, Base.\, Base./, Base.==,
@@ -77,7 +77,8 @@ module NumericExtensions
 
         foldl_fdiff, foldr_fdiff,
 
-        # reducedims
+        # reducedim
+        reducedim!, mapreducedim, mapreducedim!, mapreducedim_fdiff, mapreducedim_fdiff!, 
         foldl!, foldr!, sum!, maximum!, minimum!, mean!, dot!,
 
         sumfdiff!, maxfdiff!, minfdiff!, meanfdiff!,
@@ -131,7 +132,7 @@ module NumericExtensions
     include("rkernels.jl")
     include("reduce.jl")
     include("folddim.jl")
-    # include("newreducedim.jl")
+    include("reducedim.jl")
 
     # include("norms.jl")
     # include("scan.jl")

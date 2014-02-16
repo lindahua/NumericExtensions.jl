@@ -33,7 +33,7 @@ end
 #
 #################################################
 
-macro compose_reducedim(fun, OT, AN)
+macro compose_reducedim(fun, AN)
     # fun: the function name, e.g. sum
     # BT: the base type, e.g. Number, Real
 
@@ -48,6 +48,12 @@ macro compose_reducedim(fun, OT, AN)
     h = codegen_helper(AN)
     args = h.args
     aparams = h.dense_aparams
+
+    if AN == 0
+        interf_params = [:(op::Functor{2}), aparams...]
+    else
+        interf_params = [aparams[1], :(op::Functor{2}), aparams[2:end]...]
+    end
 
     saccumf = AN >= 0 ? :saccum : :saccum_fdiff
     paccumf! = AN >= 0 ? :paccum! : :paccum_fdiff!
@@ -132,56 +138,57 @@ macro compose_reducedim(fun, OT, AN)
 
     quote
         global $(_funimpl1d!)
-        function $(_funimpl1d!)(r1::Bool, n::Int, 
-                                dst::ContiguousArray, idst::Int, sdst1::Int, $(imparams1d...))
+        function $(_funimpl1d!){Op<:Functor{2}}(op::Op, r1::Bool, n::Int, 
+                                                dst::ContiguousArray, idst::Int, sdst1::Int, 
+                                                $(imparams1d...))
             if r1
                 if $(contcol)
-                    dst[1] = combine($OT, dst[1], $(saccumf)($OT, n, $(kargs...)))
+                    dst[1] = evaluate(op, dst[1], $(saccumf)(op, n, $(kargs...)))
                 else
-                    dst[1] = combine($OT, dst[1], $(saccumf)($OT, n, $(kargs1...)))
+                    dst[1] = evaluate(op, dst[1], $(saccumf)(op, n, $(kargs1...)))
                 end
             else
                 if $(contcol) && (sdst1 == 1)
-                    $(paccumf!)($OT, n, dst, idst, $(kargs...))
+                    $(paccumf!)(op, n, dst, idst, $(kargs...))
                 else
-                    $(paccumf!)($OT, n, dst, idst, sdst1, $(kargs1...))
+                    $(paccumf!)(op, n, dst, idst, sdst1, $(kargs1...))
                 end
             end            
         end
 
         global $(_funimpl2d!)
-        function $(_funimpl2d!)(r2::Bool, r1::Bool, m::Int, n::Int, 
-                                dst::ContiguousArray, idst::Int, sdst1::Int, sdst2::Int, 
-                                $(imparams2d...))
+        function $(_funimpl2d!){Op<:Functor{2}}(op::Op, r2::Bool, r1::Bool, m::Int, n::Int, 
+                                                dst::ContiguousArray, idst::Int, sdst1::Int, sdst2::Int, 
+                                                $(imparams2d...))
             if r1
                 if r2
                     if $(contcol)
-                        s = $(saccumf)($OT, m, $(kargs...))
+                        s = $(saccumf)(op, m, $(kargs...))
                         $(nextcol)
                         for j = 2:n
-                            s = combine($OT, s, $(saccumf)($OT, m, $(kargs...)))
+                            s = evaluate(op, s, $(saccumf)(op, m, $(kargs...)))
                             $(nextcol)
                         end
-                        dst[idst] = combine($OT, dst[idst], s)
+                        dst[idst] = evaluate(op, dst[idst], s)
                     else
-                        s = $(saccumf)($OT, m, $(kargs1...))
+                        s = $(saccumf)(op, m, $(kargs1...))
                         $(nextcol)
                         for j = 2:n
-                            s = combine($OT, s, $(saccumf)($OT, m, $(kargs1...)))
+                            s = evaluate(op, s, $(saccumf)(op, m, $(kargs1...)))
                             $(nextcol)
                         end
-                        dst[idst] = combine($OT, dst[idst], s)
+                        dst[idst] = evaluate(op, dst[idst], s)
                     end
                 else
                     if $(contcol)
                         for j = 1:n
-                            dst[idst] = combine($OT, dst[idst], $(saccumf)($OT, m, $(kargs...)))
+                            dst[idst] = evaluate(op, dst[idst], $(saccumf)(op, m, $(kargs...)))
                             $(nextcol)
                             idst += sdst2
                         end
                     else
                         for j = 1:n
-                            dst[idst] = combine($OT, dst[idst], $(saccumf)($OT, m, $(kargs1...)))
+                            dst[idst] = evaluate(op, dst[idst], $(saccumf)(op, m, $(kargs1...)))
                             $(nextcol)
                             idst += sdst2
                         end
@@ -191,25 +198,25 @@ macro compose_reducedim(fun, OT, AN)
                 if r2
                     if $(contcol) && sdst1 == 1
                         for j = 1:n
-                            $(paccumf!)($OT, m, dst, idst, $(kargs...))
+                            $(paccumf!)(op, m, dst, idst, $(kargs...))
                             $(nextcol)
                         end
                     else
                         for j = 1:n
-                            $(paccumf!)($OT, m, dst, idst, sdst1, $(kargs1...))
+                            $(paccumf!)(op, m, dst, idst, sdst1, $(kargs1...))
                             $(nextcol)
                         end
                     end
                 else
                     if $(contcol) && sdst1 == 1
                         for j = 1:n
-                            $(paccumf!)($OT, m, dst, idst, $(kargs...))
+                            $(paccumf!)(op, m, dst, idst, $(kargs...))
                             $(nextcol)
                             idst += sdst2
                         end
                     else
                         for j = 1:n
-                            $(paccumf!)($OT, m, dst, idst, sdst1, $(kargs1...))
+                            $(paccumf!)(op, m, dst, idst, sdst1, $(kargs1...))
                             $(nextcol)
                             idst += sdst2
                         end
@@ -219,63 +226,68 @@ macro compose_reducedim(fun, OT, AN)
         end
 
         global $(_funimpl!)
-        function $(_funimpl!)(dst::DenseArray, $(aparams...), dim::Int, insiz::Dims, r1::Bool)
+        function $(_funimpl!){Op<:Functor{2}}(op::Op, dst::DenseArray, $(aparams...), dim::Int, insiz::Dims, r1::Bool)
             n = insiz[1]::Int
             $(getstrides1)
             sdst1 = stride(dst, 1)::Int
             $(getoffsets)
             idst = offset(dst) + 1
-            $(_funimpl1d!)(r1, n, parent(dst), idst, sdst1, $(imargs1d...))
+            $(_funimpl1d!)(op, r1, n, parent(dst), idst, sdst1, $(imargs1d...))
         end
 
-        function $(_funimpl!)(dst::DenseArray, $(aparams...), dim::Int, insiz::Dims, r2::Bool, r1::Bool)
+        function $(_funimpl!){Op<:Functor{2}}(op::Op, dst::DenseArray, $(aparams...), dim::Int, insiz::Dims, r2::Bool, r1::Bool)
             m = insiz[1]::Int
             n = insiz[2]::Int
             $(getstrides2)
             sdst1, sdst2 = strides(dst)::(Int, Int)         
             $(getoffsets)
             idst = offset(dst) + 1
-            $(_funimpl2d!)(r2, r1, m, n, parent(dst), idst, sdst1, sdst2, $(imargs2d...))
+            $(_funimpl2d!)(op, r2, r1, m, n, parent(dst), idst, sdst1, sdst2, $(imargs2d...))
         end
 
-        function $(_funimpl!)(dst::DenseArray, $(aparams...), dim::Int, insiz::Dims, 
-                              rN::Bool, rNm1::Bool, rNm2::Bool, rr::Bool...)
+        function $(_funimpl!){Op<:Functor{2}}(op::Op, dst::DenseArray, $(aparams...), dim::Int, insiz::Dims, 
+                                              rN::Bool, rNm1::Bool, rNm2::Bool, rr::Bool...)
             n = insiz[dim]::Int
             if rN
                 _dst = ellipview(dst, 1)
                 for i = 1:n
-                    $(_funimpl!)(_dst, $(eviewargs...), dim-1, insiz, rNm1, rNm2, rr...)
+                    $(_funimpl!)(op, _dst, $(eviewargs...), dim-1, insiz, rNm1, rNm2, rr...)
                 end
             else
                 for i = 1:n
-                    $(_funimpl!)(ellipview(dst, i), $(eviewargs...), dim-1, insiz, rNm1, rNm2, rr...)
+                    $(_funimpl!)(op, ellipview(dst, i), $(eviewargs...), dim-1, insiz, rNm1, rNm2, rr...)
                 end
             end
         end    
          
         global $(_fun!)
-        function $(_fun!){S<:Number,N}(dst::DenseArray{S,N}, $(aparams...), insiz::NTuple{N,Int}, dims::DimSpec)
-            $(_funimpl!)(dst, $(args...), length(insiz), insiz, _rtup(insiz, dims)...)
+        function $(_fun!){S<:Number,N}(dst::DenseArray{S,N}, op::Functor{2}, $(aparams...), insiz::NTuple{N,Int}, dims::DimSpec)
+            $(_funimpl!)(op, dst, $(args...), length(insiz), insiz, _rtup(insiz, dims)...)
             return dst
         end
 
         global $(fun!)
-        function $(fun!)(dst::ContiguousArray, $(aparams...), dims::DimSpec)
+        function $(fun!)(dst::ContiguousArray, $(interf_params...), dims::DimSpec)
             insiz = $(h.inputsize)
             rsiz = Base.reduced_dims(insiz, dims)
             prod(rsiz) == length(dst) || throw(DimensionMismatch("Incorrect size of dst."))
-            $(_fun!)(contiguous_view(dst, rsiz), $(args...), insiz, dims)
+            $(_fun!)(contiguous_view(dst, rsiz), op, $(args...), insiz, dims)
         end
 
         global $(fun)
-        function $(fun)($(aparams...), dims::DimSpec)
+        function $(fun)($(interf_params...), dims::DimSpec)
             insiz = $(h.inputsize)
-            dst = fill(init($OT, $(h.termtype)), Base.reduced_dims(insiz,dims))
-            $(_fun!)(dst, $(args...), insiz, dims)
+            dst = fill(reduceinit(op, $(h.termtype)), Base.reduced_dims(insiz,dims))
+            $(_fun!)(dst, op, $(args...), insiz, dims)
         end
     end
 end 
  
+@compose_reducedim reducedim 0
+@compose_reducedim mapreducedim 1
+@compose_reducedim mapreducedim 2
+@compose_reducedim mapreducedim 3
+@compose_reducedim mapreducedim_fdiff (-2)
 
 #################################################
 #
@@ -283,29 +295,42 @@ end
 #
 #################################################
 
-@compose_reducedim sum Sum 0
-@compose_reducedim sum Sum 1
-@compose_reducedim sum Sum 2
-@compose_reducedim sum Sum 3
-@compose_reducedim sumfdiff Sum (-2)
+macro compose_reducedim_basicfuns(fname, fdiff, OT)
+    fname! = symbol(string(fname, '!'))
+    fdiff! = symbol(string(fdiff, '!'))
 
-@compose_reducedim maximum Maximum 0
-@compose_reducedim maximum Maximum 1
-@compose_reducedim maximum Maximum 2
-@compose_reducedim maximum Maximum 3
-@compose_reducedim maxfdiff Maximum (-2)
+    quote
+        global $(fname!)
+        $(fname!)(dst::DenseArray, a::NumericArray, dims::DimSpec) = reducedim!(dst, $(OT)(), a, dims)
+        $(fname!)(dst::DenseArray, fun::Functor{1}, a::NumericArray, dims::DimSpec) = 
+            mapreducedim!(dst, fun, $(OT)(), a, dims)
+        $(fname!)(dst::DenseArray, fun::Functor{2}, a::DenseArrOrNum, b::DenseArrOrNum, dims::DimSpec) = 
+            mapreducedim!(dst, fun, $(OT)(), a, b, dims)
+        $(fname!)(dst::DenseArray, fun::Functor{3}, a::DenseArrOrNum, b::DenseArrOrNum, c::DenseArrOrNum, dims::DimSpec) = 
+            mapreducedim!(dst, fun, $(OT)(), a, b, c, dims)
 
-@compose_reducedim minimum Minimum 0
-@compose_reducedim minimum Minimum 1
-@compose_reducedim minimum Minimum 2
-@compose_reducedim minimum Minimum 3
-@compose_reducedim minfdiff Minimum (-2)
+        global $(fdiff!)
+        $(fdiff!)(dst::DenseArray, fun::Functor{1}, a::DenseArrOrNum, b::DenseArrOrNum, dims::DimSpec) = 
+            mapreducedim_fdiff!(dst, fun, $(OT)(), a, b, dims)
 
-@compose_reducedim nonneg_maximum NonnegMaximum 0
-@compose_reducedim nonneg_maximum NonnegMaximum 1
-@compose_reducedim nonneg_maximum NonnegMaximum 2
-@compose_reducedim nonneg_maximum NonnegMaximum 3
-@compose_reducedim nonneg_maxfdiff NonnegMaximum (-2)
+        global $(fname)
+        $(fname)(a::NumericArray, dims::DimSpec) = reducedim($(OT)(), a, dims)
+        $(fname)(fun::Functor{1}, a::NumericArray, dims::DimSpec) = mapreducedim(fun, $(OT)(), a, dims)
+        $(fname)(fun::Functor{2}, a::DenseArrOrNum, b::DenseArrOrNum, dims::DimSpec) = 
+            mapreducedim(fun, $(OT)(), a, b, dims)
+        $(fname)(fun::Functor{3}, a::DenseArrOrNum, b::DenseArrOrNum, c::DenseArrOrNum, dims::DimSpec) = 
+            mapreducedim(fun, $(OT)(), a, b, c, dims)
+
+        global $(fdiff)
+        $(fdiff)(fun::Functor{1}, a::DenseArrOrNum, b::DenseArrOrNum, dims::DimSpec) = 
+            mapreducedim_fdiff(fun, $(OT)(), a, b, dims)
+    end
+end
+
+@compose_reducedim_basicfuns sum sumfdiff Add 
+@compose_reducedim_basicfuns maximum maxfdiff _Max
+@compose_reducedim_basicfuns minimum minfdiff _Min
+@compose_reducedim_basicfuns nonneg_maximum nonneg_maxfdiff NonnegMax
 
 _rlen(siz::Dims, d::Int) = siz[d]
 _rlen(siz::Dims, reg::(Int,Int)) = siz[reg[1]] * siz[reg[2]]
