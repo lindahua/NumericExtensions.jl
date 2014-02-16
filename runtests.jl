@@ -15,9 +15,8 @@ tests = [ "shapes",
           "norms",
           "scan",
           "statistics",
-          "wsum"
-          #"pdmat" 
-          ]
+          "wsum",
+          "pdmat"]
 
 for t in tests
     tf = joinpath("test", "$t.jl")

@@ -139,7 +139,7 @@ module NumericExtensions
     include("statistics.jl")
     include("wsum.jl")
 
-    # include("pdmat.jl")
+    include("pdmat.jl")
 
     include("benchmark.jl")
 
