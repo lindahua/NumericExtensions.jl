@@ -135,8 +135,8 @@ module NumericExtensions
     include("reducedim.jl")
 
     include("norms.jl")
-    # include("scan.jl")
-    # include("statistics.jl")
+    include("scan.jl")
+    include("statistics.jl")
     # include("wsum.jl")
 
     # include("pdmat.jl")

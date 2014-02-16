@@ -60,7 +60,8 @@ function varm!(dst::ContiguousRealArray, x::ContiguousRealArray, mu::ContiguousR
     1 <= dim <= nd || error("varm: invalid value of dim.")
 
     shp = size(x)
-    length(dst) == length(mu) == reduced_length(shp, dim) || error("Inconsistent argument dimensions.")
+    rlen = prod(Base.reduced_dims(shp, dim))
+    length(dst) == length(mu) == rlen || error("Inconsistent argument dimensions.")
 
     if dim == 1
         m = shp[1]
@@ -91,7 +92,7 @@ function varm!(dst::ContiguousRealArray, x::ContiguousRealArray, mu::ContiguousR
 end
 
 function varm(x::ContiguousRealArray, mu::ContiguousRealArray, dim::Int)
-    rsiz = reduced_shape(size(x), dim)
+    rsiz = Base.reduced_dims(size(x), dim)
     length(mu) == prod(rsiz) || error("Inconsistent argument dimensions.")
     R = fptype(promote_type(eltype(x), eltype(mu)))
     varm!(Array(R, rsiz), x, mu, dim)
@@ -136,7 +137,7 @@ function var!(dst::ContiguousRealArray, x::ContiguousRealArray, dim::Int)
 end
 
 function var(x::ContiguousRealArray, dim::Int)
-    var!(Array(fptype(eltype(x)), reduced_shape(size(x), dim)), x, dim)
+    var!(Array(fptype(eltype(x)), Base.reduced_dims(size(x), dim)), x, dim)
 end
 
 # std
@@ -252,7 +253,7 @@ function logsumexp!{R<:Real,T<:Real}(dst::ContiguousArray{R}, x::ContiguousRealA
 end
 
 function logsumexp{T<:Real}(x::ContiguousArray{T}, dim::Int)
-    logsumexp!(Array(fptype(T), reduced_shape(size(x), dim)), x, dim)
+    logsumexp!(Array(fptype(T), Base.reduced_dims(size(x), dim)), x, dim)
 end
 
 

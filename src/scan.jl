@@ -9,6 +9,8 @@
 macro code_scan(AN)
 
     h = codegen_helper(AN)
+    aparams = h.contiguous_aparams
+    args = h.args
     t1 = h.term(1)
     ti = h.term(:i)
 
@@ -16,7 +18,7 @@ macro code_scan(AN)
         # generic scanning functions
 
         global _scan!
-        function _scan!(s, r::AbstractArray, op::Functor{2}, $(h.aparams...))
+        function _scan!(s, r::AbstractArray, op::Functor{2}, $(aparams...))
             i = 1
             @inbounds r[1] = s
 
@@ -28,23 +30,23 @@ macro code_scan(AN)
         end
 
         global scan!
-        function scan!(r::AbstractArray, op::Functor{2}, $(h.aparams...))
+        function scan!(r::AbstractArray, op::Functor{2}, $(aparams...))
             n = $(h.inputlen)
             if n > 0
                 @inbounds s = $(t1)
-                _scan!(s, r, op, $(h.args...))
+                _scan!(s, r, op, $(args...))
             end
             return r
         end
 
         global scan
-        function scan(op::Functor{2}, $(h.aparams...))
+        function scan(op::Functor{2}, $(aparams...))
             shp = $(h.inputsize)
             n = prod(shp)
             if n > 0
                 @inbounds s = $(t1)
                 r = Array(typeof(s), shp)
-                _scan!(s, r, op, $(h.args...))
+                _scan!(s, r, op, $(args...))
                 return r
             else
                 Any[]
@@ -53,14 +55,14 @@ macro code_scan(AN)
 
         # specific scanning functions
         global cumsum!, cummax!, cummin!
-        cumsum!(r::AbstractArray, $(h.aparams...)) = scan!(r, Add(), $(h.args...))
-        cummax!(r::AbstractArray, $(h.aparams...)) = scan!(r, MaxFun(), $(h.args...))
-        cummin!(r::AbstractArray, $(h.aparams...)) = scan!(r, MinFun(), $(h.args...))
+        cumsum!(r::AbstractArray, $(aparams...)) = scan!(r, Add(), $(args...))
+        cummax!(r::AbstractArray, $(aparams...)) = scan!(r, MaxFun(), $(args...))
+        cummin!(r::AbstractArray, $(aparams...)) = scan!(r, MinFun(), $(args...))
 
         global cumsum, cummax, cummin
-        cumsum($(h.aparams...)) = scan(Add(), $(h.args...))
-        cummax($(h.aparams...)) = scan(MaxFun(), $(h.args...))
-        cummin($(h.aparams...)) = scan(MinFun(), $(h.args...))
+        cumsum($(aparams...)) = scan(Add(), $(args...))
+        cummax($(aparams...)) = scan(MaxFun(), $(args...))
+        cummin($(aparams...)) = scan(MinFun(), $(args...))
     end
 end
 
@@ -87,13 +89,21 @@ cummin!(r::ContiguousNumericArray) = scan!(MinFun(), r)
 macro code_scandim(AN)
 
     h = codegen_helper(AN)
+    aparams = h.contiguous_aparams
+    args = h.args
     tidx = h.term(:idx)
+
+    if AN == 0
+        offset_args = [:(offset_view(a, ao, m, n))]
+    else
+        offset_args = [:fun, [:(offset_view($a, ao, m, n)) for a in args[2:end]]...]
+    end
 
     quote
         # generic scanning functions
 
         global _scan_eachcol!
-        function _scan_eachcol!(m::Int, n::Int, r::AbstractArray, op::Functor{2}, $(h.aparams...))
+        function _scan_eachcol!(m::Int, n::Int, r::AbstractArray, op::Functor{2}, $(aparams...))
             o = 0
             for j = 1 : n
                 idx = o + 1
@@ -111,7 +121,7 @@ macro code_scandim(AN)
         end
 
         global _scan_eachrow!
-        function _scan_eachrow!(m::Int, n::Int, r::AbstractArray, op::Functor{2}, $(h.aparams...))
+        function _scan_eachrow!(m::Int, n::Int, r::AbstractArray, op::Functor{2}, $(aparams...))
             o = 0
             for idx = 1 : m
                 @inbounds r[idx] = $(tidx)
@@ -131,13 +141,13 @@ macro code_scandim(AN)
         end
 
         global _scan!
-        function _scan!(r::ContiguousArray, op::Functor{2}, $(h.aparams...), dim::Int)
+        function _scan!(r::ContiguousArray, op::Functor{2}, $(aparams...), dim::Int)
             if !isempty(r)
                 shp = size(r)
                 if dim == 1
                     m = shp[1]
                     n = succ_length(shp, 1)
-                    _scan_eachcol!(m, n, r, op, $(h.args...))
+                    _scan_eachcol!(m, n, r, op, $(args...))
 
                 else
                     m = prec_length(shp, dim)
@@ -145,13 +155,13 @@ macro code_scandim(AN)
                     k = succ_length(shp, dim)
 
                     if k == 1
-                        _scan_eachrow!(m, n, r, op, $(h.args...))
+                        _scan_eachrow!(m, n, r, op, $(args...))
                     else
                         mn = m * n
                         ro = 0
                         ao = 0
                         for l = 1 : k
-                            _scan_eachrow!(m, n, offset_view(r, ro, m, n), op, $(h.offset_args...))
+                            _scan_eachrow!(m, n, offset_view(r, ro, m, n), op, $(offset_args...))
                             ro += mn
                             ao += mn
                         end
@@ -162,31 +172,31 @@ macro code_scandim(AN)
         end
 
         global scan!
-        function scan!(r::ContiguousArray, op::Functor{2}, $(h.aparams...), dim::Int)
+        function scan!(r::ContiguousArray, op::Functor{2}, $(aparams...), dim::Int)
             shp = $(h.inputsize)
             size(r) == shp || error("Invalid argument dimensions.")
-            _scan!(r, op, $(h.args...), dim)
+            _scan!(r, op, $(args...), dim)
         end
 
         global scan
-        function scan(op::Functor{2}, $(h.aparams...), dim::Int)
+        function scan(op::Functor{2}, $(aparams...), dim::Int)
             shp = $(h.inputsize)
             tt = $(h.termtype)
             rt = result_type(op, tt, tt)
-            _scan!(Array(rt, shp), op, $(h.args...), dim)
+            _scan!(Array(rt, shp), op, $(args...), dim)
         end
 
 
         # specific scanning functions
         global cumsum!, cummax!, cummin!
-        cumsum!(r::AbstractArray, $(h.aparams...), dim::Int) = scan!(r, Add(), $(h.args...), dim)
-        cummax!(r::AbstractArray, $(h.aparams...), dim::Int) = scan!(r, MaxFun(), $(h.args...), dim)
-        cummin!(r::AbstractArray, $(h.aparams...), dim::Int) = scan!(r, MinFun(), $(h.args...), dim)
+        cumsum!(r::AbstractArray, $(aparams...), dim::Int) = scan!(r, Add(), $(args...), dim)
+        cummax!(r::AbstractArray, $(aparams...), dim::Int) = scan!(r, MaxFun(), $(args...), dim)
+        cummin!(r::AbstractArray, $(aparams...), dim::Int) = scan!(r, MinFun(), $(args...), dim)
 
         global cumsum, cummax, cummin
-        cumsum($(h.aparams...), dim::Int) = scan(Add(), $(h.args...), dim)
-        cummax($(h.aparams...), dim::Int) = scan(MaxFun(), $(h.args...), dim)
-        cummin($(h.aparams...), dim::Int) = scan(MinFun(), $(h.args...), dim)
+        cumsum($(aparams...), dim::Int) = scan(Add(), $(args...), dim)
+        cummax($(aparams...), dim::Int) = scan(MaxFun(), $(args...), dim)
+        cummin($(aparams...), dim::Int) = scan(MinFun(), $(args...), dim)
     end
 end
 
@@ -199,9 +209,7 @@ end
 
 scan!(op::Functor{2}, r::ContiguousArray, dim::Int) = scan!(r, op, r, dim)
 
-cumsum!(r::ContiguousArray, dim::Int) = scan!(Add(), r, dim)
-cummax!(r::ContiguousArray, dim::Int) = scan!(MaxFun(), r, dim)
-cummin!(r::ContiguousArray, dim::Int) = scan!(MinFun(), r, dim)
-
-
+cumsum!{T<:Number}(r::ContiguousArray{T}, dim::Int) = scan!(Add(), r, dim)
+cummax!{T<:Real}(r::ContiguousArray{T}, dim::Int) = scan!(MaxFun(), r, dim)
+cummin!{T<:Real}(r::ContiguousArray{T}, dim::Int) = scan!(MinFun(), r, dim)
 

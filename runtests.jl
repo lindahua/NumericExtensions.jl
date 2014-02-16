@@ -12,9 +12,9 @@ tests = [ "shapes",
           "reduce",
           "folddim",
           "reducedim",
-          "norms"
-          #"scan",
-          #"statistics",
+          "norms",
+          "scan",
+          "statistics"
           #"wsum",
           #"pdmat" 
           ]
