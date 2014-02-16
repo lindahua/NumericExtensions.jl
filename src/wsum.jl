@@ -9,10 +9,12 @@ macro code_wsumfuns(AN, fname)
 
     fname! = symbol("$(fname)!")
     _fname! = symbol("_$(fname)!")
+    aparams = h.contiguous_aparams
+    args = h.args
 
     quote
         global $(fname)
-        function ($fname)(w::ContiguousRealArray, $(h.aparams...))
+        function ($fname)(w::ContiguousRealArray, $(aparams...))
             n::Int = $(h.inputlen)
             n == length(w) || error("Inconsistent argument dimensions.")
 
@@ -28,7 +30,7 @@ macro code_wsumfuns(AN, fname)
         end
 
         global $(_fname!)
-        function $(_fname!)(dst::ContiguousArray, m::Int, n::Int, k::Int, w::ContiguousRealArray, $(h.aparams...))
+        function $(_fname!)(dst::ContiguousArray, m::Int, n::Int, k::Int, w::ContiguousRealArray, $(aparams...))
 
             if n == 1  # each page has a single row (simply evaluate)
                 @inbounds w1 = w[1]
@@ -87,22 +89,22 @@ macro code_wsumfuns(AN, fname)
         end
 
         global $(fname!)
-        function $(fname!)(dst::ContiguousArray, w::ContiguousRealArray, $(h.aparams...), dim::Int)
+        function $(fname!)(dst::ContiguousArray, w::ContiguousRealArray, $(aparams...), dim::Int)
             shp = $(h.inputsize)
             1 <= dim <= length(shp) || error("Invalid value of dim.")
             length(w) == shp[dim] || error("Inconsistent argument dimensions.")
             m = prec_length(shp, dim)
             n = shp[dim]
             k = succ_length(shp, dim)
-            $(_fname!)(dst, m, n, k, w, $(h.args...))
+            $(_fname!)(dst, m, n, k, w, $(args...))
         end
 
         global $(fname)
-        function ($fname)(w::ContiguousRealArray, $(h.aparams...), dim::Int)
+        function ($fname)(w::ContiguousRealArray, $(aparams...), dim::Int)
             tt = $(h.termtype)
             shp = $(h.inputsize)
-            r = Array(promote_type(tt, eltype(w)), reduced_shape(shp, dim))
-            ($fname!)(r, w, $(h.args...), dim)
+            r = Array(promote_type(tt, eltype(w)), Base.reduced_dims(shp, dim))
+            ($fname!)(r, w, $(args...), dim)
         end
     end
 end

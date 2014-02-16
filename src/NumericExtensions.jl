@@ -137,7 +137,7 @@ module NumericExtensions
     include("norms.jl")
     include("scan.jl")
     include("statistics.jl")
-    # include("wsum.jl")
+    include("wsum.jl")
 
     # include("pdmat.jl")
 

@@ -14,8 +14,8 @@ tests = [ "shapes",
           "reducedim",
           "norms",
           "scan",
-          "statistics"
-          #"wsum",
+          "statistics",
+          "wsum"
           #"pdmat" 
           ]
 
