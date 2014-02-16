@@ -5,23 +5,21 @@ offset(x::Number) = 0
 
 ## auxiliary functions
 
-_rtup(siz::NTuple{1,Int}, d::Integer) = (d == 1 ? (true,) : (false,))
+reducindicators(siz::NTuple{1,Int}, d::Integer) = (d == 1 ? (true,) : (false,))
  
-_rtup(siz::NTuple{2,Int}, d::Integer) = (d == 1 ? (false, true) :
-                                         d == 2 ? (true, false) : 
-                                                  (false, false) )
+reducindicators(siz::NTuple{2,Int}, d::Integer) = (d == 1 ? (true, false) :
+                                                   d == 2 ? (false, true) : (false, false))
  
-_rtup(siz::NTuple{3,Int}, d::Integer) = (d == 1 ? (false, false, true) :
-                                         d == 2 ? (false, true, false) : 
-                                         d == 3 ? (true, false, false) : 
-                                                  (false, false, false))
+reducindicators(siz::NTuple{3,Int}, d::Integer) = (d == 1 ? (true, false, false) :
+                                                   d == 2 ? (false, true, false) : 
+                                                   d == 3 ? (false, false, true) : (false, false, false))
  
-_rtup{N}(siz::NTuple{N,Int}, d::Integer) = (ds = fill(false,N); ds[N+1-d]=true; tuple(ds...))::NTuple{N,Bool}
+reducindicators{N}(siz::NTuple{N,Int}, d::Integer) = (ds = fill(false,N); ds[d]=true; tuple(ds...))::NTuple{N,Bool}
  
-function _rtup{N}(siz::NTuple{N,Int}, dims::Union(Dims,Vector))
+function reducindicators{N}(siz::NTuple{N,Int}, dims::Union(Dims,Vector))
     ds = fill(false,N)
     for d in dims
-        ds[N+1-d] = true
+        ds[d] = true
     end
     return tuple(ds...)::NTuple{N,Bool}
 end
@@ -226,43 +224,44 @@ macro compose_reducedim(fun, AN)
         end
 
         global $(_funimpl!)
-        function $(_funimpl!){Op<:Functor{2}}(op::Op, dst::DenseArray, $(aparams...), dim::Int, insiz::Dims, r1::Bool)
-            n = insiz[1]::Int
-            $(getstrides1)
-            sdst1 = stride(dst, 1)::Int
-            $(getoffsets)
-            idst = offset(dst) + 1
-            $(_funimpl1d!)(op, r1, n, parent(dst), idst, sdst1, $(imargs1d...))
-        end
+        function $(_funimpl!){Op<:Functor{2},N}(op::Op, dst::DenseArray, $(aparams...), dim::Int, 
+                                                insiz::NTuple{N,Int}, rtup::NTuple{N,Bool})
 
-        function $(_funimpl!){Op<:Functor{2}}(op::Op, dst::DenseArray, $(aparams...), dim::Int, insiz::Dims, r2::Bool, r1::Bool)
-            m = insiz[1]::Int
-            n = insiz[2]::Int
-            $(getstrides2)
-            sdst1, sdst2 = strides(dst)::(Int, Int)         
-            $(getoffsets)
-            idst = offset(dst) + 1
-            $(_funimpl2d!)(op, r2, r1, m, n, parent(dst), idst, sdst1, sdst2, $(imargs2d...))
-        end
+            if dim == 1
+                n = insiz[1]::Int
+                $(getstrides1)
+                sdst1 = stride(dst, 1)::Int
+                $(getoffsets)
+                idst = offset(dst) + 1
+                $(_funimpl1d!)(op, rtup[1], n, parent(dst), idst, sdst1, $(imargs1d...))
 
-        function $(_funimpl!){Op<:Functor{2}}(op::Op, dst::DenseArray, $(aparams...), dim::Int, insiz::Dims, 
-                                              rN::Bool, rNm1::Bool, rNm2::Bool, rr::Bool...)
-            n = insiz[dim]::Int
-            if rN
-                _dst = ellipview(dst, 1)
-                for i = 1:n
-                    $(_funimpl!)(op, _dst, $(eviewargs...), dim-1, insiz, rNm1, rNm2, rr...)
-                end
+            elseif dim == 2
+                m = insiz[1]::Int
+                n = insiz[2]::Int
+                $(getstrides2)
+                sdst1, sdst2 = strides(dst)::(Int, Int)         
+                $(getoffsets)
+                idst = offset(dst) + 1
+                $(_funimpl2d!)(op, rtup[2], rtup[1], m, n, parent(dst), idst, sdst1, sdst2, $(imargs2d...))
+
             else
-                for i = 1:n
-                    $(_funimpl!)(op, ellipview(dst, i), $(eviewargs...), dim-1, insiz, rNm1, rNm2, rr...)
+                n = insiz[dim]::Int
+                if rtup[dim]
+                    _dst = ellipview(dst, 1)
+                    for i = 1:n
+                        $(_funimpl!)(op, _dst, $(eviewargs...), dim-1, insiz, rtup)
+                    end
+                else
+                    for i = 1:n
+                        $(_funimpl!)(op, ellipview(dst, i), $(eviewargs...), dim-1, insiz, rtup)
+                    end
                 end
             end
         end    
          
         global $(_fun!)
         function $(_fun!){S<:Number,N}(dst::DenseArray{S,N}, op::Functor{2}, $(aparams...), insiz::NTuple{N,Int}, dims::DimSpec)
-            $(_funimpl!)(op, dst, $(args...), length(insiz), insiz, _rtup(insiz, dims)...)
+            $(_funimpl!)(op, dst, $(args...), length(insiz), insiz, reducindicators(insiz, dims))
             return dst
         end
 
