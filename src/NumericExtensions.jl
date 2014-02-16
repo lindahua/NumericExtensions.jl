@@ -2,37 +2,32 @@ module NumericExtensions
 
     using ArrayViews
 
-    import 
-        # size information
-        Base.size, Base.length, Base.ndims, Base.isempty, Base.stride,
+    # size information
+    import Base: size, length, ndims, isempty, stride
 
-        # iteration and indexing
-        Base.start, Base.next, Base.done, Base.getindex, Base.setindex!,
+    # iteration and indexing
+    import Base: start, next, done, getindex, setindex!
 
-        # common operations
-        Base.show, Base.add!, Base.copy, Base.similar, Base.pointer, Base.parent,
+    # common operations
+    import Base: show, add!, copy, similar, pointer, parent, diagm
 
-        # higher-level map & reduction functions to be extended
-        Base.map, Base.map!, Base.reduce, Base.reducedim, Base.mapreduce, Base.foldl, Base.foldr,
+    # higher-level map & reduction functions to be extended
+    import Base: map, map!, reduce, reducedim, mapreduce, foldl, foldr
 
-        # arithmetic functions
-        Base.+, Base.*, Base.\, Base./, Base.==,
+    # arithmetic functions
+    import Base: +, *, \, /, ==
 
-        # reduction functions to be extended
-        Base.sum, Base.prod, Base.maximum, Base.minimum, Base.dot, 
-        Base.cumsum, Base.cummax, Base.cummin, Base.cumprod,
-        Base.norm, 
+    # reduction functions to be extended
+    import Base: sum, sum!, prod, prod!, maximum, maximum!, minimum, minimum!, dot, norm
 
-        Base.sum!, Base.maximum!, Base.minimum!,
+    # scan functions to be extended
+    import Base: cumsum, cummax, cummin, cumprod
 
-        # statistics
-        Base.mean, Base.var, Base.varm, Base.std, Base.stdm,
+    # statistics
+    import Base: mean, var, varm, std, stdm
 
-        # matrix related
-        Base.logdet, Base.full, Base.inv, Base.diag, Base.diagm,
-
-        # view
-        ArrayViews.view, ArrayViews.ellipview, ArrayViews.offset
+    # views
+    import ArrayViews: view, ellipview, offset
 
     export 
         # reexport views
