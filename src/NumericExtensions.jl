@@ -134,7 +134,7 @@ module NumericExtensions
     include("folddim.jl")
     include("reducedim.jl")
 
-    # include("norms.jl")
+    include("norms.jl")
     # include("scan.jl")
     # include("statistics.jl")
     # include("wsum.jl")

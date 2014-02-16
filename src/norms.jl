@@ -17,6 +17,7 @@ end
 vnorm(x::NumericArray) = vnorm(x, 2)
 
 function vnorm!(dst::NumericArray, x::NumericArray, p::Real, dims::DimSpec)
+    fill!(dst, zero(eltype(dst)))
     p > 0 || throw(ArgumentError("p must be positive."))
     p == 1 ? sumabs!(dst, x, dims) :
     p == 2 ? map1!(SqrtFun(), sumsq!(dst, x, dims)) :   
@@ -43,6 +44,7 @@ end
 vnormdiff(x::DenseArrOrNum, y::DenseArrOrNum) = vnormdiff(x, y, 2)
 
 function vnormdiff!(dst::NumericArray, x::DenseArrOrNum, y::DenseArrOrNum, p::Real, dims::DimSpec)
+    fill!(dst, zero(eltype(dst)))
     p > 0 || throw(ArgumentError("p must be positive."))
     p == 1 ? sumabsdiff!(dst, x, y, dims) :
     p == 2 ? map1!(SqrtFun(), sumsqdiff!(dst, x, y, dims)) :    
@@ -73,48 +75,66 @@ normalize(x::ContiguousRealArray, p::Real) = x * inv(vnorm(x, p))
 
 # normalize along specific dimension
 
-function normalize!(dst::ContiguousRealArray, x::ContiguousRealArray, p::Real, d::Integer)
+function normalize!(dst::NumericArray, x::NumericArray, p::Real, dims::DimSpec)
     p > 0 || throw(ArgumentError("p must be positive."))
     length(dst) == length(x) || throw(ArgumentError("Inconsistent argument dimensions!"))
 
-    if d == 1
-        siz = size(x)
-        m = siz[1]
-        n = succ_length(siz, 1)
-
+    if length(dims) == 1 && dims[1] == 1
+        n = succ_length(size(x), 1)
         if p == 1
-            for j = 1:n         
-                xj = view(x, :, j)
-                yj = view(dst, :, j)
-                map!(Multiply(), yj, xj, inv(sumabs(xj)))
+            for j = 1:n
+                xj = view(x,:,j)
+                map!(Multiply(), view(dst,:,j), xj, inv(sumabs(xj)))
             end
         elseif p == 2
             for j = 1:n
-                xj = view(x, :, j)
-                yj = view(dst, :, j)
-                map!(Multiply(), yj, xj, inv(sqrt(sumsq(xj))))
+                xj = view(x,:,j)
+                map!(Multiply(), view(dst,:,j), xj, inv(sqrt(sumsq(xj))))
             end
         elseif isinf(p)
             for j = 1:n
-                xj = view(x, :, j)
-                yj = view(dst, :, j)
-                map!(Multiply(), yj, xj, inv(maxabs(xj)))
+                xj = view(x,:,j)
+                map!(Multiply(), view(dst,:,j), xj, inv(maxabs(xj)))
             end
         else
             for j = 1:n
-                xj = view(x, :, j)
-                yj = view(dst, :, j)
+                xj = view(x,:,j)
                 u = sum(FixAbsPow(p), xj) .^ inv(p)
-                map!(Multiply(), yj, xj, inv(u))
+                map!(Multiply(), view(dst,:,j), xj, inv(u))
+            end
+        end
+
+    elseif length(dims) == 2 && dims[1] == 1 && dims[2] == 2
+        n = succ_length(size(x), 2)
+        if p == 1
+            for j = 1:n
+                xj = view(x,:,:,j)
+                map!(Multiply(), view(dst,:,:,j), xj, inv(sumabs(xj)))
+            end
+        elseif p == 2
+            for j = 1:n
+                xj = view(x,:,:,j)
+                map!(Multiply(), view(dst,:,:,j), xj, inv(sqrt(sumsq(xj))))
+            end
+        elseif isinf(p)
+            for j = 1:n
+                xj = view(x,:,:,j)
+                map!(Multiply(), view(dst,:,:,j), xj, inv(maxabs(xj)))
+            end
+        else
+            for j = 1:n
+                xj = view(x,:,:,j)
+                u = sum(FixAbsPow(p), xj) .^ inv(p)
+                map!(Multiply(), view(dst,:,:,j), xj, inv(u))
             end
         end
 
     else
-        broadcast!(.*, dst, x, rcp!(vnorm(x, p, d)))
+        broadcast!(.*, dst, x, rcp!(vnorm(x, p, dims)))
     end
     dst
 end
 
-normalize!(x::ContiguousRealArray, p::Real, d::Int) = normalize!(x, x, p, d)
-normalize(x::ContiguousRealArray, p::Real, d::Int) = normalize!(similar(x), x, p, d)
+normalize!(x::ContiguousRealArray, p::Real, dims::DimSpec) = normalize!(x, x, p, dims)
+normalize(x::ContiguousRealArray, p::Real, dims::DimSpec) = normalize!(similar(x), x, p, dims)
 

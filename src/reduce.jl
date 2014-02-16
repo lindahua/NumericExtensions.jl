@@ -100,29 +100,29 @@ reduceinit{T<:Real}(::NonnegMax, ::Type{T}) = zero(T)
 
 function reduce{T<:Number}(op::Functor{2}, a::ContiguousNumericArray{T})
     n = length(a)
-    n > 0 ? saccum(op, n, a, 1) : reduceinit(op, T)
+    n > 0 ? saccum(op, n, parent(a), offset(a) + 1) : reduceinit(op, T)
 end
 
 function mapreduce(fun::Functor{1}, op::Functor{2}, a::ContiguousNumericArray)
     n = length(a)
-    n > 0 ? saccum(op, n, fun, a, 1) : reduceinit(op, result_type(fun, eltype(a)))
+    n > 0 ? saccum(op, n, fun, parent(a), offset(a) + 1) : reduceinit(op, result_type(fun, eltype(a)))
 end
 
 function mapreduce(fun::Functor{2}, op::Functor{2}, a::ContiguousArrOrNum, b::ContiguousArrOrNum)
     n = maplength(a, b); 
-    n > 0 ? saccum(op, n, fun, a, 1, b, 1) : 
+    n > 0 ? saccum(op, n, fun, parent(a), offset(a) + 1, parent(b), offset(b) + 1) : 
             reduceinit(op, result_type(fun, eltype(a), eltype(b)))
 end
 
 function mapreduce(fun::Functor{3}, op::Functor{2}, a::ContiguousArrOrNum, b::ContiguousArrOrNum, c::ContiguousArrOrNum)
     n = maplength(a, b, c); 
-    n > 0 ? saccum(op, n, fun, a, 1, b, 1, c, 1) : 
+    n > 0 ? saccum(op, n, fun, parent(a), offset(a) + 1, parent(b), offset(b) + 1, parent(c), offset(c) + 1) : 
             reduceinit(op, result_type(fun, eltype(a), eltype(b), eltype(c)))
 end
 
 function mapreduce_fdiff(fun::Functor{1}, op::Functor{2}, a::ContiguousArrOrNum, b::ContiguousArrOrNum)
     n = maplength(a, b); 
-    n > 0 ? saccum_fdiff(op, n, fun, a, 1, b, 1) : 
+    n > 0 ? saccum_fdiff(op, n, fun, parent(a), offset(a) + 1, parent(b), offset(b) + 1) : 
             reduceinit(op, result_type(fun, promote_type(eltype(a), eltype(b))))
 end
 

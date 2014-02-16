@@ -11,8 +11,8 @@ tests = [ "shapes",
           "rkernels",
           "reduce",
           "folddim",
-          "reducedim"
-          #"norms",
+          "reducedim",
+          "norms"
           #"scan",
           #"statistics",
           #"wsum",

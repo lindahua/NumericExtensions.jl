@@ -12,111 +12,62 @@ y2 = randn(5, 6)
 x3 = randn(3, 4, 5)
 y3 = randn(3, 4, 5)
 
+xs = {x1, x2, x3}
+ys = {y1, y2, y3}
+ps = {1, 2, 3, Inf}
+
+tdims = {
+    {1},   # N = 1
+    {1, 2, (1, 2)}, # N = 2
+    {1, 2, 3, (1, 2), (1, 3), (2, 3), (1, 2, 3)} # N = 3
+}
+
+safe_vnorm(x, p) = p == 1 ? sum(abs(x)) :
+                   p == 2 ? sqrt(sum(abs2(x))) :
+                   p == Inf ? maximum(abs(x)) :
+                   sum(abs(x) .^ p) .^ inv(p)
+
+safe_vnorm(x, p, reg) = p == 1 ? sum(abs(x), reg) :
+                        p == 2 ? sqrt(sum(abs2(x), reg)) :
+                        p == Inf ? maximum(abs(x), reg) :
+                        sum(abs(x) .^ p, reg) .^ inv(p)
+
 # vnorm
 
-@test_approx_eq vnorm(x1, 1, 1) sum(abs(x1), 1)
-@test_approx_eq vnorm(x2, 1, 1) sum(abs(x2), 1)
-@test_approx_eq vnorm(x2, 1, 2) sum(abs(x2), 2)
-@test_approx_eq vnorm(x3, 1, 1) sum(abs(x3), 1)
-@test_approx_eq vnorm(x3, 1, 2) sum(abs(x3), 2)
-@test_approx_eq vnorm(x3, 1, 3) sum(abs(x3), 3)
+for x in xs, p in ps
+    @test_approx_eq vnorm(x, p) safe_vnorm(x, p)
+end
 
-@test_approx_eq vnorm(x1, 2, 1) sqrt(sum(abs2(x1), 1))
-@test_approx_eq vnorm(x2, 2, 1) sqrt(sum(abs2(x2), 1))
-@test_approx_eq vnorm(x2, 2, 2) sqrt(sum(abs2(x2), 2))
-@test_approx_eq vnorm(x3, 2, 1) sqrt(sum(abs2(x3), 1))
-@test_approx_eq vnorm(x3, 2, 2) sqrt(sum(abs2(x3), 2))
-@test_approx_eq vnorm(x3, 2, 3) sqrt(sum(abs2(x3), 3))
-
-@test_approx_eq vnorm(x1, Inf, 1) maximum(abs(x1), 1)
-@test_approx_eq vnorm(x2, Inf, 1) maximum(abs(x2), 1)
-@test_approx_eq vnorm(x2, Inf, 2) maximum(abs(x2), 2)
-@test_approx_eq vnorm(x3, Inf, 1) maximum(abs(x3), 1)
-@test_approx_eq vnorm(x3, Inf, 2) maximum(abs(x3), 2)
-@test_approx_eq vnorm(x3, Inf, 3) maximum(abs(x3), 3)
-
-@test_approx_eq vnorm(x1, 3, 1) sum(abs(x1).^3, 1).^(1/3)
-@test_approx_eq vnorm(x2, 3, 1) sum(abs(x2).^3, 1).^(1/3)
-@test_approx_eq vnorm(x2, 3, 2) sum(abs(x2).^3, 2).^(1/3)
-@test_approx_eq vnorm(x3, 3, 1) sum(abs(x3).^3, 1).^(1/3)
-@test_approx_eq vnorm(x3, 3, 2) sum(abs(x3).^3, 2).^(1/3)
-@test_approx_eq vnorm(x3, 3, 3) sum(abs(x3).^3, 3).^(1/3)
+for x in xs, reg in tdims[ndims(x)], p in ps
+    @test_approx_eq vnorm(x, p, reg) safe_vnorm(x, p, reg)
+end
 
 # vnormdiff
 
-@test_approx_eq vnormdiff(x1, y1, 1, 1) sum(abs(x1 - y1), 1)
-@test_approx_eq vnormdiff(x2, y2, 1, 1) sum(abs(x2 - y2), 1)
-@test_approx_eq vnormdiff(x2, y2, 1, 2) sum(abs(x2 - y2), 2)
-@test_approx_eq vnormdiff(x3, y3, 1, 1) sum(abs(x3 - y3), 1)
-@test_approx_eq vnormdiff(x3, y3, 1, 2) sum(abs(x3 - y3), 2)
-@test_approx_eq vnormdiff(x3, y3, 1, 3) sum(abs(x3 - y3), 3)
+for (x, y) in zip(xs, ys), p in ps
+    @test_approx_eq vnormdiff(x, y, p) safe_vnorm(x - y, p)
+end
 
-@test_approx_eq vnormdiff(x1, y1, 2, 1) sqrt(sum(abs2(x1 - y1), 1))
-@test_approx_eq vnormdiff(x2, y2, 2, 1) sqrt(sum(abs2(x2 - y2), 1))
-@test_approx_eq vnormdiff(x2, y2, 2, 2) sqrt(sum(abs2(x2 - y2), 2))
-@test_approx_eq vnormdiff(x3, y3, 2, 1) sqrt(sum(abs2(x3 - y3), 1))
-@test_approx_eq vnormdiff(x3, y3, 2, 2) sqrt(sum(abs2(x3 - y3), 2))
-@test_approx_eq vnormdiff(x3, y3, 2, 3) sqrt(sum(abs2(x3 - y3), 3))
+for (x, y) in zip(xs, ys), reg in tdims[ndims(x)], p in ps
+    @test_approx_eq vnormdiff(x, y, p, reg) safe_vnorm(x - y, p, reg)
+end
 
-@test_approx_eq vnormdiff(x1, y1, Inf, 1) maximum(abs(x1 - y1), 1)
-@test_approx_eq vnormdiff(x2, y2, Inf, 1) maximum(abs(x2 - y2), 1)
-@test_approx_eq vnormdiff(x2, y2, Inf, 2) maximum(abs(x2 - y2), 2)
-@test_approx_eq vnormdiff(x3, y3, Inf, 1) maximum(abs(x3 - y3), 1)
-@test_approx_eq vnormdiff(x3, y3, Inf, 2) maximum(abs(x3 - y3), 2)
-@test_approx_eq vnormdiff(x3, y3, Inf, 3) maximum(abs(x3 - y3), 3)
+# normalize
 
-@test_approx_eq vnormdiff(x1, y1, 3, 1) sum(abs(x1 - y1).^3, 1).^(1/3)
-@test_approx_eq vnormdiff(x2, y2, 3, 1) sum(abs(x2 - y2).^3, 1).^(1/3)
-@test_approx_eq vnormdiff(x2, y2, 3, 2) sum(abs(x2 - y2).^3, 2).^(1/3)
-@test_approx_eq vnormdiff(x3, y3, 3, 1) sum(abs(x3 - y3).^3, 1).^(1/3)
-@test_approx_eq vnormdiff(x3, y3, 3, 2) sum(abs(x3 - y3).^3, 2).^(1/3)
-@test_approx_eq vnormdiff(x3, y3, 3, 3) sum(abs(x3 - y3).^3, 3).^(1/3)
+for x in xs, p in ps
+    r = x ./ vnorm(x, p)
+    @test_approx_eq normalize(x, p) r
 
-# normalization
+    xc = copy(x)
+    normalize!(xc, p)
+    @test_approx_eq xc r
+end
 
-@test_approx_eq normalize(x1, 1) x1 ./ vnorm(x1, 1)
-@test_approx_eq normalize(x1, 2) x1 ./ vnorm(x1, 2)
-@test_approx_eq normalize(x1, 3) x1 ./ vnorm(x1, 3)
-@test_approx_eq normalize(x1, Inf) x1 ./ vnorm(x1, Inf)
+for x in xs, reg in tdims[ndims(x)], p in ps
+    r = x ./ vnorm(x, p, reg)
+    @test_approx_eq normalize(x, p, reg) r
 
-x2c = copy(x2)
-normalize!(x2c, 1)
-@test_approx_eq x2c x2 ./ vnorm(x2, 1)
-
-@test_approx_eq normalize(x1, 1, 1) x1 ./ vnorm(x1, 1, 1)
-@test_approx_eq normalize(x2, 1, 1) x2 ./ vnorm(x2, 1, 1)
-@test_approx_eq normalize(x2, 1, 2) x2 ./ vnorm(x2, 1, 2)
-@test_approx_eq normalize(x3, 1, 1) x3 ./ vnorm(x3, 1, 1)
-@test_approx_eq normalize(x3, 1, 2) x3 ./ vnorm(x3, 1, 2)
-@test_approx_eq normalize(x3, 1, 3) x3 ./ vnorm(x3, 1, 3)
-
-@test_approx_eq normalize(x1, 2, 1) x1 ./ vnorm(x1, 2, 1)
-@test_approx_eq normalize(x2, 2, 1) x2 ./ vnorm(x2, 2, 1)
-@test_approx_eq normalize(x2, 2, 2) x2 ./ vnorm(x2, 2, 2)
-@test_approx_eq normalize(x3, 2, 1) x3 ./ vnorm(x3, 2, 1)
-@test_approx_eq normalize(x3, 2, 2) x3 ./ vnorm(x3, 2, 2)
-@test_approx_eq normalize(x3, 2, 3) x3 ./ vnorm(x3, 2, 3)
-
-@test_approx_eq normalize(x1, 3, 1) x1 ./ vnorm(x1, 3, 1)
-@test_approx_eq normalize(x2, 3, 1) x2 ./ vnorm(x2, 3, 1)
-@test_approx_eq normalize(x2, 3, 2) x2 ./ vnorm(x2, 3, 2)
-@test_approx_eq normalize(x3, 3, 1) x3 ./ vnorm(x3, 3, 1)
-@test_approx_eq normalize(x3, 3, 2) x3 ./ vnorm(x3, 3, 2)
-@test_approx_eq normalize(x3, 3, 3) x3 ./ vnorm(x3, 3, 3)
-
-@test_approx_eq normalize(x1, Inf, 1) x1 ./ vnorm(x1, Inf, 1)
-@test_approx_eq normalize(x2, Inf, 1) x2 ./ vnorm(x2, Inf, 1)
-@test_approx_eq normalize(x2, Inf, 2) x2 ./ vnorm(x2, Inf, 2)
-@test_approx_eq normalize(x3, Inf, 1) x3 ./ vnorm(x3, Inf, 1)
-@test_approx_eq normalize(x3, Inf, 2) x3 ./ vnorm(x3, Inf, 2)
-@test_approx_eq normalize(x3, Inf, 3) x3 ./ vnorm(x3, Inf, 3)
-
-x2c = copy(x2)
-normalize!(x2c, 2, 1)
-@test_approx_eq x2c x2 ./ vnorm(x2, 2, 1)
-
-x2c = copy(x2)
-normalize!(x2c, 2, 2)
-@test_approx_eq x2c x2 ./ vnorm(x2, 2, 2)
-
-
+    xc = copy(x)
+    normalize!(xc, p, reg)
+    @test_approx_eq xc r
+end
