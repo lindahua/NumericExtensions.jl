@@ -81,38 +81,71 @@ end
 #
 #################################################
 
+# init value
+
+reduceinit{T<:Number}(::Add, ::Type{T}) = zero(T)
+reduceinit{T<:Unsigned}(::Add, ::Type{T}) = uint(0)
+reduceinit{T<:Signed}(::Add, ::Type{T}) = 0
+reduceinit(::Add, ::Type{Int64}) = int64(0)
+reduceinit(::Add, ::Type{Uint64}) = uint64(0)
+reduceinit(::Add, ::Type{Int128}) = int128(0)
+reduceinit(::Add, ::Type{Uint128}) = uint128(0)
+reduceinit(::Add, ::Type{Bool}) = 0
+
+reduceinit{T<:Real}(::_Max, ::Type{T}) = typemin(T)
+reduceinit{T<:Real}(::_Min, ::Type{T}) = typemax(T)
+reduceinit{T<:Real}(::NonnegMax, ::Type{T}) = zero(T)
+
+# functions
+
+function reduce{T<:Number}(op::Functor{2}, a::ContiguousNumericArray{T})
+    n = length(a)
+    n > 0 ? saccum(op, n, a, 1) : reduceinit(op, T)
+end
+
+function mapreduce(fun::Functor{1}, op::Functor{2}, a::ContiguousNumericArray)
+    n = length(a)
+    n > 0 ? saccum(op, n, fun, a, 1) : reduceinit(op, result_type(fun, eltype(a)))
+end
+
+function mapreduce(fun::Functor{2}, op::Functor{2}, a::ContiguousArrOrNum, b::ContiguousArrOrNum)
+    n = maplength(a, b); 
+    n > 0 ? saccum(op, n, fun, a, 1, b, 1) : 
+            reduceinit(op, result_type(fun, eltype(a), eltype(b)))
+end
+
+function mapreduce(fun::Functor{3}, op::Functor{2}, a::ContiguousArrOrNum, b::ContiguousArrOrNum, c::ContiguousArrOrNum)
+    n = maplength(a, b, c); 
+    n > 0 ? saccum(op, n, fun, a, 1, b, 1, c, 1) : 
+            reduceinit(op, result_type(fun, eltype(a), eltype(b), eltype(c)))
+end
+
+function mapreduce_fdiff(fun::Functor{1}, op::Functor{2}, a::ContiguousArrOrNum, b::ContiguousArrOrNum)
+    n = maplength(a, b); 
+    n > 0 ? saccum_fdiff(op, n, fun, a, 1, b, 1) : 
+            reduceinit(op, result_type(fun, promote_type(eltype(a), eltype(b))))
+end
+
+
 macro compose_mapreduce_funs(rf, rfdiff, OT)
     quote
         global $(rf)
-        $(rf)(fun::Functor{1}, a::ContiguousNumericArray) = 
-            (n = length(a); n > 0 ? saccum($OT, n, fun, a, 1) : 
-                                    init($OT, result_type(fun, eltype(a))))
-
-        function $(rf)(fun::Functor{2}, a::ContiguousArrOrNum, b::ContiguousArrOrNum)
-            n = maplength(a, b); 
-            n > 0 ? saccum($OT, n, fun, a, 1, b, 1) : 
-                    init($OT, result_type(fun, eltype(a), eltype(b)))
-        end
-
-        function $(rf)(fun::Functor{3}, a::ContiguousArrOrNum, b::ContiguousArrOrNum, c::ContiguousArrOrNum)
-            n = maplength(a, b, c); 
-            n > 0 ? saccum($OT, n, fun, a, 1, b, 1, c, 1) : 
-                    init($OT, result_type(fun, eltype(a), eltype(b), eltype(c)))
-        end
+        $(rf)(fun::Functor{1}, a::ContiguousNumericArray) = mapreduce(fun, $(OT)(), a)
+        $(rf)(fun::Functor{2}, a::ContiguousArrOrNum, b::ContiguousArrOrNum) = 
+            mapreduce(fun, $(OT)(), a, b)
+        $(rf)(fun::Functor{3}, a::ContiguousArrOrNum, b::ContiguousArrOrNum, c::ContiguousArrOrNum) = 
+            mapreduce(fun, $(OT)(), a, b, c)
 
         global $(rfdiff)
-        function $(rfdiff)(fun::Functor{1}, a::ContiguousArrOrNum, b::ContiguousArrOrNum)
-            n = maplength(a, b); 
-            n > 0 ? saccum_fdiff($OT, n, fun, a, 1, b, 1) : 
-                    init($OT, result_type(fun, promote_type(eltype(a), eltype(b))))
-        end
+        $(rfdiff)(fun::Functor{1}, a::ContiguousArrOrNum, b::ContiguousArrOrNum) = 
+            mapreduce_fdiff(fun, $(OT)(), a, b)
     end
 end
 
-@compose_mapreduce_funs sum sumfdiff Sum
-@compose_mapreduce_funs maximum maxfdiff Maximum
-@compose_mapreduce_funs minimum minfdiff Minimum
-@compose_mapreduce_funs nonneg_maximum nonneg_maxfdiff NonnegMaximum
+@compose_mapreduce_funs sum sumfdiff Add
+@compose_mapreduce_funs maximum maxfdiff _Max
+@compose_mapreduce_funs minimum minfdiff _Min
+@compose_mapreduce_funs nonneg_maximum nonneg_maxfdiff NonnegMax
 
 mean(fun::Functor{1}, a::ContiguousNumericArray) = sum(fun, a) / length(a)
 mean(fun::Functor{2}, a::ContiguousArrOrNum, b::ContiguousArrOrNum) = 

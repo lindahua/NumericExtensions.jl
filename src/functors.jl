@@ -145,6 +145,15 @@ export
 @functor2 MaxFun Real max
 @functor2 MinFun Real min
 
+type _Max <: Functor{2} end
+evaluate(::_Max, x::Real, y::Real) = ifelse(y > x, y, x)
+
+type NonnegMax <: Functor{2} end
+evaluate(::NonnegMax, x::Real, y::Real) = ifelse(y > x, y, x)
+
+type _Min <: Functor{2} end
+evaluate(::_Min, x::Real, y::Real) = ifelse(y < x, y, x)
+
 # absolute value & power
 
 @functor1 AbsFun   Number abs
@@ -344,6 +353,11 @@ evaluate{T<:Number}(::IfelseFun, c::Bool, x::T, y::T) = ifelse(c, x, y)
 fptype{T<:FloatingPoint}(::Type{T}) = T
 fptype{T<:Integer}(::Type{T}) = Float64
 fptype{T<:Union(Bool,Uint8,Int8,Uint16,Int16)}(::Type{T}) = Float32
+
+typealias BasicBinaryFuns Union(Add,Subtract,Multiply,MaxFun,MinFun,_Max,_Min,NonnegMax)
+
+result_type{T}(f::BasicBinaryFuns, ::Type{T}, ::Type{T}) = promote_type(T)
+result_type{T1,T2}(f::BasicBinaryFuns, ::Type{T1}, ::Type{T2}) = promote_type(T1, T2)
 
 result_type(f::Functor{1}, t1::Type) = typeof(evaluate(f, one(t1)))
 result_type(f::Functor{2}, t1::Type, t2::Type) = typeof(evaluate(f, one(t1), one(t2)))

@@ -3,6 +3,8 @@
 using NumericExtensions
 using Base.Test
 
+import NumericExtensions: _Max, _Min, NonnegMax
+
 ### safe (but slow) reduction functions for result verification
 
 import NumericExtensions: safe_sum, safe_max, safe_min
@@ -30,6 +32,30 @@ x = randn(3, 4)
 
 @test foldl(Subtract(), [4, 7, 9]) === (4 - 7 - 9)
 @test foldr(Subtract(), [4, 7, 9]) === (4 - (7 - 9))
+
+# reduce
+
+@test reduce(Add(), Int[]) == 0
+@test reduce(Add(), [1, 2, 3]) == 6
+@test reduce(_Max(), Int[]) == typemin(Int)
+@test reduce(_Max(), [1, 2, 3]) == 3
+@test reduce(_Min(), Int[]) == typemax(Int)
+@test reduce(_Min(), [1, 2, 3]) == 1
+@test reduce(NonnegMax(), Int[]) == 0
+@test reduce(NonnegMax(), [1, 2, 3]) == 3
+
+@test mapreduce(Abs2Fun(), Add(), Int[]) == 0
+@test mapreduce(Abs2Fun(), Add(), [1, 2, 3]) == 14
+
+@test mapreduce(Multiply(), Add(), Int[], Int[]) == 0
+@test mapreduce(Multiply(), Add(), [1, 2, 3], [2, 3, 4]) == 20
+@test mapreduce(Multiply(), Add(), [1, 2, 3], 2) == 12
+@test mapreduce(Multiply(), Add(), 2, [1, 2, 3]) == 12
+
+@test mapreduce(FMA(), Add(), [1, 2, 3], [4, 5, 6], [7, 8, 9]) == 128
+@test mapreduce(FMA(), Add(), 4, [4, 5, 6], [7, 8, 9]) == 134
+@test mapreduce(FMA(), Add(), [1, 2, 3], 2, [7, 8, 9]) == 54
+@test mapreduce(FMA(), Add(), [1, 2, 3], [4, 5, 6], 2) == 36
 
 # sum
 

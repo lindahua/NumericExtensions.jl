@@ -69,8 +69,8 @@ module NumericExtensions
         Transpose, LinearTransform, AffineTransform, 
         transform, transform!,
 
-        # mapreduce
-        sumfdiff, maxfdiff, minfdiff, meanfdiff, 
+        # reduce
+        mapreduce_fdiff, sumfdiff, maxfdiff, minfdiff, meanfdiff, 
         sumabs, maxabs, minabs, meanabs, sumsq, meansq,
         sumabsdiff, maxabsdiff, minabsdiff, meanabsdiff,        
         sumsqdiff, meansqdiff, sumxlogx, sumxlogy, entropy,
@@ -131,9 +131,9 @@ module NumericExtensions
     include("rkernels.jl")
     include("reduce.jl")
     include("folddim.jl")
-    include("newreducedim.jl")
+    # include("newreducedim.jl")
 
-    include("norms.jl")
+    # include("norms.jl")
     # include("scan.jl")
     # include("statistics.jl")
     # include("wsum.jl")
