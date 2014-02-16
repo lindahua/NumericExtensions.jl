@@ -13,6 +13,8 @@ macro compose_mapfuns(fname, AN)
     @assert AN != 0
     FN = AN > 0 ? AN : 1
     fname! = symbol(string(fname, '!'))
+    # _fname1d! = symbol(string('_', fname, "1d!"))
+    # _fname2d! = symbol(string('_', fname, "2d!"))
 
     # code-gen preparation
     h = codegen_helper(AN)
@@ -20,6 +22,7 @@ macro compose_mapfuns(fname, AN)
     cparams = h.contiguous_aparams[2:end]
     aparams = h.dense_aparams[2:end]
     ti = h.term(:i)
+    t1 = h.term(1)
 
     quote
         global $(fname!)
