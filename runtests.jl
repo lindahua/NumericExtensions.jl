@@ -18,6 +18,8 @@ tests = [ "shapes",
           "wsum",
           "pdmat"]
 
+srand(6789)
+
 for t in tests
     tf = joinpath("test", "$t.jl")
     println("Running $tf ...")
