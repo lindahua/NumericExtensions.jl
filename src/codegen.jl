@@ -69,7 +69,23 @@ function codegen_helper(AN::Int)
 end
 
 
-function codegen_helper_ex()
+immutable CodegenHelperEx
+    imparams1d::Vector{Expr}
+    imparams2d::Vector{Expr}
+    imargs1d::Vector
+    imargs2d::Vector
+    eviewargs::Vector
+
+    getoffsets::Expr
+    getstrides1::Expr
+    getstrides2::Expr
+    contcol::Expr
+    nextcol::Expr
+    kerargs::Vector{Symbol}
+    kerargs1::Vector{Symbol}
+end
+
+function codegen_helper_ex(AN::Int)
     if AN == 0
         imparams1d = [:(a::ContiguousArray), :(ia::Int), :(sa1::Int)]
         imparams2d = [:(a::ContiguousArray), :(ia::Int), :(sa1::Int), :(sa2::Int)]
@@ -147,9 +163,18 @@ function codegen_helper_ex()
     else
         error("AN = $(AN) is unsupported.")
     end
+
+    return CodegenHelperEx(imparams1d, 
+                           imparams2d, 
+                           imargs1d, 
+                           imargs2d,
+                           eviewargs, 
+                           getoffsets, 
+                           getstrides1, 
+                           getstrides2, 
+                           contcol, 
+                           nextcol, 
+                           kargs, 
+                           kargs1)
 end
-
-
-
-
 

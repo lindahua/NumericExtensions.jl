@@ -44,6 +44,7 @@ macro compose_reducedim(fun, AN)
     # code-gen preparation
 
     h = codegen_helper(AN)
+    he = codegen_helper_ex(AN)
     args = h.args
     aparams = h.dense_aparams
 
@@ -56,100 +57,23 @@ macro compose_reducedim(fun, AN)
     saccumf = AN >= 0 ? :saccum : :saccum_fdiff
     paccumf! = AN >= 0 ? :paccum! : :paccum_fdiff!
 
-    if AN == 0
-        imparams1d = [:(a::ContiguousArray), :(ia::Int), :(sa1::Int)]
-        imparams2d = [:(a::ContiguousArray), :(ia::Int), :(sa1::Int), :(sa2::Int)]
-        imargs1d = [:(parent(a)), :ia, :sa1]
-        imargs2d = [:(parent(a)), :ia, :sa1, :sa2]
-        eviewargs = [:(ellipview(a, i))]
-        getoffsets = :(ia = offset(a) + 1)
-        getstrides1 = :(sa1 = stride(a, 1)::Int)
-        getstrides2 = :(sa1 = stride(a, 1)::Int; sa2 = stride(a, 2)::Int)
-        contcol = :(sa1 == 1)
-        nextcol = :(ia += sa2)
-        kargs = [:a, :ia]
-        kargs1 = [:a, :ia, :sa1]
-    elseif AN == 1
-        imparams1d = [:(fun::Functor{1}), :(a::ContiguousArray), :(ia::Int), :(sa1::Int)]
-        imparams2d = [:(fun::Functor{1}), :(a::ContiguousArray), :(ia::Int), :(sa1::Int), :(sa2::Int)]
-        imargs1d = [:fun, :(parent(a)), :ia, :sa1]
-        imargs2d = [:fun, :(parent(a)), :ia, :sa1, :sa2]
-        eviewargs = [:fun, :(ellipview(a, i))]
-        getoffsets = :(ia = offset(a) + 1)
-        getstrides1 = :(sa1 = stride(a, 1)::Int)
-        getstrides2 = :(sa1 = stride(a, 1)::Int; sa2 = stride(a, 2)::Int)
-        contcol = :(sa1 == 1)
-        nextcol = :(ia += sa2)
-        kargs = [:fun, :a, :ia]
-        kargs1 = [:fun, :a, :ia, :sa1]
-    elseif AN == 2 || AN == -2
-        FN = AN == 2 ? 2 : 1
-        imparams1d = [:(fun::Functor{$FN}), :(a::ContiguousArrOrNum), :(ia::Int), :(sa1::Int), 
-                                            :(b::ContiguousArrOrNum), :(ib::Int), :(sb1::Int)]
-        imparams2d = [:(fun::Functor{$FN}), :(a::ContiguousArrOrNum), :(ia::Int), :(sa1::Int), :(sa2::Int), 
-                                            :(b::ContiguousArrOrNum), :(ib::Int), :(sb1::Int), :(sb2::Int)]
-        imargs1d = [:fun, :(parent(a)), :ia, :sa1, 
-                          :(parent(b)), :ib, :sb1]
-        imargs2d = [:fun, :(parent(a)), :ia, :sa1, :sa2, 
-                          :(parent(b)), :ib, :sb1, :sb2]
-        eviewargs = [:fun, :(ellipview(a, i)), :(ellipview(b, i))]
-        getoffsets = :(ia = offset(a) + 1; 
-                       ib = offset(b) + 1)
-        getstrides1 = :(sa1 = stride(a, 1)::Int; 
-                        sb1 = stride(b, 1)::Int)
-        getstrides2 = :(sa1 = stride(a, 1)::Int; sa2 = stride(a, 2)::Int; 
-                        sb1 = stride(b, 1)::Int; sb2 = stride(b, 2)::Int)
-        contcol = :(sa1 == 1 && sb1 == 1)
-        nextcol = :(ia += sa2; ib += sb2)
-        kargs = [:fun, :a, :ia, :b, :ib]
-        kargs1 = [:fun, :a, :ia, :sa1, :b, :ib, :sb1]
-    elseif AN == 3
-        imparams1d = [:(fun::Functor{3}), :(a::ContiguousArrOrNum), :(ia::Int), :(sa1::Int), 
-                                          :(b::ContiguousArrOrNum), :(ib::Int), :(sb1::Int), 
-                                          :(c::ContiguousArrOrNum), :(ic::Int), :(sc1::Int)]
-        imparams2d = [:(fun::Functor{3}), :(a::ContiguousArrOrNum), :(ia::Int), :(sa1::Int), :(sa2::Int), 
-                                          :(b::ContiguousArrOrNum), :(ib::Int), :(sb1::Int), :(sb2::Int), 
-                                          :(c::ContiguousArrOrNum), :(ic::Int), :(sc1::Int), :(sc2::Int)]
-        imargs1d = [:fun, :(parent(a)), :ia, :sa1, 
-                          :(parent(b)), :ib, :sb1, 
-                          :(parent(c)), :ic, :sc1]
-        imargs2d = [:fun, :(parent(a)), :ia, :sa1, :sa2, 
-                          :(parent(b)), :ib, :sb1, :sb2, 
-                          :(parent(c)), :ic, :sc1, :sc2]
-        eviewargs = [:fun, :(ellipview(a, i)), :(ellipview(b, i)), :(ellipview(c, i))]
-        getoffsets = :(ia = offset(a) + 1; 
-                       ib = offset(b) + 1; 
-                       ic = offset(c) + 1)
-        getstrides1 = :(sa1 = stride(a, 1)::Int; 
-                        sb1 = stride(b, 1)::Int;
-                        sc1 = stride(c, 1)::Int)
-        getstrides2 = :(sa1 = stride(a, 1)::Int; sa2 = stride(a, 2)::Int; 
-                        sb1 = stride(b, 1)::Int; sb2 = stride(b, 2)::Int; 
-                        sc1 = stride(c, 1)::Int; sc2 = stride(c, 2)::Int)
-        contcol = :(sa1 == 1 && sb1 == 1 && sc1 == 1)
-        nextcol = :(ia += sa2; ib += sb2; ic += sc2)
-        kargs = [:fun, :a, :ia, :b, :ib, :c, :ic]
-        kargs1 = [:fun, :a, :ia, :sa1, :b, :ib, :sb1, :c, :ic, :sc1]
-    else
-        error("AN = $(AN) is unsupported.")
-    end
 
     quote
         global $(_funimpl1d!)
         function $(_funimpl1d!){Op<:Functor{2}}(op::Op, r1::Bool, n::Int, 
                                                 dst::ContiguousArray, idst::Int, sdst1::Int, 
-                                                $(imparams1d...))
+                                                $(he.imparams1d...))
             if r1
-                if $(contcol)
-                    dst[1] = evaluate(op, dst[1], $(saccumf)(op, n, $(kargs...)))
+                if $(he.contcol)
+                    dst[1] = evaluate(op, dst[1], $(saccumf)(op, n, $(he.kerargs...)))
                 else
-                    dst[1] = evaluate(op, dst[1], $(saccumf)(op, n, $(kargs1...)))
+                    dst[1] = evaluate(op, dst[1], $(saccumf)(op, n, $(he.kerargs1...)))
                 end
             else
-                if $(contcol) && (sdst1 == 1)
-                    $(paccumf!)(op, n, dst, idst, $(kargs...))
+                if $(he.contcol) && (sdst1 == 1)
+                    $(paccumf!)(op, n, dst, idst, $(he.kerargs...))
                 else
-                    $(paccumf!)(op, n, dst, idst, sdst1, $(kargs1...))
+                    $(paccumf!)(op, n, dst, idst, sdst1, $(he.kerargs1...))
                 end
             end            
         end
@@ -157,65 +81,65 @@ macro compose_reducedim(fun, AN)
         global $(_funimpl2d!)
         function $(_funimpl2d!){Op<:Functor{2}}(op::Op, r2::Bool, r1::Bool, m::Int, n::Int, 
                                                 dst::ContiguousArray, idst::Int, sdst1::Int, sdst2::Int, 
-                                                $(imparams2d...))
+                                                $(he.imparams2d...))
             if r1
                 if r2
-                    if $(contcol)
-                        s = $(saccumf)(op, m, $(kargs...))
-                        $(nextcol)
+                    if $(he.contcol)
+                        s = $(saccumf)(op, m, $(he.kerargs...))
+                        $(he.nextcol)
                         for j = 2:n
-                            s = evaluate(op, s, $(saccumf)(op, m, $(kargs...)))
-                            $(nextcol)
+                            s = evaluate(op, s, $(saccumf)(op, m, $(he.kerargs...)))
+                            $(he.nextcol)
                         end
                         dst[idst] = evaluate(op, dst[idst], s)
                     else
-                        s = $(saccumf)(op, m, $(kargs1...))
-                        $(nextcol)
+                        s = $(saccumf)(op, m, $(he.kerargs1...))
+                        $(he.nextcol)
                         for j = 2:n
-                            s = evaluate(op, s, $(saccumf)(op, m, $(kargs1...)))
-                            $(nextcol)
+                            s = evaluate(op, s, $(saccumf)(op, m, $(he.kerargs1...)))
+                            $(he.nextcol)
                         end
                         dst[idst] = evaluate(op, dst[idst], s)
                     end
                 else
-                    if $(contcol)
+                    if $(he.contcol)
                         for j = 1:n
-                            dst[idst] = evaluate(op, dst[idst], $(saccumf)(op, m, $(kargs...)))
-                            $(nextcol)
+                            dst[idst] = evaluate(op, dst[idst], $(saccumf)(op, m, $(he.kerargs...)))
+                            $(he.nextcol)
                             idst += sdst2
                         end
                     else
                         for j = 1:n
-                            dst[idst] = evaluate(op, dst[idst], $(saccumf)(op, m, $(kargs1...)))
-                            $(nextcol)
+                            dst[idst] = evaluate(op, dst[idst], $(saccumf)(op, m, $(he.kerargs1...)))
+                            $(he.nextcol)
                             idst += sdst2
                         end
                     end
                 end
             else
                 if r2
-                    if $(contcol) && sdst1 == 1
+                    if $(he.contcol) && sdst1 == 1
                         for j = 1:n
-                            $(paccumf!)(op, m, dst, idst, $(kargs...))
-                            $(nextcol)
+                            $(paccumf!)(op, m, dst, idst, $(he.kerargs...))
+                            $(he.nextcol)
                         end
                     else
                         for j = 1:n
-                            $(paccumf!)(op, m, dst, idst, sdst1, $(kargs1...))
-                            $(nextcol)
+                            $(paccumf!)(op, m, dst, idst, sdst1, $(he.kerargs1...))
+                            $(he.nextcol)
                         end
                     end
                 else
-                    if $(contcol) && sdst1 == 1
+                    if $(he.contcol) && sdst1 == 1
                         for j = 1:n
-                            $(paccumf!)(op, m, dst, idst, $(kargs...))
-                            $(nextcol)
+                            $(paccumf!)(op, m, dst, idst, $(he.kerargs...))
+                            $(he.nextcol)
                             idst += sdst2
                         end
                     else
                         for j = 1:n
-                            $(paccumf!)(op, m, dst, idst, sdst1, $(kargs1...))
-                            $(nextcol)
+                            $(paccumf!)(op, m, dst, idst, sdst1, $(he.kerargs1...))
+                            $(he.nextcol)
                             idst += sdst2
                         end
                     end
@@ -229,31 +153,31 @@ macro compose_reducedim(fun, AN)
 
             if dim == 1
                 n = insiz[1]::Int
-                $(getstrides1)
+                $(he.getstrides1)
                 sdst1 = stride(dst, 1)::Int
-                $(getoffsets)
+                $(he.getoffsets)
                 idst = offset(dst) + 1
-                $(_funimpl1d!)(op, rtup[1], n, parent(dst), idst, sdst1, $(imargs1d...))
+                $(_funimpl1d!)(op, rtup[1], n, parent(dst), idst, sdst1, $(he.imargs1d...))
 
             elseif dim == 2
                 m = insiz[1]::Int
                 n = insiz[2]::Int
-                $(getstrides2)
+                $(he.getstrides2)
                 sdst1, sdst2 = strides(dst)::(Int, Int)         
-                $(getoffsets)
+                $(he.getoffsets)
                 idst = offset(dst) + 1
-                $(_funimpl2d!)(op, rtup[2], rtup[1], m, n, parent(dst), idst, sdst1, sdst2, $(imargs2d...))
+                $(_funimpl2d!)(op, rtup[2], rtup[1], m, n, parent(dst), idst, sdst1, sdst2, $(he.imargs2d...))
 
             else
                 n = insiz[dim]::Int
                 if rtup[dim]
                     _dst = ellipview(dst, 1)
                     for i = 1:n
-                        $(_funimpl!)(op, _dst, $(eviewargs...), dim-1, insiz, rtup)
+                        $(_funimpl!)(op, _dst, $(he.eviewargs...), dim-1, insiz, rtup)
                     end
                 else
                     for i = 1:n
-                        $(_funimpl!)(op, ellipview(dst, i), $(eviewargs...), dim-1, insiz, rtup)
+                        $(_funimpl!)(op, ellipview(dst, i), $(he.eviewargs...), dim-1, insiz, rtup)
                     end
                 end
             end
