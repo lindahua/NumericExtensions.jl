@@ -15,8 +15,7 @@ tests = [ "shapes",
           "norms",
           "scan",
           "statistics",
-          "wsum",
-          "pdmat"]
+          "wsum"]
 
 srand(6789)
 
