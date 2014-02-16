@@ -69,7 +69,7 @@ quad(a::PDMat, x::Vector{Float64}) = dot(x, a.mat * x)
 invquad(a::PDMat, x::Vector{Float64}) = abs2(norm(whiten(a, x)))
     
 quad!(r::Array{Float64}, a::PDMat, x::Matrix{Float64}) = dot!(r, x, a.mat * x, 1)
-invquad!(r::Array{Float64}, a::PDMat, x::Matrix{Float64}) = sumsq!(r, whiten(a, x), 1)
+invquad!(r::Array{Float64}, a::PDMat, x::Matrix{Float64}) = sumsq!(fill!(r, 0.0), whiten(a, x), 1)
 
 function X_A_Xt(a::PDMat, x::Matrix{Float64})
     @check_argdims dim(a) == size(x, 2)
@@ -257,12 +257,12 @@ end
 
 function quad!(r::AbstractArray{Float64}, a::ScalMat, x::Matrix{Float64})
     @check_argdims dim(a) == size(x, 1)
-    multiply!(sumsq!(r, x, 1), a.value)
+    multiply!(sumsq!(fill!(r, 0.0), x, 1), a.value)
 end
 
 function invquad!(r::AbstractArray{Float64}, a::ScalMat, x::Matrix{Float64})
     @check_argdims dim(a) == size(x, 1)
-    multiply!(sumsq!(r, x, 1), a.inv_value)
+    multiply!(sumsq!(fill!(r, 0.0), x, 1), a.inv_value)
 end
 
 function X_A_Xt(a::ScalMat, x::Matrix{Float64})
