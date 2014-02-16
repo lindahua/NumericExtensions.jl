@@ -57,7 +57,6 @@ tdims = {
 }
 
 
-
 # auxiliary
 
 safe_sumdim(a::DenseArray, reg) = invoke(sum, (AbstractArray{Float64}, Any), copy(a), reg)

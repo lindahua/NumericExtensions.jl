@@ -362,8 +362,6 @@ function saccum{Op<:Functor{2}}(op::Op, n::Int, fun::Functor{3}, a::ArrayOrNum, 
     return v
 end
 
-
-
 function paccum!{Op<:Functor{2}}(op::Op, n::Int, d::Array, id::Int, a::Array, ia::Int)
     ia_end = ia + n
     ia_ = ia_end - 3

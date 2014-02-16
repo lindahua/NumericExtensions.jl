@@ -2,177 +2,150 @@
 using NumericExtensions
 using Base.Test
 
-#################################################
-#
-#  Functor-based mapping
-#
-#################################################
+## data 
 
-x = [1., 2., 3.]
-y = [6., 5., 4.]
+a1 = 2 * rand(8) + 1.0
+a2 = 2 * rand(8, 7) + 1.0
+a3 = 2 * rand(8, 7, 6) + 1.0
+a4 = 2 * rand(8, 7, 6, 5) + 1.0
 
-# unary map
+b1 = 2 * rand(8) - 1.0
+b2 = 2 * rand(8, 7) - 1.0
+b3 = 2 * rand(8, 7, 6) - 1.0
+b4 = 2 * rand(8, 7, 6, 5) - 1.0
 
-r = copy(x)
-map!(Abs2Fun(), r, x)
-@test r == abs2(x)
+c1 = 2 * rand(8) - 1.0
+c2 = 2 * rand(8, 7) - 1.0
+c3 = 2 * rand(8, 7, 6) - 1.0
+c4 = 2 * rand(8, 7, 6, 5) - 1.0
 
-r = copy(x)
-map1!(Abs2Fun(), r)
-@test r == abs2(x)
+ua1 = view(a1, 1:6)
+ub1 = view(b1, 2:7)
+va1 = view(a1, 1:2:7)
+vb1 = view(b1, 3:1:6)
 
-@test map(Abs2Fun(), x) == r
+ua2 = view(a2, 1:6, 1:5)
+ub2 = view(b2, 2:7, 2:6)
+va2 = view(a2, 1:2:7, 1:5)
+vb2 = view(b2, 3:1:6, 2:6)
 
+ua3 = view(a3, 1:6, 1:5, 1:3)
+ub3 = view(b3, 2:7, 2:6, 3:5)
+va3 = view(a3, 1:2:7, 1:5, 1:3)
+vb3 = view(b3, 3:1:6, 2:6, 3:5)
 
-# binary map
-
-r = copy(x)
-map!(Multiply(), r, x, y)
-@test r == x .* y
-
-r = copy(x)
-map1!(Multiply(), r, y)
-@test r == x .* y
-
-r = copy(x)
-map!(Subtract(), r, x, 2)
-@test r == x - 2
-
-r = copy(x)
-map1!(Subtract(), r, 2)
-@test r == x - 2
-
-r = copy(x)
-map!(Subtract(), r, 2, x)
-@test r == 2 - x
-
-@test map(Add(), x, y) == x + y
-@test map(Multiply(), x, y) == x .* y
-@test map(Subtract(), x, 1) == x - 1
-@test map(Subtract(), 1, x) == 1 - x
+ua4 = view(a4, 1:6, 1:5, 1:3, 1:4)
+ub4 = view(b4, 2:7, 2:6, 3:5, 2:5)
+va4 = view(a4, 1:2:7, 1:5, 1:3, 1:4)
+vb4 = view(b4, 3:1:6, 2:6, 3:5, 2:5)
 
 
-# map diff
+## test cases
 
-r = copy(x)
-mapdiff!(Abs2Fun(), r, x, y)
-@test r == abs2(x - y)
-@test mapdiff(Abs2Fun(), x, y) == r
+arrs_a = {a1, a2, a3, a4, ua1, va1, ua2, va2, ua3, va3, ua4, va4}
+arrs_b = {b1, b2, b3, b4, ub1, vb1, ub2, vb2, ub3, vb3, ub4, vb4}
 
-r = copy(x)
-mapdiff!(Abs2Fun(), r, x, 1)
-@test r == abs2(x - 1)
-@test mapdiff(Abs2Fun(), x, 1) == r
+## unary cases
 
-r = copy(x)
-mapdiff!(Abs2Fun(), r, 2, x)
-@test r == abs2(2 - x)
-@test mapdiff(Abs2Fun(), 2, x) == r
+println("  -- unary functions")
 
+unaryfs = [(Negate, -, negate!), 
+           (AbsFun, abs, abs!), 
+           (Abs2Fun, abs2, abs2!), 
+           (SqrtFun, sqrt, sqrt!), 
+           (FloorFun, floor, floor!), 
+           (CeilFun, ceil, ceil!), 
+           (ExpFun, exp, exp!), 
+           (LogFun, log, log!)]
 
-# customized functions
+for a in arrs_a, (Op, vf, vf!) in unaryfs
+    r = vf(copy(a))
+    @test_approx_eq map(Op(), a) r
 
-type MyFun <: Functor{2} end
-NumericExtensions.evaluate(::MyFun, x, y) = abs2(x) + y
+    y = zeros(size(r))
+    vf!(y, a)
+    @test_approx_eq y r
 
-@test_approx_eq map(MyFun(), x, y) abs2(x) + y
+    ac = copy(a)
+    vf!(ac)
+    @test_approx_eq ac r
+end
 
+## binary cases
 
-# Specific inplace functions
+println("  -- binary functions")
 
-x = rand(10)
-y = rand(10)
+binaryfs = [(Add, +, add!), 
+            (Subtract, -, subtract!), 
+            (Multiply, .*, multiply!), 
+            (Divide, ./, divide!)]
 
-r = copy(x); add!(r, y) 
-@test_approx_eq r x + y
+for (a, b) in zip(arrs_a, arrs_b), (Op, vf, vf!) in binaryfs
+    r = vf(copy(b), copy(a))
+    @test_approx_eq map(Op(), b, a) r
+    @test_approx_eq map(Op(), a, 2.0) vf(copy(a), 2.0)
+    @test_approx_eq map(Op(), 2.0, b) vf(2.0, copy(b))
 
-r = copy(x); add!(r, 1)
-@test_approx_eq r x + 1
+    y = zeros(size(r))
+    vf!(y, b, a)
+    @test_approx_eq y r
 
-r = copy(x); subtract!(r, y) 
-@test_approx_eq r x - y
+    bc = copy(b)
+    vf!(bc, a)
+    @test_approx_eq bc r
 
-r = copy(x); subtract!(r, 1)
-@test_approx_eq r x - 1
+    bc = copy(b)
+    vf!(bc, 2.0)
+    @test_approx_eq bc vf(copy(b), 2.0)
+end
 
-r = copy(x); multiply!(r, y) 
-@test_approx_eq r x .* y
+## mapdiff cases
 
-r = copy(x); multiply!(r, 2)
-@test_approx_eq r x * 2
+println("  -- mapdiff functions")
 
-r = copy(x); divide!(r, y) 
-@test_approx_eq r x ./ y
+for (a, b) in zip(arrs_a, arrs_b)
+    ac = copy(a)
+    bc = copy(b)
+    v = 2.6
 
-r = copy(x); divide!(r, 2)
-@test_approx_eq r x / 2
+    @test_approx_eq absdiff(a, b) abs(ac - bc)
+    @test_approx_eq absdiff(a, v) abs(ac - v)
+    @test_approx_eq absdiff(v, b) abs(v - bc)
 
-r = copy(x); negate!(r)
-@test_approx_eq r (-x)
+    @test_approx_eq sqrdiff(a, b) abs2(ac - bc)
+    @test_approx_eq sqrdiff(a, v) abs2(ac - v)
+    @test_approx_eq sqrdiff(v, b) abs2(v - bc)
 
-r = copy(x); rcp!(r)
-@test_approx_eq r 1.0 / x
+    @test_approx_eq absdiff!(zeros(size(a)), a, b) abs(ac - bc)
+    @test_approx_eq absdiff!(zeros(size(a)), a, v) abs(ac - v)
+    @test_approx_eq absdiff!(zeros(size(a)), v, b) abs(v - bc)
 
-r = copy(x); pow!(r, 3)
-@test_approx_eq r x.^3
+    @test_approx_eq sqrdiff!(zeros(size(a)), a, b) abs2(ac - bc)
+    @test_approx_eq sqrdiff!(zeros(size(a)), a, v) abs2(ac - v)
+    @test_approx_eq sqrdiff!(zeros(size(a)), v, b) abs2(v - bc)
+end
 
-r = copy(x); sqrt!(r)
-@test_approx_eq r sqrt(x)
+## ternary cases
 
-r = copy(x); exp!(r)
-@test_approx_eq r exp(x)
+println("  -- ternary functions")
 
-r = copy(x); log!(r)
-@test_approx_eq r log(x)
+@test_approx_eq map(FMA(), a1, b1, c1) a1 + b1 .* c1
 
-x = randn(10)
-y = randn(10)
+v = 2.5
 
-r = copy(x); abs!(r)
-@test_approx_eq r abs(x)
+for (a, b) in zip(arrs_a, arrs_b)
+    ac = copy(a)
+    bc = copy(b)
 
-r = copy(x); abs2!(r)
-@test_approx_eq r abs2(x)
+    @test_approx_eq map(FMA(), v, a, b) v + ac .* bc
+    @test_approx_eq map(FMA(), a, v, b) ac + v .* bc
+    @test_approx_eq map(FMA(), a, b, v) ac + bc .* v
 
-r = copy(x); floor!(r)
-@test_approx_eq r floor(x)
+    fma!(ac, a, b) 
+    @test_approx_eq ac a + a .* b
 
-r = copy(x); ceil!(r)
-@test_approx_eq r ceil(x)
-
-r = copy(x); round!(r)
-@test_approx_eq r round(x)
-
-r = copy(x); trunc!(r)
-@test_approx_eq r trunc(x)
-
-
-# Test extended functions
-
-@test_approx_eq absdiff(x, y) abs(x - y)
-@test_approx_eq sqrdiff(x, y) abs2(x - y)
-
-
-# Ternary functions
-
-a = rand(8)
-b = rand(8)
-c = rand(8)
-
-@test_approx_eq map(FMA(), a, b, c)  a + b .* c
-@test_approx_eq map(FMA(), a, b, 2.) a + b * 2.
-@test_approx_eq map(FMA(), a, 2., c) a + 2. * c
-@test_approx_eq map(FMA(), 2., b, c)  2. + b .* c
-@test_approx_eq map(FMA(), a, 2., 3.) a + 2. * 3.
-@test_approx_eq map(FMA(), 2., b, 3.) 2. + b * 3.
-@test_approx_eq map(FMA(), 2., 3., c) 2. + 3. * c
-
-@test_approx_eq fma(a, b, c) a + b .* c
-@test_approx_eq fma(a, b, 2.) a + b * 2.
-
-r = copy(a); fma!(r, b, c)
-@test_approx_eq r a + b .* c
-r = copy(a); fma!(r, b, 2.)
-@test_approx_eq r a + b .* 2.
-
+    ac = copy(a)
+    fma!(ac, b, v)
+    @test_approx_eq ac a + b .* v
+end
 

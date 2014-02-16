@@ -51,7 +51,7 @@ module NumericExtensions
         add!, subtract!, multiply!, divide!, negate!, rcp!, 
         sqrt!, abs!, sqr!, abs2!, pow!, exp!, log!,
         floor!, ceil!, round!, trunc!,
-        absdiff, sqrdiff, fma, fma!,
+        absdiff, absdiff!, sqrdiff, sqrdiff!, fma, fma!,
 
         # vbroadcast
         vbroadcast, vbroadcast!, vbroadcast1!,
@@ -111,6 +111,8 @@ module NumericExtensions
     include("mathfuns.jl")
     include("functors.jl")
     include("codegen.jl")
+
+    include("mapkernels.jl")
     include("map.jl")
     
     include("vbroadcast.jl")

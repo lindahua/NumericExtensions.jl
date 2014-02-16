@@ -163,7 +163,7 @@ macro compose_reducedim(fun, AN)
                 m = insiz[1]::Int
                 n = insiz[2]::Int
                 $(he.getstrides2)
-                sdst1, sdst2 = strides(dst)::(Int, Int)         
+                sdst1, sdst2 = strides(dst)::(Int, Int)
                 $(he.getoffsets)
                 idst = offset(dst) + 1
                 $(_funimpl2d!)(op, rtup[2], rtup[1], m, n, parent(dst), idst, sdst1, sdst2, $(he.imargs2d...))

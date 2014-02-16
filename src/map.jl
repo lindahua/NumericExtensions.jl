@@ -13,31 +13,80 @@ macro compose_mapfuns(fname, AN)
     @assert AN != 0
     FN = AN > 0 ? AN : 1
     fname! = symbol(string(fname, '!'))
-    # _fname1d! = symbol(string('_', fname, "1d!"))
-    # _fname2d! = symbol(string('_', fname, "2d!"))
+    _fname! = symbol(string('_', fname!))
 
     # code-gen preparation
     h = codegen_helper(AN)
+    he = codegen_helper_ex(AN)
     aargs = h.args[2:end]
-    cparams = h.contiguous_aparams[2:end]
-    aparams = h.dense_aparams[2:end]
     ti = h.term(:i)
     t1 = h.term(1)
+    mapker! = AN > 0 ? :vecmap! : :vecmapdiff!
 
     quote
+        global $(fname)
+        $(fname)($(h.dense_aparams...)) = 
+            $(fname!)(fun, Array($(h.termtype), $(h.inputsize)), $(aargs...))
+
         global $(fname!)
-        function $(fname!)(fun::Functor{$FN}, dst::ContiguousArray, $(cparams...))
+        function $(fname!)(fun::Functor{$FN}, dst::ContiguousArray, $(h.contiguous_aparams[2:end]...))
             n = length(dst)
             n == $(h.inputlen) || throw(DimensionMismatch("Inconsistent argument lengths."))
             for i = 1:n
                 @inbounds dst[i] = $(ti)
             end
-            dst
+            return dst
         end
 
-        global $(fname)
-        $(fname)(fun::Functor{$FN}, $(cparams...)) = 
-            $(fname!)(fun, Array($(h.termtype), $(h.inputsize)), $(aargs...))
+        function $(fname!)(fun::Functor{$FN}, dst::DenseArray, $(h.dense_aparams[2:end]...))
+            siz = $(h.inputsize)
+            size(dst) == siz || throw(DimensionMismatch("Inconsistent argument size."))
+            $(_fname!)(siz, length(siz), dst, $(h.args...))
+            return dst
+        end
+
+        global $(_fname!)
+        function $(_fname!)(siz::Dims, dim::Int, dst::DenseArray, $(h.dense_aparams...))
+            if dim == 1
+                n = siz[1]::Int
+                $(he.getstrides1)
+                sdst1 = stride(dst, 1)::Int
+                $(he.getoffsets)
+                idst = offset(dst) + 1
+                if $(he.contcol) && sdst1 == 1
+                    $(mapker!)(n, parent(dst), idst, $(he.pkerargs...))
+                else
+                    $(mapker!)(n, parent(dst), idst, sdst1, $(he.pkerargs1...))
+                end
+
+            elseif dim == 2
+                m = siz[1]::Int
+                n = siz[2]::Int
+                $(he.getstrides2)
+                sdst1, sdst2 = strides(dst)::(Int, Int)
+                $(he.getoffsets)
+                idst = offset(dst) + 1
+                if $(he.contcol) && sdst1 == 1
+                    for j = 1:n
+                        $(mapker!)(m, parent(dst), idst, $(he.pkerargs...))
+                        $(he.nextcol)
+                        idst += sdst2
+                    end
+                else
+                    for j = 1:n
+                        $(mapker!)(m, parent(dst), idst, sdst1, $(he.pkerargs1...))
+                        $(he.nextcol)
+                        idst += sdst2
+                    end
+                end
+
+            else
+                n = siz[dim]::Int
+                for i = 1:n
+                    $(_fname!)(siz, dim-1, ellipview(dst, i), $(he.eviewargs...))
+                end
+            end
+        end        
     end
 end
 
@@ -104,8 +153,11 @@ end
 
 # extensions
 
-absdiff(x::NumericArray, y::NumericArray) = mapdiff(AbsFun(), x, y)
-sqrdiff(x::NumericArray, y::NumericArray) = mapdiff(Abs2Fun(), x, y)
+absdiff(x::DenseArrOrNum, y::DenseArrOrNum) = mapdiff(AbsFun(), x, y)
+sqrdiff(x::DenseArrOrNum, y::DenseArrOrNum) = mapdiff(Abs2Fun(), x, y)
+
+absdiff!(r::NumericArray, x::DenseArrOrNum, y::DenseArrOrNum) = mapdiff!(AbsFun(), r, x, y)
+sqrdiff!(r::NumericArray, x::DenseArrOrNum, y::DenseArrOrNum) = mapdiff!(Abs2Fun(), r, x, y)
 
 fma!(a::NumericArray, b::DenseArrOrNum, c::DenseArrOrNum) = map1!(FMA(), a, b, c)
 fma(a::DenseArrOrNum, b::DenseArrOrNum, c::DenseArrOrNum) = map(FMA(), a, b, c)

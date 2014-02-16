@@ -81,6 +81,8 @@ immutable CodegenHelperEx
     getstrides2::Expr
     contcol::Expr
     nextcol::Expr
+    pkerargs::Vector
+    pkerargs1::Vector
     kerargs::Vector{Symbol}
     kerargs1::Vector{Symbol}
 end
@@ -97,6 +99,8 @@ function codegen_helper_ex(AN::Int)
         getstrides2 = :(sa1 = stride(a, 1)::Int; sa2 = stride(a, 2)::Int)
         contcol = :(sa1 == 1)
         nextcol = :(ia += sa2)
+        pkargs = [:(parent(a)), :ia]
+        pkargs1 = [:(parent(a)), :ia, :sa1]
         kargs = [:a, :ia]
         kargs1 = [:a, :ia, :sa1]
     elseif AN == 1
@@ -110,6 +114,8 @@ function codegen_helper_ex(AN::Int)
         getstrides2 = :(sa1 = stride(a, 1)::Int; sa2 = stride(a, 2)::Int)
         contcol = :(sa1 == 1)
         nextcol = :(ia += sa2)
+        pkargs = [:fun, :(parent(a)), :ia]
+        pkargs1 = [:fun, :(parent(a)), :ia, :sa1]
         kargs = [:fun, :a, :ia]
         kargs1 = [:fun, :a, :ia, :sa1]
     elseif AN == 2 || AN == -2
@@ -131,6 +137,8 @@ function codegen_helper_ex(AN::Int)
                         sb1 = stride(b, 1)::Int; sb2 = stride(b, 2)::Int)
         contcol = :(sa1 == 1 && sb1 == 1)
         nextcol = :(ia += sa2; ib += sb2)
+        pkargs = [:fun, :(parent(a)), :ia, :(parent(b)), :ib]
+        pkargs1 = [:fun, :(parent(a)), :ia, :sa1, :(parent(b)), :ib, :sb1]
         kargs = [:fun, :a, :ia, :b, :ib]
         kargs1 = [:fun, :a, :ia, :sa1, :b, :ib, :sb1]
     elseif AN == 3
@@ -158,6 +166,8 @@ function codegen_helper_ex(AN::Int)
                         sc1 = stride(c, 1)::Int; sc2 = stride(c, 2)::Int)
         contcol = :(sa1 == 1 && sb1 == 1 && sc1 == 1)
         nextcol = :(ia += sa2; ib += sb2; ic += sc2)
+        pkargs = [:fun, :(parent(a)), :ia, :(parent(b)), :ib, :(parent(c)), :ic]
+        pkargs1 = [:fun, :(parent(a)), :ia, :sa1, :(parent(b)), :ib, :sb1, :(parent(c)), :ic, :sc1]
         kargs = [:fun, :a, :ia, :b, :ib, :c, :ic]
         kargs1 = [:fun, :a, :ia, :sa1, :b, :ib, :sb1, :c, :ic, :sc1]
     else
@@ -174,6 +184,8 @@ function codegen_helper_ex(AN::Int)
                            getstrides2, 
                            contcol, 
                            nextcol, 
+                           pkargs, 
+                           pkargs1,
                            kargs, 
                            kargs1)
 end
