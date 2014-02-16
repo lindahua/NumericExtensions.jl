@@ -28,7 +28,6 @@ Documentation of NumericExtensions.jl
     reduction.rst
     norms.rst
     scan.rst
-    pdmat.rst
 
 
 .. Indices and tables
