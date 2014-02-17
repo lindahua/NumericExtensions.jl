@@ -195,6 +195,7 @@ macro compose_reducedim(fun, AN)
             rsiz = Base.reduced_dims(insiz, dims)
             prod(rsiz) == length(dst) || throw(DimensionMismatch("Incorrect size of dst."))
             $(_fun!)(contiguous_view(dst, rsiz), op, $(args...), insiz, dims)
+            return dst
         end
 
         global $(fun)
