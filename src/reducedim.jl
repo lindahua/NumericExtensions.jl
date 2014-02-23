@@ -219,6 +219,8 @@ end
 #
 #################################################
 
+sum(a::BitArray, dims::DimSpec) = invoke(sum, (BitArray, Any), a, dims)
+
 macro compose_reducedim_basicfuns(fname, fdiff, OT)
     fname! = symbol(string(fname, '!'))
     fdiff! = symbol(string(fdiff, '!'))
@@ -255,6 +257,9 @@ end
 @compose_reducedim_basicfuns maximum maxfdiff _Max
 @compose_reducedim_basicfuns minimum minfdiff _Min
 @compose_reducedim_basicfuns nonneg_maximum nonneg_maxfdiff NonnegMax
+
+
+# avoid the ambiguities with BitArrays
 
 _rlen(siz::Dims, d::Int) = siz[d]
 _rlen(siz::Dims, reg::(Int,Int)) = siz[reg[1]] * siz[reg[2]]

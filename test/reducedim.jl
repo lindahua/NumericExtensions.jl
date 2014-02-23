@@ -74,6 +74,8 @@ do_sumabs(a::DenseArray, reg) = sumabs!(zeros(Base.reduced_dims(size(a), reg)), 
 
 println("  -- basic functions")
 
+@test sum(trues(4, 3), 1) == [4 4 4]
+
 for a in arrs_a
     nd = ndims(a)
     for reg in tdims[nd]
