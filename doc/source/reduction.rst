@@ -349,6 +349,7 @@ The reduction and map-reduction functions are carefully optimized. In particular
 Generally, many of the reduction functions in this package can achieve *3x - 12x* speed up as compared to the typical Julia expression.
 
 We observe further speed up for certain functions:
+
 * full reduction with ``sumabs``, ``sumsq``, and ``dot`` utilize BLAS level 1 routines, and they achieve *10x* to *30x* speed up.
 * For ``var`` and ``std``, we devise dedicated procedures, where computational steps are very carefully scheduled such that most computation is conducted in a single pass. This results in about *25x* speedup.
 
