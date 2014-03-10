@@ -48,8 +48,8 @@ for (Op, safef) in [(Add, safe_sum), (_Max, safe_max), (_Min, safe_min)]
         @test_approx_eq saccum_fdiff(Op(), n, Abs2Fun(), a, 1, 2, b, 1, 3) safef(abs2(a[1:2:2n-1] - b[1:3:3n-2]))
         @test_approx_eq saccum_fdiff(Op(), n, Abs2Fun(), a, 3, 2, b, 4, 3) safef(abs2(a[3:2:2n+1] - b[4:3:3n+1]))
 
-        @test_approx_eq saccum_fdiff(Op(), n, Abs2Fun(), a, 1, v, 0) safef(abs2(a[1:n] - v))
-        @test_approx_eq saccum_fdiff(Op(), n, Abs2Fun(), v, 0, b, 1) safef(abs2(v - b[1:n]))
+        @test_approx_eq saccum_fdiff(Op(), n, Abs2Fun(), a, 1, v, 0) safef(abs2(a[1:n] .- v))
+        @test_approx_eq saccum_fdiff(Op(), n, Abs2Fun(), v, 0, b, 1) safef(abs2(v .- b[1:n]))
 
         @test_approx_eq saccum(Op(), n, FMA(), a, 1, b, 1, c, 1) safef(fma(a[1:n], b[1:n], c[1:n]))
         @test_approx_eq saccum(Op(), n, FMA(), a, 3, b, 4, c, 5) safef(fma(a[3:n+2], b[4:n+3], c[5:n+4]))

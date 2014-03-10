@@ -6,9 +6,9 @@ using Base.Test
 #### 2D ####
 
 x = randn(5, 6)
-yr = rand(6) + 0.5
+yr = rand(6) .+ 0.5
 yrm = reshape(yr, 1, 6)
-yc = rand(5) + 0.5
+yc = rand(5) .+ 0.5
 
 # badd
 
@@ -59,9 +59,9 @@ r = copy(x); bdivide!(r, yr, 2)
 
 x = randn(4, 5, 6)
 
-y1 = rand(4) + 0.5; y1m = reshape(y1, 4, 1, 1)
-y2 = rand(5) + 0.5; y2m = reshape(y2, 1, 5, 1)
-y3 = rand(6) + 0.5; y3m = reshape(y3, 1, 1, 6)
+y1 = rand(4) .+ 0.5; y1m = reshape(y1, 4, 1, 1)
+y2 = rand(5) .+ 0.5; y2m = reshape(y2, 1, 5, 1)
+y3 = rand(6) .+ 0.5; y3m = reshape(y3, 1, 1, 6)
 
 # badd
 

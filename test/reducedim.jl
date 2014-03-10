@@ -3,15 +3,15 @@ using Base.Test
 
 ## Data preparation
 
-a1 = 2 * rand(8) - 1.0
-a2 = 2 * rand(8, 7) - 1.0
-a3 = 2 * rand(8, 7, 6) - 1.0
-a4 = 2 * rand(8, 7, 6, 5) - 1.0
+a1 = 2 * rand(8) .- 1.0
+a2 = 2 * rand(8, 7) .- 1.0
+a3 = 2 * rand(8, 7, 6) .- 1.0
+a4 = 2 * rand(8, 7, 6, 5) .- 1.0
 
-b1 = 2 * rand(8) - 1.0
-b2 = 2 * rand(8, 7) - 1.0
-b3 = 2 * rand(8, 7, 6) - 1.0
-b4 = 2 * rand(8, 7, 6, 5) - 1.0
+b1 = 2 * rand(8) .- 1.0
+b2 = 2 * rand(8, 7) .- 1.0
+b3 = 2 * rand(8, 7, 6) .- 1.0
+b4 = 2 * rand(8, 7, 6, 5) .- 1.0
 
 ua1 = view(a1, 1:6)
 ub1 = view(b1, 2:7)
@@ -84,7 +84,7 @@ for a in arrs_a
         saferes = safe_sumdim(a, reg)
         @test_approx_eq sum(a, reg) saferes
         @test_approx_eq do_sum(a, reg) saferes
-        @test_approx_eq sum!(ones(Base.reduced_dims(size(a), reg)), a, reg) saferes + 1.0
+        @test_approx_eq sum!(ones(Base.reduced_dims(size(a), reg)), a, reg) saferes .+ 1.0
 
         saferes = safe_maxdim(a, reg)
         @test_approx_eq maximum(a, reg) saferes
@@ -127,12 +127,12 @@ for (a, b) in zip(arrs_a, arrs_b)
         @test_approx_eq dot(a, 2.0, reg) sum(a .* 2.0, reg)
         @test_approx_eq dot(2.0, b, reg) sum(b .* 2.0, reg)
 
-        @test_approx_eq sumsqdiff(a, 2.0, reg) sum(abs2(a - 2.0), reg)
-        @test_approx_eq sumsqdiff(2.0, b, reg) sum(abs2(2.0 - b), reg)
+        @test_approx_eq sumsqdiff(a, 2.0, reg) sum(abs2(a .- 2.0), reg)
+        @test_approx_eq sumsqdiff(2.0, b, reg) sum(abs2(2.0 .- b), reg)
 
-        @test_approx_eq sum(FMA(), 2.0, a, b, reg) sum(2.0 + a .* b, reg)
-        @test_approx_eq sum(FMA(), a, 2.0, b, reg) sum(a + b * 2.0, reg)
-        @test_approx_eq sum(FMA(), a, b, 2.0, reg) sum(a + b * 2.0, reg)
+        @test_approx_eq sum(FMA(), 2.0, a, b, reg) sum(2.0 .+ a .* b, reg)
+        @test_approx_eq sum(FMA(), a, 2.0, b, reg) sum(a .+ b * 2.0, reg)
+        @test_approx_eq sum(FMA(), a, b, 2.0, reg) sum(a .+ b * 2.0, reg)
     end
 end
 

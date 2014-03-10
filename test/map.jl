@@ -4,20 +4,20 @@ using Base.Test
 
 ## data 
 
-a1 = 2 * rand(8) + 1.0
-a2 = 2 * rand(8, 7) + 1.0
-a3 = 2 * rand(8, 7, 6) + 1.0
-a4 = 2 * rand(8, 7, 6, 5) + 1.0
+a1 = 2 * rand(8) .+ 1.0
+a2 = 2 * rand(8, 7) .+ 1.0
+a3 = 2 * rand(8, 7, 6) .+ 1.0
+a4 = 2 * rand(8, 7, 6, 5) .+ 1.0
 
-b1 = 2 * rand(8) - 1.0
-b2 = 2 * rand(8, 7) - 1.0
-b3 = 2 * rand(8, 7, 6) - 1.0
-b4 = 2 * rand(8, 7, 6, 5) - 1.0
+b1 = 2 * rand(8) .- 1.0
+b2 = 2 * rand(8, 7) .- 1.0
+b3 = 2 * rand(8, 7, 6) .- 1.0
+b4 = 2 * rand(8, 7, 6, 5) .- 1.0
 
-c1 = 2 * rand(8) - 1.0
-c2 = 2 * rand(8, 7) - 1.0
-c3 = 2 * rand(8, 7, 6) - 1.0
-c4 = 2 * rand(8, 7, 6, 5) - 1.0
+c1 = 2 * rand(8) .- 1.0
+c2 = 2 * rand(8, 7) .- 1.0
+c3 = 2 * rand(8, 7, 6) .- 1.0
+c4 = 2 * rand(8, 7, 6, 5) .- 1.0
 
 ua1 = view(a1, 1:6)
 ub1 = view(b1, 2:7)
@@ -75,8 +75,8 @@ end
 
 println("  -- binary functions")
 
-binaryfs = [(Add, +, add!), 
-            (Subtract, -, subtract!), 
+binaryfs = [(Add, .+, add!), 
+            (Subtract, .-, subtract!), 
             (Multiply, .*, multiply!), 
             (Divide, ./, divide!)]
 
@@ -108,28 +108,28 @@ for (a, b) in zip(arrs_a, arrs_b)
     bc = copy(b)
     v = 2.6
 
-    @test_approx_eq absdiff(a, b) abs(ac - bc)
-    @test_approx_eq absdiff(a, v) abs(ac - v)
-    @test_approx_eq absdiff(v, b) abs(v - bc)
+    @test_approx_eq absdiff(a, b) abs(ac .- bc)
+    @test_approx_eq absdiff(a, v) abs(ac .- v)
+    @test_approx_eq absdiff(v, b) abs(v .- bc)
 
-    @test_approx_eq sqrdiff(a, b) abs2(ac - bc)
-    @test_approx_eq sqrdiff(a, v) abs2(ac - v)
-    @test_approx_eq sqrdiff(v, b) abs2(v - bc)
+    @test_approx_eq sqrdiff(a, b) abs2(ac .- bc)
+    @test_approx_eq sqrdiff(a, v) abs2(ac .- v)
+    @test_approx_eq sqrdiff(v, b) abs2(v .- bc)
 
-    @test_approx_eq absdiff!(zeros(size(a)), a, b) abs(ac - bc)
-    @test_approx_eq absdiff!(zeros(size(a)), a, v) abs(ac - v)
-    @test_approx_eq absdiff!(zeros(size(a)), v, b) abs(v - bc)
+    @test_approx_eq absdiff!(zeros(size(a)), a, b) abs(ac .- bc)
+    @test_approx_eq absdiff!(zeros(size(a)), a, v) abs(ac .- v)
+    @test_approx_eq absdiff!(zeros(size(a)), v, b) abs(v .- bc)
 
-    @test_approx_eq sqrdiff!(zeros(size(a)), a, b) abs2(ac - bc)
-    @test_approx_eq sqrdiff!(zeros(size(a)), a, v) abs2(ac - v)
-    @test_approx_eq sqrdiff!(zeros(size(a)), v, b) abs2(v - bc)
+    @test_approx_eq sqrdiff!(zeros(size(a)), a, b) abs2(ac .- bc)
+    @test_approx_eq sqrdiff!(zeros(size(a)), a, v) abs2(ac .- v)
+    @test_approx_eq sqrdiff!(zeros(size(a)), v, b) abs2(v .- bc)
 end
 
 ## ternary cases
 
 println("  -- ternary functions")
 
-@test_approx_eq map(FMA(), a1, b1, c1) a1 + b1 .* c1
+@test_approx_eq map(FMA(), a1, b1, c1) a1 .+ b1 .* c1
 
 v = 2.5
 
@@ -137,15 +137,15 @@ for (a, b) in zip(arrs_a, arrs_b)
     ac = copy(a)
     bc = copy(b)
 
-    @test_approx_eq map(FMA(), v, a, b) v + ac .* bc
-    @test_approx_eq map(FMA(), a, v, b) ac + v .* bc
-    @test_approx_eq map(FMA(), a, b, v) ac + bc .* v
+    @test_approx_eq map(FMA(), v, a, b) v .+ ac .* bc
+    @test_approx_eq map(FMA(), a, v, b) ac .+ v .* bc
+    @test_approx_eq map(FMA(), a, b, v) ac .+ bc .* v
 
     fma!(ac, a, b) 
-    @test_approx_eq ac a + a .* b
+    @test_approx_eq ac a .+ a .* b
 
     ac = copy(a)
     fma!(ac, b, v)
-    @test_approx_eq ac a + b .* v
+    @test_approx_eq ac a .+ b .* v
 end
 

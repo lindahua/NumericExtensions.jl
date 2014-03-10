@@ -79,11 +79,11 @@ w = rand(6)
 
 @test_approx_eq wsumabs(w, x) sum(w .* abs(x))
 @test_approx_eq wsumabsdiff(w, x, y) sum(w .* abs(x - y))
-@test_approx_eq wsumabsdiff(w, x, 1) sum(w .* abs(x - 1))
+@test_approx_eq wsumabsdiff(w, x, 1) sum(w .* abs(x .- 1))
 
 @test_approx_eq wsumsq(w, x) sum(w .* abs2(x))
 @test_approx_eq wsumsqdiff(w, x, y) sum(w .* abs2(x - y))
-@test_approx_eq wsumsqdiff(w, x, 1) sum(w .* abs2(x - 1))
+@test_approx_eq wsumsqdiff(w, x, 1) sum(w .* abs2(x .- 1))
 
 x = randn(5, 6)
 y = rand(5, 6)

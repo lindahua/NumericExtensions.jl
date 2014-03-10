@@ -22,7 +22,7 @@ y4 = randn(3, 4, 5, 3)
 
 # varm
 
-safe_varm(x, u) = sum(abs2(x - u)) / (length(x) - 1)
+safe_varm(x, u) = sum(abs2(x .- u)) / (length(x) - 1)
 safe_varm(x, u, d::Int) = sum(abs2(x .- u), d) / (size(x, d) - 1)
 
 @test_approx_eq varm(x, mean(y)) safe_varm(x, mean(y))
@@ -123,10 +123,10 @@ safe_logsumexp(x, d::Int) = log(sum(exp(x), d))
 r = zeros(size(x2, 2)); logsumexp!(r, x2, 1) 
 @test_approx_eq r vec(logsumexp(x2, 1))
 
-@test_approx_eq logsumexp(x + 1000.) logsumexp(x) + 1000.
-@test_approx_eq logsumexp(x2 + 1000., 1) logsumexp(x2, 1) + 1000.
-@test_approx_eq logsumexp(x2 + 1000., 2) logsumexp(x2, 2) + 1000.
-@test_approx_eq logsumexp(x3 + 1000., 2) logsumexp(x3, 2) + 1000.
+@test_approx_eq logsumexp(x .+ 1000.) logsumexp(x) .+ 1000.
+@test_approx_eq logsumexp(x2 .+ 1000., 1) logsumexp(x2, 1) .+ 1000.
+@test_approx_eq logsumexp(x2 .+ 1000., 2) logsumexp(x2, 2) .+ 1000.
+@test_approx_eq logsumexp(x3 .+ 1000., 2) logsumexp(x3, 2) .+ 1000.
 
 # softmax
 
@@ -144,10 +144,10 @@ safe_softmax(x, d::Int) = exp(x) ./ sum(exp(x), d)
 r = zeros(size(x2)); softmax!(r, x2, 1) 
 @test_approx_eq r softmax(x2, 1)
 
-@test_approx_eq softmax(x + 1000.) softmax(x)
-@test_approx_eq softmax(x2 + 1000., 1) softmax(x2, 1)
-@test_approx_eq softmax(x2 + 1000., 2) softmax(x2, 2)
-@test_approx_eq softmax(x3 + 1000., 2) softmax(x3, 2)
+@test_approx_eq softmax(x .+ 1000.) softmax(x)
+@test_approx_eq softmax(x2 .+ 1000., 1) softmax(x2, 1)
+@test_approx_eq softmax(x2 .+ 1000., 2) softmax(x2, 2)
+@test_approx_eq softmax(x3 .+ 1000., 2) softmax(x3, 2)
 
 
 

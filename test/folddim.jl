@@ -1,15 +1,15 @@
 using NumericExtensions
 using Base.Test
 
-a1 = 2 * rand(8) - 1.0
-a2 = 2 * rand(8, 7) - 1.0
-a3 = 2 * rand(8, 7, 6) - 1.0
-a4 = 2 * rand(8, 7, 6, 5) - 1.0
+a1 = 2 * rand(8) .- 1.0
+a2 = 2 * rand(8, 7) .- 1.0
+a3 = 2 * rand(8, 7, 6) .- 1.0
+a4 = 2 * rand(8, 7, 6, 5) .- 1.0
 
-b1 = 2 * rand(8) - 1.0
-b2 = 2 * rand(8, 7) - 1.0
-b3 = 2 * rand(8, 7, 6) - 1.0
-b4 = 2 * rand(8, 7, 6, 5) - 1.0
+b1 = 2 * rand(8) .- 1.0
+b2 = 2 * rand(8, 7) .- 1.0
+b3 = 2 * rand(8, 7, 6) .- 1.0
+b4 = 2 * rand(8, 7, 6, 5) .- 1.0
 
 foldlsum(xs...) = foldl(Add(), 0., xs...)
 foldlsumfdiff(f, x1, x2, dim) = foldl_fdiff(Add(), 0., f, x1, x2, dim)
