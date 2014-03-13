@@ -109,6 +109,6 @@ You can notice remarkable speed up for many of these functions.
 
 #### Documentation
 
-Please refer to [here](http://lindahua.github.io/NumericExtensions.jl/index.html) for detailed documentation.
+Please refer to [here](http://numericextensionsjl.readthedocs.org/en/latest/) for detailed documentation.
 
 
