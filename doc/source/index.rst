@@ -24,7 +24,6 @@ Documentation of NumericExtensions.jl
     functors.rst
     map.rst
     vbroadcast.rst
-    transforms.rst
     reduction.rst
     norms.rst
     scan.rst
