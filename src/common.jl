@@ -16,6 +16,7 @@ typealias ContiguousNumericArray{T<:Number} ContiguousArray{T}
 typealias ContiguousRealArray{T<:Real} ContiguousArray{T}
 
 typealias DimSpec Union(Int,Dims,Vector{Int})
+typealias BlasFP Union(Float32,Float64)
 
 parent(a::Number) = a
 stride(a::Number, d::Int) = 1
@@ -29,4 +30,15 @@ lt_or_nan(s::Number, x) = (s < x)
 
 gt_or_nan(s::FloatingPoint, x) = (s > x || s != s)
 lt_or_nan(s::FloatingPoint, x) = (s < x || s != s)
+
+type _Max <: Functor{2} end
+evaluate{T<:Real}(::_Max, x::T, y::T) = ifelse(y > x, y, x)
+
+type NonnegMax <: Functor{2} end
+evaluate{T<:Real}(::NonnegMax, x::T, y::T) = ifelse(y > x, y, x)
+
+type _Min <: Functor{2} end
+evaluate{T<:Real}(::_Min, x::T, y::T) = ifelse(y < x, y, x)
+
+result_type{T<:Real}(::Union(_Max,_Min,NonnegMax), ::Type{T}, ::Type{T}) = T
 

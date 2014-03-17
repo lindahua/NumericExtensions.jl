@@ -1,5 +1,6 @@
 # testing of reduction kernels
 
+using NumericFunctors
 using NumericExtensions
 import NumericExtensions: safe_sum, safe_max, safe_min
 import NumericExtensions: saccum, saccum_fdiff, paccum!, paccum_fdiff!

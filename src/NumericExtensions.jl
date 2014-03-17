@@ -1,6 +1,7 @@
 module NumericExtensions
 
     using ArrayViews
+    using NumericFunctors
 
     # size information
     import Base: size, length, ndims, isempty, stride
@@ -26,12 +27,22 @@ module NumericExtensions
     # statistics
     import Base: mean, var, varm, std, stdm
 
-    # views
-    import ArrayViews: view, ellipview, offset
+    # from ArrayViews
+    import ArrayViews: view, ellipview
+
+    # from NumericFunctors
+    import NumericFunctors: evaluate, result_type, logsumexp
 
     export 
         # reexport views
         view, ellipview,
+
+        # re-export functor-related methods
+        fptype, arithtype, evaluate, result_type,
+
+        # re-export mathfuns
+        sqr, rcp, rsqrt, rcbrt, xlogx, xlogy, 
+        sigmoid, logit, softplus, invsoftplus, logsumexp,
 
         # shapes
         mapshape, maplength,
@@ -40,7 +51,7 @@ module NumericExtensions
         view, unsafe_view,
 
         # mathfuns
-        sqr, rcp, rsqrt, rcbrt, 
+         
         logit, xlogx, xlogy, logistic, invlogistic, softplus, invsoftplus,
 
         # functors
@@ -104,8 +115,6 @@ module NumericExtensions
 
     include("common.jl")
     include("shapes.jl")
-    include("mathfuns.jl")
-    include("functors.jl")
     include("codegen.jl")
 
     include("mapkernels.jl")

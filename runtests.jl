@@ -2,8 +2,6 @@
 
 tests = [ "shapes", 
           "diagop",
-          "mathfuns", 
-          "functors",
           "map",
           "vbroadcast",
           "utils",

@@ -1,5 +1,6 @@
 # Test reduction
 
+using NumericFunctors
 using NumericExtensions
 using Base.Test
 
