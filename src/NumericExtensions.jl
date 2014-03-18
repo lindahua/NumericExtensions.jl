@@ -1,7 +1,7 @@
 module NumericExtensions
 
     using ArrayViews
-    using NumericFunctors
+    using NumericFuns
 
     # size information
     import Base: size, length, ndims, isempty, stride
@@ -30,8 +30,8 @@ module NumericExtensions
     # from ArrayViews
     import ArrayViews: view, ellipview
 
-    # from NumericFunctors
-    import NumericFunctors: evaluate, result_type, logsumexp
+    # from NumericFuns
+    import NumericFuns: evaluate, result_type, logsumexp
 
     export 
         # reexport views

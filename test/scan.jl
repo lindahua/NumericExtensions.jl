@@ -1,6 +1,6 @@
 # Unit testing for scanning functions
 
-using NumericFunctors
+using NumericFuns
 using NumericExtensions
 using Base.Test
 
