@@ -52,7 +52,7 @@ end
 # data preparation
 
 a2 = randn(1000, 1000)
-b2 = rand(1000, 1000) + 0.5
+b2 = rand(1000, 1000) .+ 0.5
 u = randn(1000)
 
 #################################################
@@ -111,12 +111,12 @@ _var(x::Array, d::DIMS) = var(x, d)
 _std(x::Array) = std(x)
 _std(x::Array, d::DIMS) = std(x, d)
 
-_logsumexp(x::Array) = (u = maximum(x); log(sum(exp(x - u))) + u)
+_logsumexp(x::Array) = (u = maximum(x); log(sum(exp(x .- u))) .+ u)
 _logsumexp(x::Array, d::DIMS) = (u = maximum(x, d); log(sum(exp(x .- u))) .+ u)
 
 function _softmax(x::Array)
     u = maximum(x)
-    r = exp(x - u)
+    r = exp(x .- u)
     r / sum(r)
 end
 
