@@ -1,5 +1,6 @@
 # Benchmark on map
 
+using NumericFuns
 using NumericExtensions
 
 macro bench_map1(name, rp, f1, f2)
@@ -62,13 +63,13 @@ end
 # data
 
 a = rand(1000, 1000)
-b = rand(1000, 1000) + 0.5
+b = rand(1000, 1000) .+ 0.5
 c = rand(1000, 1000)
 
 const perftable = BenchmarkTable("Comparison of element-wise map", ["Julia-expr", "Functor-map", "gain"])
 
 add_map(a::Array, b::Array) = map(Add(), a, b)
-@bench_map2("add", 10, +, add_map)
+@bench_map2("add", 10, .+, add_map)
 
 mul_map(a::Array, b::Array) = map(Multiply(), a, b)
 @bench_map2("multiply", 10, .*, mul_map)
@@ -101,13 +102,13 @@ exp_map(a::Array) = map(ExpFun(), a)
 log_map(a::Array) = map(LogFun(), a)
 @bench_map1("log", 10, log, log_map)
 
-ju_absdiff(a::Array, b::Array) = abs(a - b)
+ju_absdiff(a::Array, b::Array) = abs(a .- b)
 @bench_map2("absdiff", 10, ju_absdiff, absdiff)
 
-ju_sqrdiff(a::Array, b::Array) = abs2(a - b)
+ju_sqrdiff(a::Array, b::Array) = abs2(a .- b)
 @bench_map2("sqrdiff", 10, ju_sqrdiff, sqrdiff)
 
-ju_fma(a::Array, b::Array, c::Array) = a + b .* c
+ju_fma(a::Array, b::Array, c::Array) = a .+ b .* c
 @bench_map3("fma", 10, ju_fma, fma)
 
 println()
