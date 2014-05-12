@@ -81,7 +81,6 @@ for a in arrs_a
     nd = ndims(a)
     for reg in tdims[nd]
         # println("ND = $nd, siz = $(size(a)): region = $(reg)")
-        # println("which: $(which(sum, a, reg))")
         saferes = safe_sumdim(a, reg)
         @test_approx_eq sum(a, reg) saferes
         @test_approx_eq do_sum(a, reg) saferes
@@ -99,14 +98,14 @@ for a in arrs_a
         @test_approx_eq mean(a, reg) saferes
         @test_approx_eq do_mean(a, reg) saferes
 
-        @test_approx_eq sumabs(a, reg) sum(abs(a), reg)
-        @test_approx_eq do_sumabs(a, reg) sum(abs(a), reg)
+        @test_approx_eq sumabs(a, reg) sum(abs(copy(a)), reg)
+        @test_approx_eq do_sumabs(a, reg) sum(abs(copy(a)), reg)
 
-        @test_approx_eq maxabs(a, reg) maximum(abs(a), reg)
-        @test_approx_eq minabs(a, reg) minimum(abs(a), reg)
-        @test_approx_eq meanabs(a, reg) mean(abs(a), reg)
-        @test_approx_eq sumsq(a, reg) sum(abs2(a), reg)
-        @test_approx_eq meansq(a, reg) mean(abs2(a), reg)
+        @test_approx_eq maxabs(a, reg) maximum(abs(copy(a)), reg)
+        @test_approx_eq minabs(a, reg) minimum(abs(copy(a)), reg)
+        @test_approx_eq meanabs(a, reg) mean(abs(copy(a)), reg)
+        @test_approx_eq sumsq(a, reg) sum(abs2(copy(a)), reg)
+        @test_approx_eq meansq(a, reg) mean(abs2(copy(a)), reg)
     end
 end
 
