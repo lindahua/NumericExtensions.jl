@@ -84,8 +84,8 @@ x = randn(3, 4)
 
 # maximum & minimum
 
-@test_throws maximum(Int[])
-@test_throws minimum(Int[])
+@test_throws ErrorException maximum(Int[])
+@test_throws ErrorException minimum(Int[])
 
 @test maximum([4, 5, 2, 3]) === 5
 @test minimum([4, 5, 2, 3]) === 2
