@@ -10,7 +10,7 @@ module NumericExtensions
     import Base: start, next, done, getindex, setindex!
 
     # common operations
-    import Base: show, add!, copy, similar, pointer, parent, diagm
+    import Base: show, copy, similar, pointer, parent, diagm
 
     # higher-level map & reduction functions to be extended
     import Base: map, map!, reduce, reducedim, mapreduce, foldl, foldr
@@ -22,10 +22,10 @@ module NumericExtensions
     import Base: sum, sum!, prod, prod!, maximum, maximum!, minimum, minimum!, dot, norm
 
     # scan functions to be extended
-    import Base: cumsum, cummax, cummin, cumprod
+    import Base: cumsum, cumsum!, cummax, cummin, cumprod
 
     # statistics
-    import Base: mean, var, varm, std, stdm
+    import Base: mean, mean!, var, varm, std, stdm
 
     # from ArrayViews
     import ArrayViews: view, ellipview
