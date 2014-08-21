@@ -8,7 +8,7 @@ Basic reduction functions
 
 The package extends/specializes ``sum``, ``mean``, ``max``, and ``min``, not only providing substantially better performance, but also allowing reduction over function results. It also provides ``sum!``, ``mean!``, ``max!``, and ``min!``, which allow writing results to pre-allocated storage when performing reduction along specific dimensions.
 
-The funtion ``sum`` and its variant forms:
+The function ``sum`` and its variant forms:
 
 .. code-block:: julia 
 
@@ -31,7 +31,7 @@ The funtion ``sum`` and its variant forms:
     sumfdiff(f2, x, y, dim)
     sumfdiff!(dst, f2, x, y, dim)
 
-The funtion ``mean`` and its variant forms:
+The function ``mean`` and its variant forms:
 
 .. code-block:: julia 
 
