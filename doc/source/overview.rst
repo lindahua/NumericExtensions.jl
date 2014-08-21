@@ -18,7 +18,7 @@ Whereas this is simple, this expression involves some unnecessary operations tha
 
     r = mapreduce((x, y) -> abs2(x - y), +, x, y)
 
-However, if you really run this you may probably find that this is even slower. The culprit here is that the anonymous function ``(x, y) -> abs2(x - y)`` is not lined, which will be resolved and called at each iteration. Therefore, to compute this efficiently, one has to write loops as below
+However, if you really run this you may probably find that this is even slower. The culprit here is that the anonymous function ``(x, y) -> abs2(x - y)`` is not inlined; it will be resolved and called at each iteration. Therefore, to compute this efficiently, one has to write loops as below
 
 .. code-block:: julia
 
@@ -43,7 +43,7 @@ With this package, we can compute this efficiently without writing loops, as
     r = sumabsdiff(x, y, dim)
 
     
-Here, ``Abs2Fun`` and ``Add`` are *typed functors* provided by this package, which, unlike normal functions, can still be properly inlined with passed into a higher order function (thus causing zero overhead). This package extends ``map``, ``foldl``, ``foldr``, ``sum``, and so on to accept typed functors and as well introduces additional high order functions like ``sumfdiff`` and ``scan`` etc to simplify the usage in common cases. 
+Here, ``Abs2Fun`` and ``Add`` are *typed functors* provided by this package, which, unlike normal functions, can still be properly inlined when passed into a higher order function (thus causing zero overhead). This package extends ``map``, ``foldl``, ``foldr``, ``sum``, and so on to accept typed functors and as well introduces additional higher order functions like ``sumfdiff`` and ``scan`` etc to simplify the usage in common cases. 
 
 Benchmark shows that writing in this way is over *9x faster* than ``sum(abs2(x - y))``.
 
@@ -60,7 +60,7 @@ Main features of this package are highlighted below:
 * Vector broadcasting computation (supporting both inplace updating and writing results to new arrays).
 * Fast shared-memory views of arrays.
 
-SinFunce many of the methods are extensions of base functions. Simply adding a statement ``using NumericExtensions`` is often enough for substantial performance improvement. Consider the following code snippet:
+Many of the methods are extensions of base functions. Simply adding a statement ``using NumericExtensions`` is often enough for substantial performance improvement. Consider the following code snippet:
 
 .. code-block:: julia
 
