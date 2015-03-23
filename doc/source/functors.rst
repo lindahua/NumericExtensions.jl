@@ -33,7 +33,7 @@ This package addresses this issue through *type functors* (*i.e.* function-like 
     using NumericExtensions
 
      # benchmark
-    @time for i in 1 : 10 map(Add(), a, b) end     # -- statement(1)
+    @time for i in 1 : 10 map(NumericExtensions.Add(), a, b) end     # -- statement(1)
     @time for i in 1 : 10 a + b end                # -- statement(2)
 
 
