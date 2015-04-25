@@ -38,7 +38,7 @@ function eachrepeat{T,I<:Integer}(x::AbstractVector{T}, rt::AbstractArray{I})
     return r
 end
 
-function eachrepeat{T}(x::AbstractMatrix{T}, rt::(Int, Int))
+function eachrepeat{T}(x::AbstractMatrix{T}, rt::@compat(Tuple{Int,Int}))
     mx = size(x, 1)
     nx = size(x, 2)
     r1::Int = rt[1]

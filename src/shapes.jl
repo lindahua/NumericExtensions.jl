@@ -41,12 +41,12 @@ function mapshape{N1,N2}(s1::NTuple{N1,Int}, s2::NTuple{N2,Int})
     end
 end
 
-mapshape(s1::(), s2::()) = ()
-mapshape(s1::Dims, s2::()) = s1
-mapshape(s1::(), s2::Dims) = s2
+mapshape(s1::@compat(Tuple{}), s2::@compat(Tuple{})) = ()
+mapshape(s1::Dims, s2::@compat(Tuple{})) = s1
+mapshape(s1::@compat(Tuple{}), s2::Dims) = s2
 
-mapshape(s1::(Int,Int), s2::(Int,)) = ((s1[1] == s2[1] && s1[2] == 1) || error("Argument dimensions are not map-compatible."); s1)
-mapshape(s1::(Int,), s2::(Int,Int)) = ((s1[1] == s2[1] && s2[2] == 1) || error("Argument dimensions are not map-compatible."); s2)
+mapshape(s1::@compat(Tuple{Int,Int}), s2::@compat(Tuple{Int})) = ((s1[1] == s2[1] && s1[2] == 1) || error("Argument dimensions are not map-compatible."); s1)
+mapshape(s1::@compat(Tuple{Int}), s2::@compat(Tuple{Int,Int})) = ((s1[1] == s2[1] && s2[2] == 1) || error("Argument dimensions are not map-compatible."); s2)
 
 mapshape(s1::Dims, s2::Dims, s3::Dims, rs::Dims...) = mapshape(mapshape(s1, s2), mapshape(s3, rs...))
 

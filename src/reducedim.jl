@@ -163,7 +163,7 @@ macro compose_reducedim(fun, AN)
                 m = insiz[1]::Int
                 n = insiz[2]::Int
                 $(he.getstrides2)
-                sdst1, sdst2 = strides(dst)::(Int, Int)
+                sdst1, sdst2 = strides(dst)::@compat(Tuple{Int, Int})
                 $(he.getoffsets)
                 idst = offset(dst) + 1
                 $(_funimpl2d!)(op, rtup[2], rtup[1], m, n, parent(dst), idst, sdst1, sdst2, $(he.imargs2d...))
@@ -262,7 +262,7 @@ end
 # avoid the ambiguities with BitArrays
 
 _rlen(siz::Dims, d::Int) = siz[d]
-_rlen(siz::Dims, reg::(Int,Int)) = siz[reg[1]] * siz[reg[2]]
+_rlen(siz::Dims, reg::@compat(Tuple{Int,Int})) = siz[reg[1]] * siz[reg[2]]
 function _rlen(siz::Dims, reg::Dims) 
     p = 1
     for d in reg

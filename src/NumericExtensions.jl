@@ -2,6 +2,7 @@ module NumericExtensions
 
     using ArrayViews
     using NumericFuns
+    using Compat
 
     # size information
     import Base: size, length, ndims, isempty, stride
