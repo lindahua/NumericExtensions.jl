@@ -10,7 +10,7 @@ function _vbroadcast_eachcol!(m::Int, n::Int, f::Functor{2}, r::ContiguousArray,
             @inbounds r[o+i] = evaluate(f, a[o+i], b[i])
         end
         o += m
-    end 
+    end
 end
 
 function _vbroadcast_eachrow!(m::Int, n::Int, f::Functor{2}, r::ContiguousArray, a::ContiguousArray, b::ContiguousArray)
@@ -24,7 +24,7 @@ function _vbroadcast_eachrow!(m::Int, n::Int, f::Functor{2}, r::ContiguousArray,
     end
 end
 
-function _vbroadcast3!{T}(m::Int, n::Int, k::Int, 
+function _vbroadcast3!{T}(m::Int, n::Int, k::Int,
     f::Functor{2}, r::ContiguousArray, a::ContiguousArray{T,3}, b::ContiguousArray)
 
     for l = 1 : k
@@ -37,7 +37,7 @@ function vbroadcast!(f::Functor{2}, r::ContiguousArray, a::ContiguousArray, b::C
     nd = ndims(a)
     size(r) == shp && size(a, dim) == length(b) || error("Inconsistent argument dimensions.")
     1 <= dim <= nd || error("Invalid value of dim.")
-    
+
     if dim == 1
         m = shp[1]
         n = succ_length(shp, 1)
@@ -49,7 +49,7 @@ function vbroadcast!(f::Functor{2}, r::ContiguousArray, a::ContiguousArray, b::C
         if k == 1
             _vbroadcast_eachrow!(m, n, f, r, a, b)
         else
-            _vbroadcast3!(m, n, k, f, contiguous_view(r, (m,n,k)), a, b)
+            _vbroadcast3!(m, n, k, f, ContiguousView(r, (m,n,k)), a, b)
         end
     end
     return r
@@ -74,4 +74,3 @@ badd(a::ContiguousArray, b::ContiguousArray, dim::Int) = vbroadcast(Add(), a, b,
 bsubtract(a::ContiguousArray, b::ContiguousArray, dim::Int) = vbroadcast(Subtract(), a, b, dim)
 bmultiply(a::ContiguousArray, b::ContiguousArray, dim::Int) = vbroadcast(Multiply(), a, b, dim)
 bdivide(a::ContiguousArray, b::ContiguousArray, dim::Int) = vbroadcast(Divide(), a, b, dim)
-

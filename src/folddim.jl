@@ -7,8 +7,8 @@
 
 import ArrayViews: parent, offset
 offset_view(a::Number, ::Int, ::Int, ::Int) = a
-offset_view(a::ContiguousArray, o::Int, m::Int) = contiguous_view(parent(a), offset(a) + o, (m,))
-offset_view(a::ContiguousArray, o::Int, m::Int, n::Int) = contiguous_view(parent(a), offset(a) + o, (m, n))
+offset_view(a::ContiguousArray, o::Int, m::Int) = ContiguousView(parent(a), offset(a) + o, (m,))
+offset_view(a::ContiguousArray, o::Int, m::Int, n::Int) = ContiguousView(parent(a), offset(a) + o, (m, n))
 
 #################################################
 #
@@ -44,7 +44,7 @@ function generate_reducedim_codes(AN::Int, accum::Symbol, reducty)
     _accum_eachrow! = symbol("_$(accum)_eachrow!")
     _accum = symbol("_$(accum)")
     _accum! = symbol("_$(accum)!")
-    accum! = symbol("$(accum)!")    
+    accum! = symbol("$(accum)!")
 
     # code preparation
     h = codegen_helper(AN)
@@ -70,9 +70,9 @@ function generate_reducedim_codes(AN::Int, accum::Symbol, reducty)
                 end
             else
                 $(emptyreduc_code(reducty, :r, :R, :n))
-            end 
+            end
         end
-    
+
         global $(_accum_eachrow!)
         function $(_accum_eachrow!){R<:Number}(m::Int, n::Int, r::ContiguousArray{R}, $(exparams...), $(aparams...))
             if n > 0
@@ -82,7 +82,7 @@ function generate_reducedim_codes(AN::Int, accum::Symbol, reducty)
                 end
 
                 offset = m
-                for j = 2 : n           
+                for j = 2 : n
                     for i = 1 : m
                         idx = offset + i
                         @inbounds vi = $(h.term(:idx))
@@ -98,7 +98,7 @@ function generate_reducedim_codes(AN::Int, accum::Symbol, reducty)
         global $(_accum!)
         function $(_accum!)(r::ContiguousArray, $(exparams...), $(aparams...), dim::Int)
             shp = $(h.inputsize)
-            
+
             if dim == 1
                 m = shp[1]
                 n = succ_length(shp, 1)
@@ -136,7 +136,7 @@ function generate_reducedim_codes(AN::Int, accum::Symbol, reducty)
         function $(accum)($(exparams...), $(aparams...), dim::Int)
             rshp = Base.reduced_dims($(h.inputsize), dim)
             $(_accum!)(Array($(h.termtype), rshp), $(exargs...), $(h.args...), dim)
-        end 
+        end
     end
 end
 
@@ -160,4 +160,3 @@ end
 @code_reducedim 2 foldl FoldlReduc
 @code_reducedim 3 foldl FoldlReduc
 @code_reducedim (-2) foldl_fdiff FoldlReduc
-
