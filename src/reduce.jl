@@ -86,10 +86,10 @@ end
 reduceinit{T<:Number}(::Add, ::Type{T}) = zero(T)
 reduceinit{T<:Unsigned}(::Add, ::Type{T}) = uint(0)
 reduceinit{T<:Signed}(::Add, ::Type{T}) = 0
-reduceinit(::Add, ::Type{Int64}) = int64(0)
-reduceinit(::Add, ::Type{Uint64}) = uint64(0)
-reduceinit(::Add, ::Type{Int128}) = int128(0)
-reduceinit(::Add, ::Type{Uint128}) = uint128(0)
+reduceinit(::Add, ::Type{Int64}) = @compat(Int64(0))
+reduceinit(::Add, ::Type{Uint64}) = @compat(Uint64(0))
+reduceinit(::Add, ::Type{Int128}) = @compat(Int128(0))
+reduceinit(::Add, ::Type{Uint128}) = @compat(Uint128(0))
 reduceinit(::Add, ::Type{Bool}) = 0
 
 reduceinit{T<:Real}(::_Max, ::Type{T}) = typemin(T)

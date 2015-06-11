@@ -43,8 +43,8 @@ vb4 = view(b4, 3:1:6, 2:6, 3:5, 2:5)
 
 ## test cases
 
-arrs_a = {a1, a2, a3, a4, ua1, va1, ua2, va2, ua3, va3, ua4, va4}
-arrs_b = {b1, b2, b3, b4, ub1, vb1, ub2, vb2, ub3, vb3, ub4, vb4}
+arrs_a = Any[a1, a2, a3, a4, ua1, va1, ua2, va2, ua3, va3, ua4, va4]
+arrs_b = Any[b1, b2, b3, b4, ub1, vb1, ub2, vb2, ub3, vb3, ub4, vb4]
 
 ## unary cases
 

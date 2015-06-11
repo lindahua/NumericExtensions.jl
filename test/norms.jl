@@ -12,15 +12,15 @@ y2 = randn(5, 6)
 x3 = randn(3, 4, 5)
 y3 = randn(3, 4, 5)
 
-xs = {x1, x2, x3}
-ys = {y1, y2, y3}
-ps = {1, 2, 3, Inf}
+xs = Any[x1, x2, x3]
+ys = Any[y1, y2, y3]
+ps = Any[1, 2, 3, Inf]
 
-tdims = {
-    {1},   # N = 1
-    {1, 2, (1, 2)}, # N = 2
-    {1, 2, 3, (1, 2), (1, 3), (2, 3), (1, 2, 3)} # N = 3
-}
+tdims = Any[
+    Any[1],   # N = 1
+    Any[1, 2, (1, 2)], # N = 2
+    Any[1, 2, 3, (1, 2), (1, 3), (2, 3), (1, 2, 3)] # N = 3
+]
 
 safe_vnorm(x, p) = p == 1 ? sum(abs(x)) :
                    p == 2 ? sqrt(sum(abs2(x))) :

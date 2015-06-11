@@ -11,9 +11,9 @@ type BenchmarkTable
     rows::Vector{Vector{Float64}}
 
     function BenchmarkTable(name::ASCIIString, colnames::Vector{ASCIIString})
-        colmap = (ASCIIString=>Int)[colnames[i] => i for i in 1 : length(colnames)]
+        colmap = Dict{ASCIIString, Int}([colnames[i] => i for i in 1 : length(colnames)])
         new(name, colnames, ASCIIString[], 
-            colmap, (ASCIIString=>Int)[], Array(Vector{Float64}, 0))
+            colmap, Dict{ASCIIString, Int}(), Array(Vector{Float64}, 0))
     end
 end
 

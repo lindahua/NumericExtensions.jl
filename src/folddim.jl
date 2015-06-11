@@ -7,8 +7,8 @@
 
 import ArrayViews: parent, offset
 offset_view(a::Number, ::Int, ::Int, ::Int) = a
-offset_view(a::ContiguousArray, o::Int, m::Int) = contiguous_view(parent(a), offset(a) + o, (m,))
-offset_view(a::ContiguousArray, o::Int, m::Int, n::Int) = contiguous_view(parent(a), offset(a) + o, (m, n))
+offset_view(a::ContiguousArray, o::Int, m::Int) = ContiguousView(parent(a), offset(a) + o, (m,))
+offset_view(a::ContiguousArray, o::Int, m::Int, n::Int) = ContiguousView(parent(a), offset(a) + o, (m, n))
 
 #################################################
 #

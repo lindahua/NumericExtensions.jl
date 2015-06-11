@@ -44,18 +44,18 @@ q2 = rand(8, 7)
 q3 = rand(8, 7, 6)
 q4 = rand(8, 7, 6, 5)
 
-arrs_a = {a1, a2, a3, a4, ua1, va1, ua2, va2, ua3, va3, ua4, va4}
-arrs_b = {b1, b2, b3, b4, ub1, vb1, ub2, vb2, ub3, vb3, ub4, vb4}
-arrs_p = {p1, p2, p3, p4}
-arrs_q = {q1, q2, q3, q4}
+arrs_a = Any[a1, a2, a3, a4, ua1, va1, ua2, va2, ua3, va3, ua4, va4]
+arrs_b = Any[b1, b2, b3, b4, ub1, vb1, ub2, vb2, ub3, vb3, ub4, vb4]
+arrs_p = Any[p1, p2, p3, p4]
+arrs_q = Any[q1, q2, q3, q4]
 
-tdims = {
-    {1},   # N = 1
-    {1, 2, (1, 2)}, # N = 2
-    {1, 2, 3, (1, 2), (1, 3), (2, 3), (1, 2, 3)}, # N = 3
-    {1, 2, 3, 4, (1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4), 
-     (1, 2, 3), (1, 2, 4), (1, 3, 4), (2, 3, 4), (1, 2, 3, 4)} # N = 4
-}
+tdims = Any[
+    Any[1],   # N = 1
+    Any[1, 2, (1, 2)], # N = 2
+    Any[1, 2, 3, (1, 2), (1, 3), (2, 3), (1, 2, 3)], # N = 3
+    Any[1, 2, 3, 4, (1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4), 
+     (1, 2, 3), (1, 2, 4), (1, 3, 4), (2, 3, 4), (1, 2, 3, 4)] # N = 4
+]
 
 
 # auxiliary
@@ -69,7 +69,7 @@ do_sum(a::DenseArray, reg) = sum!(zeros(Base.reduced_dims(size(a), reg)), a, reg
 do_maximum(a::DenseArray, reg) = maximum!(fill(-Inf, Base.reduced_dims(size(a), reg)), a, reg)
 do_minimum(a::DenseArray, reg) = minimum!(fill(Inf, Base.reduced_dims(size(a), reg)), a, reg)
 do_mean(a::DenseArray, reg) = mean!(rand(Base.reduced_dims(size(a), reg)), a, reg)
-do_sumabs(a::DenseArray, reg) = sumabs!(zeros(Base.reduced_dims(size(a), reg)), a, reg)
+do_sumabs(a::DenseArray, reg) = NumericExtensions.sumabs!(zeros(Base.reduced_dims(size(a), reg)), a, reg)
 
 # testing of basic functions
 
@@ -98,11 +98,11 @@ for a in arrs_a
         @test_approx_eq mean(a, reg) saferes
         @test_approx_eq do_mean(a, reg) saferes
 
-        @test_approx_eq sumabs(a, reg) sum(abs(copy(a)), reg)
+        @test_approx_eq NumericExtensions.sumabs(a, reg) sum(abs(copy(a)), reg)
         @test_approx_eq do_sumabs(a, reg) sum(abs(copy(a)), reg)
 
-        @test_approx_eq maxabs(a, reg) maximum(abs(copy(a)), reg)
-        @test_approx_eq minabs(a, reg) minimum(abs(copy(a)), reg)
+        @test_approx_eq NumericExtensions.maxabs(a, reg) maximum(abs(copy(a)), reg)
+        @test_approx_eq NumericExtensions.minabs(a, reg) minimum(abs(copy(a)), reg)
         @test_approx_eq meanabs(a, reg) mean(abs(copy(a)), reg)
         @test_approx_eq sumsq(a, reg) sum(abs2(copy(a)), reg)
         @test_approx_eq meansq(a, reg) mean(abs2(copy(a)), reg)

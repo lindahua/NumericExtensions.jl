@@ -52,10 +52,10 @@ for (Op, safef) in [(Add, safe_sum), (_Max, safe_max), (_Min, safe_min)]
         @test_approx_eq saccum_fdiff(Op(), n, Abs2Fun(), a, 1, v, 0) safef(abs2(a[1:n] .- v))
         @test_approx_eq saccum_fdiff(Op(), n, Abs2Fun(), v, 0, b, 1) safef(abs2(v .- b[1:n]))
 
-        @test_approx_eq saccum(Op(), n, FMA(), a, 1, b, 1, c, 1) safef(fma(a[1:n], b[1:n], c[1:n]))
-        @test_approx_eq saccum(Op(), n, FMA(), a, 3, b, 4, c, 5) safef(fma(a[3:n+2], b[4:n+3], c[5:n+4]))
-        @test_approx_eq saccum(Op(), n, FMA(), a, 1, 2, b, 1, 3, c, 1, 4) safef(fma(a[1:2:2n-1], b[1:3:3n-2], c[1:4:4n-3]))
-        @test_approx_eq saccum(Op(), n, FMA(), a, 3, 2, b, 4, 3, c, 5, 4) safef(fma(a[3:2:2n+1], b[4:3:3n+1], c[5:4:4n+1]))
+        @test_approx_eq saccum(Op(), n, FMA(), a, 1, b, 1, c, 1) safef(NumericExtensions.fma(a[1:n], b[1:n], c[1:n]))
+        @test_approx_eq saccum(Op(), n, FMA(), a, 3, b, 4, c, 5) safef(NumericExtensions.fma(a[3:n+2], b[4:n+3], c[5:n+4]))
+        @test_approx_eq saccum(Op(), n, FMA(), a, 1, 2, b, 1, 3, c, 1, 4) safef(NumericExtensions.fma(a[1:2:2n-1], b[1:3:3n-2], c[1:4:4n-3]))
+        @test_approx_eq saccum(Op(), n, FMA(), a, 3, 2, b, 4, 3, c, 5, 4) safef(NumericExtensions.fma(a[3:2:2n+1], b[4:3:3n+1], c[5:4:4n+1]))
     end
 end
 
@@ -80,7 +80,7 @@ for (Op, cf) in [(Add, +), (_Max, max), (_Min, min)]
 
         r = copy(r0[1:n])
         paccum!(Op(), n, r, 1, FMA(), a, 1, b, 1, c, 1)
-        @test_approx_eq r cf(r0[1:n], fma(a[1:n], b[1:n], c[1:n]))
+        @test_approx_eq r cf(r0[1:n], NumericExtensions.fma(a[1:n], b[1:n], c[1:n]))
 
         r = copy(r0[1:n+10])
         paccum!(Op(), n, r, 11, a, 3)
@@ -105,7 +105,7 @@ for (Op, cf) in [(Add, +), (_Max, max), (_Min, min)]
         r = copy(r0[1:n+10])
         paccum!(Op(), n, r, 11, FMA(), a, 3, b, 4, c, 5)
         @test r[1:10] == r0[1:10]
-        @test_approx_eq r[11:n+10] cf(r0[11:n+10], fma(a[3:n+2], b[4:n+3], c[5:n+4]))
+        @test_approx_eq r[11:n+10] cf(r0[11:n+10], NumericExtensions.fma(a[3:n+2], b[4:n+3], c[5:n+4]))
 
         r = copy(r0[1:4+3n])
         rc = copy(r)
@@ -145,7 +145,7 @@ for (Op, cf) in [(Add, +), (_Max, max), (_Min, min)]
         u = falses(4+3n)
         u[4:3:3n+1] = true
         @test r[~u] == rc[~u]
-        @test_approx_eq r[u] cf(rc[u], fma(a[3:2:2n+1], b[5:4:4n+1], c[6:5:5n+1]))
+        @test_approx_eq r[u] cf(rc[u], NumericExtensions.fma(a[3:2:2n+1], b[5:4:4n+1], c[6:5:5n+1]))
     end
 end
 
