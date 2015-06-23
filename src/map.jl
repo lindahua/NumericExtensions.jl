@@ -63,7 +63,7 @@ macro compose_mapfuns(fname, AN)
                 m = siz[1]::Int
                 n = siz[2]::Int
                 $(he.getstrides2)
-                sdst1, sdst2 = strides(dst)::(Int, Int)
+                sdst1, sdst2 = strides(dst)::@compat(Tuple{Int, Int})
                 $(he.getoffsets)
                 idst = offset(dst) + 1
                 if $(he.contcol) && sdst1 == 1

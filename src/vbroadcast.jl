@@ -49,7 +49,7 @@ function vbroadcast!(f::Functor{2}, r::ContiguousArray, a::ContiguousArray, b::C
         if k == 1
             _vbroadcast_eachrow!(m, n, f, r, a, b)
         else
-            _vbroadcast3!(m, n, k, f, contiguous_view(r, (m,n,k)), a, b)
+            _vbroadcast3!(m, n, k, f, ContiguousView(r, (m,n,k)), a, b)
         end
     end
     return r

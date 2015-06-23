@@ -6,6 +6,15 @@
 #
 #################################################
 
+# inplace scanning
+
+scan!(op::Functor{2}, r::ContiguousArray) = scan!(r, op, r)
+
+cumsum!(r::ContiguousNumericArray) = scan!(Add(), r)
+cummax!(r::ContiguousNumericArray) = scan!(MaxFun(), r)
+cummin!(r::ContiguousNumericArray) = scan!(MinFun(), r)
+
+
 macro code_scan(AN)
 
     h = codegen_helper(AN)
@@ -71,13 +80,6 @@ end
 @code_scan 2
 @code_scan 3
 
-# inplace scanning
-
-scan!(op::Functor{2}, r::ContiguousArray) = scan!(r, op, r)
-
-cumsum!(r::ContiguousNumericArray) = scan!(Add(), r)
-cummax!(r::ContiguousNumericArray) = scan!(MaxFun(), r)
-cummin!(r::ContiguousNumericArray) = scan!(MinFun(), r)
 
 
 #################################################

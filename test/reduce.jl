@@ -84,8 +84,8 @@ x = randn(3, 4)
 
 # maximum & minimum
 
-@test_throws ErrorException maximum(Int[])
-@test_throws ErrorException minimum(Int[])
+@test_throws VERSION < v"0.4-"? ErrorException : ArgumentError maximum(Int[])
+@test_throws VERSION < v"0.4-"? ErrorException : ArgumentError minimum(Int[])
 
 @test maximum([4, 5, 2, 3]) === 5
 @test minimum([4, 5, 2, 3]) === 2
@@ -100,19 +100,19 @@ x = randn(3, 4)
 # small sample testing (for coverage)
 
 @test sumsq([2]) == 4
-@test sumsq([2:3]) == 13
-@test sumsq([2:4]) == 29
-@test sumsq([2:5]) == 54
-@test sumsq([2:6]) == 90
+@test sumsq([2,3]) == 13
+@test sumsq([2,3,4]) == 29
+@test sumsq([2,3,4,5]) == 54
+@test sumsq([2,3,4,5,6]) == 90
 
 @test meansq([2]) == 4
-@test meansq([2:3]) == 13 / 2
-@test meansq([2:4]) == 29 / 3
-@test meansq([2:5]) == 54 / 4
-@test meansq([2:6]) == 90 / 5
+@test meansq([2,3]) == 13 / 2
+@test meansq([2,3,4]) == 29 / 3
+@test meansq([2,3,4,5]) == 54 / 4
+@test meansq([2,3,4,5,6]) == 90 / 5
 
-@test maxabs([3, -5, 4, -2]) == 5
-@test minabs([3, -5, 4, -2]) == 2
+@test NumericExtensions.maxabs([3, -5, 4, -2]) == 5
+@test NumericExtensions.minabs([3, -5, 4, -2]) == 2
 
 @test dot([1, 2, 3], [4, 5, 6]) === 32
 
@@ -124,9 +124,9 @@ z = randn(3, 4)
 p = rand(3, 4)
 q = rand(3, 4)
 
-@test_approx_eq sumabs(x) sum(abs(x))
-@test_approx_eq maxabs(x) maximum(abs(x))
-@test_approx_eq minabs(x) minimum(abs(x))
+@test_approx_eq NumericExtensions.sumabs(x) sum(abs(x))
+@test_approx_eq NumericExtensions.maxabs(x) maximum(abs(x))
+@test_approx_eq NumericExtensions.minabs(x) minimum(abs(x))
 @test_approx_eq meanabs(x) mean(abs(x))
 
 @test_approx_eq sumsq(x) sum(abs2(x))
@@ -198,21 +198,21 @@ q = rand(3, 4)
 
 # folding
 
-@test_approx_eq foldl(Subtract(), 10, Abs2Fun(), [1:4]) (-20)
-@test_approx_eq foldr(Subtract(), 10, Abs2Fun(), [1:4]) 0
+@test_approx_eq foldl(Subtract(), 10, Abs2Fun(), [1,2,3,4]) (-20)
+@test_approx_eq foldr(Subtract(), 10, Abs2Fun(), [1,2,3,4]) 0
 
-@test_approx_eq foldl(Subtract(), 10, Multiply(), [1:4], [1:4]) (-20)
-@test_approx_eq foldr(Subtract(), 10, Multiply(), [1:4], [1:4]) 0
+@test_approx_eq foldl(Subtract(), 10, Multiply(), [1,2,3,4], [1,2,3,4]) (-20)
+@test_approx_eq foldr(Subtract(), 10, Multiply(), [1,2,3,4], [1,2,3,4]) 0
 
-@test_approx_eq foldl_fdiff(Subtract(), 10, Abs2Fun(), [1:4], zeros(Int,4)) (-20)
-@test_approx_eq foldr_fdiff(Subtract(), 10, Abs2Fun(), [1:4], zeros(Int,4)) 0
+@test_approx_eq foldl_fdiff(Subtract(), 10, Abs2Fun(), [1,2,3,4], zeros(Int,4)) (-20)
+@test_approx_eq foldr_fdiff(Subtract(), 10, Abs2Fun(), [1,2,3,4], zeros(Int,4)) 0
 
-@test_approx_eq foldl(Subtract(), Abs2Fun(), [1:4]) (-28)
-@test_approx_eq foldr(Subtract(), Abs2Fun(), [1:4]) (-10)
+@test_approx_eq foldl(Subtract(), Abs2Fun(), [1,2,3,4]) (-28)
+@test_approx_eq foldr(Subtract(), Abs2Fun(), [1,2,3,4]) (-10)
 
-@test_approx_eq foldl(Subtract(), Multiply(), [1:4], [1:4]) (-28)
-@test_approx_eq foldr(Subtract(), Multiply(), [1:4], [1:4]) (-10)
+@test_approx_eq foldl(Subtract(), Multiply(), [1,2,3,4], [1,2,3,4]) (-28)
+@test_approx_eq foldr(Subtract(), Multiply(), [1,2,3,4], [1,2,3,4]) (-10)
 
-@test_approx_eq foldl_fdiff(Subtract(), Abs2Fun(), [1:4], zeros(Int,4)) (-28)
-@test_approx_eq foldr_fdiff(Subtract(), Abs2Fun(), [1:4], zeros(Int,4)) (-10)
+@test_approx_eq foldl_fdiff(Subtract(), Abs2Fun(), [1,2,3,4], zeros(Int,4)) (-28)
+@test_approx_eq foldr_fdiff(Subtract(), Abs2Fun(), [1,2,3,4], zeros(Int,4)) (-10)
 
