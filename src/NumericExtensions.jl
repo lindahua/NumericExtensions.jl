@@ -1,5 +1,10 @@
 module NumericExtensions
 
+    warn("""
+    A majority of the functionalities implemented in this package has been available & optimized in Julia Base.
+    This package is no longer actively developed (except for occasional bugfixes).
+    Please consider removing the dependency on NumericExtensions and using the functions in JuliaBase instead.""")
+
     using ArrayViews
     using NumericFuns
     using Compat
